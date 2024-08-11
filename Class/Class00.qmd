@@ -1,0 +1,327 @@
+---
+title: "Econometría: Evaluación de Impacto"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte <br>{{< fa link >}} [Website: https://carlosyanes.netlify.app/](https://carlosyanes.netlify.app/)"
+orcid: 0000-0003-0683-3727
+title-slide-attributes:
+  data-background-image: "img/fondmast.jpg"
+  data-background-size: cover
+  data-background-opacity: "0.25"
+format: 
+  revealjs:
+    theme: [opts.scss]
+    mainfont: "Atkinson Hylerlegible"
+    fontcolor: "#22304E"
+    linkcolor: "#80a9d7"
+editor: visual
+---
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, gapminder, tinytex)
+
+library(tidyverse)
+library(babynames)
+library(fontawesome) # from github: https://github.com/rstudio/fontawesome
+library(DiagrammeR)
+library(hrbrthemes)
+library(plotly)
+
+# Definir colores
+red_pink <- "#e64173"
+met_slate <- "#272822" # metropolis font color 
+purple <- "#9370DB"
+green <- "#007935"
+light_green <- "#7DBA97"
+orange <- "#FD5F00"
+turquoise <- "#44C1C4"
+# Notes directory
+dir_slides <- "~/Documents/Trabajo en R/Con Mac/Microeconomics/pmicroeconomics/Files/Clase 1/"
+
+
+
+# Knitr options
+
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+
+theme_gif <- theme_bw() + theme(
+  axis.line = element_line(color = met_slate),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  text = element_text(family = "Fira Sans", color = met_slate, size = 17),
+  axis.text.x = element_text(size = 12),
+  axis.text.y = element_text(size = 12),
+  axis.ticks = element_blank()
+)
+wrapper <- function(x, ...) paste(strwrap(x, ...), collapse = "\n")
+```
+
+# Introducción
+
+## Presentación
+
+![](img/fotcy.png){fig-align="left" style="border-radius: 50%;"}
+
+`r fa('address-book')` [Carlos Andrés Yanes Guerra](https://www.linkedin.com/in/carlos-andres-yanes-guerra-0026bb31/?originalSubdomain=co)
+
+`r fa('x-twitter')` [Keynes37](https://x.com/keynes37)
+
+`r fa('envelope')` [cayanes\@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+
+`r fa('github')` [Github](https://github.com/keynes37)
+
+`r fa('google')` [Google Scholar](https://scholar.google.com/citations?user=NlFSQDwAAAAJ&hl=es)
+
+`r fa('graduation-cap')` Profesor Asistente en el Departamento de Economía Uninorte. **Bloque D** Oficina: 2-15.
+
+`r fa('book')` Microeconomía, Econometría y Ciencia de datos
+
+## Esquema del Curso
+
+-   Clases online: [la asistencia a ellas es muy importante]{.bg style="--col: #FFFF00"}
+-   Notas y calificaciones:
+
+::: fragment
+Un cuadro que requiere de [atención]{.fg style="--col: #FF0000"} 🧐
+
+| Requerimientos     | Fechas        | Ponderador     |
+|--------------------|---------------|----------------|
+| Actividades        | Referenciadas | 20% (cada una) |
+| Participación      | A solicitud   | 10%            |
+| Lectura dirigida   | Profesor Mola | 30%            |
+
+♠ Las [notas]{.fg style="--col: #FF8000"} son totalmente individuales
+:::
+
+## Esquema del Curso
+
+-   Dedicado a la teoría relevante de la Econometría
+-   Las clases tienen [Ejemplos]{.fg style="--col: #FF8000"}, *explicación o claridad* de casos de [Evaluación de impacto]{.fg style="--col: #FF8000"}  y desde luego la parte de que deben desarrollar cada uno de los estudiantes.
+-   El aprendizaje es autónomo. No es un [curso]{.alert} mas como -*los cursos de pandemia*-
+-   Se requiere por **obligación** hacer uso de `r fa('video')` cuando interactue con el profesor.
+-   Por ello, [este curso]{.fg style="--col: #FF8000"} combinará [teoría]{.fg style="--col: #0000FF"} con análisis del mundo real. Para esto, tendrá una visión mas completa en la aplicación del análisis cuantitativo.
+
+## Esquema del Curso
+
+## Esquema del Curso
+
+Lo que debe hacer siempre
+
+::: columns
+::: {.column width="47.5%"}
+::: {style="text-align: center;"}
+![](img/study.png){fig-align="center"} [{{< fa brands cc-visa >}}]{style="font-size: 100px;color: #3564B1"}
+:::
+:::
+
+::: {.column width="5%"}
+::: {style="text-align: center; font-size: 40px;"}
+<br><br> {{< fa arrow-right >}}
+:::
+:::
+
+::: {.column width="47.5%"}
+::: {style="text-align: center; font-size: 190px;"}
+[{{< fa brands wpforms >}}]{style="color: #d35836"}
+:::
+:::
+:::
+
+P.e. Leer cada una de las partes del curso situadas en el Brightspace, desarrollar las actividades (hacer controles) y estar pendientes de las explicaciones.
+
+## Esquema del Curso
+
+```{=html}
+<iframe src="https://mixtape.scunning.com/01-introduction#what-is-causal-inference" title="Causal Inference" width="1100px" height="600px"></iframe>
+```
+
+# Preliminar
+
+## Preliminar
+
+- La **evaluación** es increíblemente útil.
+
+- La **evaluación de políticas** es cada vez más utilizada por las distintas instituciones (FMI, BID, BM) que promueven el desarrollo.
+
+- La **evaluación de políticas** puede utilizarse para mejorar el bienestar social de una nación, sociedad, aldea, etc.
+
+## Preliminar
+
+#### Objetivos del curso
+
+::: incremental
+- Buscar familiarizarse con la [teoría]{.alert} y [práctica]{.oranger} de los distintos métodos de la evaluación de impacto.
+- Desarrollar una [comprensión de las ventajas]{.under} y limitaciones de los diferentes enfoques a la [evaluación del impacto]{.bg style="--col: #FFFF00"}.
+- Desarrollar la capacidad de [interpretar]{.blut} y evaluar críticamente el diseño y los [resultados]{.alert} de las políticas de intervención.
+- Poseer análisis crítico, capacidad de resolución de problemas y competencias fuertes de investigación en el ámbito de [intervenciones]{.bg style="--col: #FFFF00"} basadas en casos prácticos; poseer habilidades de programación aplicadas de lenguajes/softwares como (R y/o STATA)
+:::
+
+## Preliminar
+
+[No proporciona]{.under} conocimientos especializados y técnicos en un solo método de **evaluación**.
+
+::: fragment
+Como tampoco:
+:::
+    
+::: incremental    
+- Diseño de encuestas.
+- Muestreo.
+- Métodos  de evaluación de impacto.
+- Funciones de control.
+- Modelos de equilibrio general.
+- Aspectos prácticos del desarrollo de las intervenciones en políticas públicas.
+:::    
+
+# Evaluación
+
+## Evaluación
+
+::: fragment
+::: callout-tip
+## Concepto
+La evaluación es la valoración sistemática del **proceso**  y/o los resultados de un programa o política, en comparación con un conjunto de normas explícitas o implícitas, como medio de contribuir a la mejora del programa o la política. *Weiss*
+:::
+:::
+
+::: fragment
+::: callout-warning
+## Otro concepto
+Cualquier intento  de reunir y analizar información sobre la aplicación y los resultados de un **Programa** ... Un Programa es un conjunto de intervenciones, acciones y tratamientos, que se asignan a los participantes y se sospecha que tienen algunas consecuencias en el resultado que experimentan los participantes. *Dinardo & Lee (2011)*
+:::
+:::
+
+## Evaluación
+
+::: incremental
++ Requerimos [evidencia]{.under} de lo que funciona
+    * Presupuesto limitado y malas políticas podría ser .
+    
++ Mejorar la implementación de programas y/o políticas
+    * Diseño (elegibilidad/ beneficiarios)
+    * Operaciones (eficiencia/objetivos)
+    
++ Información clave para la sostenibilidad
+    * Suporte político
+    * Contabilidad
+:::
+
+## Evaluación
+
+#### Por qué se sufre con la econometría
+
+::: incremental
+- Porque se necesita para predecir el [futuro]{.alert}  (o bueno parte de él).
+- Porque para responder preguntas "difíciles" se requiere el  [efecto]{.oranger} de $X$ sobre $Y$ de manera independiente y "exacta".
+- Para poder [entender]{.alert} de qué están hablando todos esos locos economistas.
+:::    
+
+# Tipos de Evaluación
+
+## Tipos de Evaluación
+
+::: fragment
+- Podríamos considerar la evaluación como:[Ex-ante]{.alert} y [Ex-post]{.blut} Todd y Wolpin (2006).
+:::
+
+::: fragment
+Para lo [Ex-ante]{.alert} 
+:::
+::: fragment
+::: incremental
+- Selección de un modelo estadístico ajustado al experimento que se realiza.
+    + Los resultados son  al contexto.
+    + La credibilidad de los resultados  de la credibilidad del modelo estadístico que evalúa el experimento.
+:::
+:::
+
+## Tipos de Evaluación
+
+::: fragment    
+Para lo [Ex-post]{.blut}
+:::
+
+::: fragment
+::: incremental
+- La credibilidad depende de la validez del modelo estadístico en cuanto al comportamiento de los individuos y el medio o contexto.
+:::
+:::
+
+##  {.smaller}
+
+| Evaluación: Ex-Post | Evaluación: Ex-Ante|
+----------------------|--------------------|
+| Qué hizo el programa? Retrospectiva: Qué sucedió? | Qué piensa que el programa hará? Prospectivo/Predictivo: Qué podría suceder?|
+| Énfasis en el programa actual | Énfasis en los efectos predichos de los diferentes programas|
+| Para cuál población vamos a identificar el efecto causal? | Para cuál población queremos identificar el efecto causal? |
+| Deseable tener una inferencia causal que no dependa de un marco/modelo estructural específico | La pregunta puede ser expuesta sin tener un modelo estructural específico| 
+| La inferencia requiere de hipótesis | Las predicciones requieren de hipótesis |
+| Es deseable testear las hipótesis donde sea posible | Es deseable testear las hipótesis donde sean posibles |
+| Problemas Ex-Ante muestra la forma de cómo analizar o diseñar los programas | Las predicciones deben ser consistentes con los resultados de la evaluación Ex-post.|
+
+# Inferencia
+
+## Inferencia
+
+::: incremental
+- Usamos la [econometría]{.alert} para dos cosas:
+    + Efectos Causales.
+    + Pronósticos.
+- Los efectos [causales]{.alert} deben responder la pregunta [Qué pasa si]{.blut}
+    +  ¿Qué pasa con los conductores de vehículos si se incrementan los impuestos a la gasolina?
+    + Pronósticos
+- Buscar los mejores pronósticos "posibles". *Acá ya no nos corresponde pensar tanto en que "[causa que]{.blut}"*.
+:::
+
+## Inferencia
+
+::: fragment
+Para tener en cuenta
+:::
+
+::: fragment
+![](img/Case1.png){width=2100px}
+:::
+
+## Inferencia
+
+::: fragment
+![](img/causvscorr.jpg)
+:::
+
+## Inferencia
+
+#### Ejemplo: Películas Nicolas Cage vs Personas que se ahogan en una piscina
+
+::: fragment
+![](img/ncvspiscinadrown.PNG){width=2100px}
+:::
+
+## Gracias! por su atención {.center}
+
+#### Alguna pregunta adicional?
+
+Slides de la clase:
+
+{{< fa link >}} [Curso virtual](https://cursos.uninorte.edu.co/d2l/home/106306)
+
+{{< fa brands github >}} [keynes37](https://github.com/keynes37)
+
+## Bibliografía {.center}
+
+`r fa('book')` Angrist, Joshua et al. *Vouchers for private schooling in Colombia: Evidence from a randomized natural experiment*. In: American economic review
+92.5 (2002), pp. 1535–1558.
+
+`r fa('book')` Campbell, Donald T. *Reforms as experiments.*. In: American psychologist 24.4 (1969), p. 409.
+
+`r fa('book')` Duflo, Esther, Michael Kremer, and Jonathan Robinson. *Understanding technology adoption: Fertilizer in Western Kenya, preliminary results from field experiments*. In: Unpublished manuscript, Massachusetts Institute of Technology (2006).
+
+`r fa('book')` Heckman, James J and Jeffrey A Smith. *Assessing the case for social experiments*. In: Journal of economic perspectives 9.2 (1995), pp. 85–110.
