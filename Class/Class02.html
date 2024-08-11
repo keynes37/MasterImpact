@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Econometría</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Carlos A. Yanes Guerra" />
+    <script src="libs/header-attrs-2.11/header-attrs.js"></script>
+    <link href="libs/tile-view-0.2.6/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view-0.2.6/tile-view.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <script src="libs/clipboard-2.0.6/clipboard.min.js"></script>
+    <link href="libs/shareon-1.4.1/shareon.min.css" rel="stylesheet" />
+    <script src="libs/shareon-1.4.1/shareon.min.js"></script>
+    <link href="libs/xaringanExtra-shareagain-0.2.6/shareagain.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-shareagain-0.2.6/shareagain.js"></script>
+    <link href="libs/tabwid-1.0.0/tabwid.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="my-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **Econometría**
+----
+
+## **&lt;br/&gt; Estimador MCO**
+
+### Carlos A. Yanes Guerra
+### 2023-I
+
+
+
+---
+class: inverse, middle
+
+# Preguntas... sesión anterior? 
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+# Estimador
+
+--
+
+### Objetivo de la sesión
+
+--
+
+&gt; Estudiar las propiedades **estadísticas** del estimador MCO, a partir de lo cual se identifican las circunstancias bajo las cuales la estimación con el conjunto particular de datos que tenemos produce estimaciones que podemos interpretar de **forma causal**
+
+--
+
+### Adicional
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></svg> Miraremos las propiedades de los estimadores y las pruebas de hipótesis.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></svg> Aprenderemos de los contrastes estadísticos, sobre todo lo que tiene que ver con las distribuciones estándar como la t-student.
+
+---
+# Estimador
+
+--
+
+### Ejemplo
+
+--
+
+Queremos saber si las personas que tienen **seguro médico** gozan de una .hi[mejor] salud aquellos que no tienen seguro médico. Al fin y al cabo si tiene seguro tiene unas condiciones de acceso a servicios de salud más favorables. Para probar esta .hi-purple[hipótesis] tiene datos que provienen de una muestra aleatoria con datos del estado de salud de cada individuo y *si está* o *no* .hi[asegurado]. Como el estado de salud varía entre individuos, vamos a comparar la media de la salud de los que tienen seguro con la media de la salud de aquellos que no lo tienen, esto es:
+
+--
+
+`\begin{equation}
+E(Salud|Seguro=1)-E(Salud|Seguro=0)
+\end{equation}`
+
+--
+
+Si la función de expectativa condicional es lineal, entonces lo anterior lo podemos estudiar a partir del siguiente modelo
+
+`\begin{equation}
+Salud=\alpha+\beta Seguro+u
+\end{equation}`
+
+--
+
+Recuerde que `\((\alpha)\)` es la constante o término `\(\beta_0\)` de la ecuación lineal, al igual que `\((\beta)\)` quien es nuestro .hi[coeficiente] marginal y finalmente `\((u)\)` como los residuos de nuestro modelo.
+
+---
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="images/tableang.png" alt="Características de asegurados y no asegurados, tabla 1.1 de Angrist y Pischke (2014)" width="55%" /&gt;
+&lt;p class="caption"&gt;Características de asegurados y no asegurados, tabla 1.1 de Angrist y Pischke (2014)&lt;/p&gt;
+&lt;/div&gt;
+---
+# Estimador
+
+--
+
+Si vemos la primera línea para los .hi-orange[esposos] vemos que `\(E(Salud|Seguro=1)=4.01\)` y `\(E(Salud|Seguro=0)=3.7\)`, luego si hacemos/aplicamos la diferencia encontramos que
+
+--
+
+`\begin{equation}
+E(Salud|Seguro=1)-E(Salud|Seguro=0)=\beta=0.31
+\end{equation}`
+
+--
+
+Luego podríamos concluir que tener seguro médico mejora el estado de salud en promedio 0.31 puntos .hi[¿Será que es correcta esa interpretación?], **¿Podemos atribuir la mejor salud a la tenencia del seguro médico?**
+
+--
+
+Sabemos que dicha interpretación sería correcta si `\(E(u|Seguro)=0\)`, en otras palabras que el error no guarde ninguna relación con la tenencia del seguro. 
+
+--
+
+Para saberlo, es importante recordar que `\(u\)` recoge la **variabilidad aleatoria** en `\(Salud\)`, así como la incidencia de otras variables que son importantes para explicar el estado de salud pero que no se han incorporado de manera explícita en el modelo. Por ejemplo, se ha documentado que en general las personas de ingresos más bajos y/o en situación de *desempleo* tienden a tener un .ul[peor estado] de salud debido al estrés y las restricciones de acceso a alimentos frescos, por ejemplo. Además, es más probable que esas personas no tengan seguro médico. Lo anterior nos lleva a pensar que `\(E(u|Seguro)\neq0\)`. 
+
+---
+# Estimador
+
+--
+
+Un mejor .hi[análisis] tendría en cuenta estas variables.super[.hi-pink[&lt;span&gt;&amp;#8224;&lt;/span&gt;]], luego se plantearía el siguiente modelo
+
+.footnote[.super[.hi-pink[&lt;span&gt;&amp;#8224;&lt;/span&gt;]] Estoy suponiendo que no hay nada más que importe]
+
+`\begin{equation}
+Salud=\alpha+\beta Seguro + \gamma_1 Empleo+\gamma_2Ingreso+e
+\end{equation}`
+
+--
+
+Al sacar estas dos variables del error `\((u)\)` y colocarlas de manera explícita en el modelo tenemos que la relación entre `\(Seguro\)` y el error desaparece, se cumple el supuesto de de **independencia condicional**, CIA, y por lo tanto en este caso `\((\beta)\)` si recoge el efecto causal del aseguramiento en la salud.
+
+--
+
+Hasta ahora hemos dado vueltas sobre lo mismo, pero no hemos abordado la cuestión de cómo obtener el valor de `\((\beta)\)` con el conjunto particular de datos que tenemos. Esto nos lleva a la **regresión lineal** y el estimador de mínimos cuadrados ordinarios (MCO)
+
+---
+# Estimador
+
+--
+
+&lt;img src="Class02_files/figure-html/graph-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+# Estimador
+
+--
+
+&lt;img src="Class02_files/figure-html/graph02-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: inverse, middle
+
+# Las propiedades estadísticas del estimador MCO 
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout:true
+# Propiedades de un estimador
+
+---
+
+--
+
+Nuestro punto de partida es el modelo poblacional
+
+`\begin{equation}
+\tag{1}
+y=\beta_1+\beta_2x_2+\beta_3x_3+...+\beta_kx_k+u
+\end{equation}`
+
+--
+
+Donde donde las variables `\(y,x_2,...,x_k\)` son aleatorias y observables, y `\(u\)` es un error no observable. Los parámetros `\(\beta_1,\beta_2,...,\beta_k\)` son los que queremos .hi[estimar]. El error `\(u\)` recoge perturbaciones aleatorias, y también todo aquello que es importante para explicar `\(y\)` pero que no hemos incluido explícitamente en el modelo, es decir *variables omitidas*.
+
+---
+
+--
+
+La idea de .hi[población] no hace referencia, necesariamente, a una población física en el mundo real. Significa que si tenemos una observación para el individuo i, `\((y_i,x_i)\)`, esta la consideramos como la realización de una .ul[función de probabilidad conjunta] `\(F(y,x)\)`. Nosotros no conocemos `\(F\)`, y el propósito de la .hi[inferencia] es aprender sus características a partir de una muestra, es decir del conjunto particular de datos que tenemos.
+
+--
+
+Lo anterior significa que a partir de nuestros datos estimamos los valores de `\(\boldsymbol{\beta}\)`, y a estos los llamamos `\(\hat{\boldsymbol{\beta}}\)` El estimador MCO consiste en estimar dichos parámetros a partir de encontrar el valor de ellos tales que se minimiza la .hi-orange[diferencia al cuadrado] entre el **valor observado** y el valor predicho, con una muestra particular de datos. Esto quiere decir que son aquellos que minimizan la expresión
+
+--
+
+`$$\tag{2}
+\sum_i^n(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})^2$$`
+
+--
+
+Donde `\(i=1,...,n\)` identifica cada observación en la muestra. 
+
+---
+
+--
+
+Al tomar las condiciones del .hi[primer orden] obtenemos
+
+--
+
+
+`$$\begin{align}
+\tag{3}
+\sum_i^n(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&amp;=0\\
+\sum_i^nx_{i2}(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&amp;=0\\
+&amp;\\
+&amp;\\
+\sum_i^nx_{ik}(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&amp;=0
+\end{align}$$`
+
+--
+
+Fíjese que tenemos un sistema de `\(k\)` ecuaciones con `\(k\)` incognitas. En términos matriciales esto lo podemos escribir como
+
+--
+
+`$$\tag{4}
+\mathbf{X'}(\mathbf{y}-\mathbf{X}\boldsymbol{\hat{\beta}})=0$$`
+
+---
+
+--
+
+Donde `\(\mathbf{X}\)` es `\(n\times k\)` y recoje los datos de las variables independientes, mientras que `\(\mathbf{y}\)` es `\(n\times 1\)` y contiene los valores de la variable dependiente, y `\(\boldsymbol{\hat{\beta}}\)` es la matriz de parámetros estimados, de dimensión `\(k\times 1\)`.
+
+--
+
+La expresión anterior es equivalente a
+
+`$$\tag{5}
+\mathbf{(X'X)}\hat{\boldsymbol{\beta}}=\mathbf{X'y}$$`
+
+--
+
+Si la matriz `\(\mathbf{(X'X)}\)` es invertible entonces podemos premultiplicar a ambos lados por `\(\mathbf{(X'X)}^{-1}\)` y obtenemos
+
+--
+
+
+`$$\tag{6}
+\hat{\boldsymbol{\beta}}=\mathbf{(X'X)}^{-1}\mathbf{X'y}$$`
+
+La matriz `\(\mathbf{(X'X)}\)` es invertible si no hay colinealidad perfecta entre las variables. 
+
+--
+
+Como el valor estimado de los **parámetros** se obtuvo de una muestra particular de datos entonces debemos tener en cuenta que pudimos haber observado una muestra *diferente*, con la cual el valor puntual estimado habría sido diferente. Nuestro objetivo es obtener las **propiedades estadísticas del estimador**
+
+---
+layout: false
+class: inverse, middle
+
+# El valor esperado del estimador MCO
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+# El valor esperado del estimador MCO
+
+---
+
+--
+
+- **S1** Modelo poblacional 
+
+
+`$$y=\color{#e64173}{\beta_1}+\color{#e64173}{\beta_2}x_2+\color{#e64173}{\beta_3}x_3+...+\color{#e64173}{\beta_k}x_k+u$$`
+--
+
+
+- **S2** Tenemos una muestra aleatoria de tamaño `\(n\)`, `\(\{(x_{i1},x_{i2},...,x_{ik}):i=1,2,...,n\}\)`, es decir que las observaciones son independientes e identicamente distribuidas. Por ejemplo, el ingreso y nivel educativo del individuo `\(i\)` es independiente del individuo `\(j\)`.
+
+--
+
+- **S3** No hay colinealidad perfecta, y por lo tanto `\(\mathbf{(X'X)}\)` es invertible
+
+--
+
+- **S4** `\(E(u|x_1,x_2,...,x_k)=0\)` El valor esperado condicional del error es cero. Es decir que el error no está relacionado con las variables independientes. 
+
+--
+
+Bajo estos supuestos, podemos mostrar que 
+
+`$$\tag{7}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\boldsymbol{\beta}$$`
+
+---
+
+--
+
+Veamos. Primero tomemos el valor esperado condicional en la ecuación `\((6)\)`
+
+--
+
+`$$\tag{8}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\mathbf{(X'X)}^{-1}E(\mathbf{X'y}|\mathbf{X})$$`
+
+--
+
+Como `\(\mathbf{y}=\mathbf{X}\boldsymbol{\beta}+u\)`, entonces
+
+--
+
+
+`$$\tag{9}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\mathbf{(X'X)}^{-1}\mathbf{X'X}\boldsymbol{\beta}+\mathbf{(X'X)}^{-1}\mathbf{X'}E(u|\mathbf{X})$$`
+
+--
+
+Luego, si se cumple **S4**
+
+
+`$$\tag{10}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\boldsymbol{\beta}$$`
+
+--
+
+Es decir que el estimador es **insesgado** 😎.
+
+---
+
+--
+
+&lt;img src="Class02_files/figure-html/graphic-1.svg" style="display: block; margin: auto;" /&gt;
+---
+
+--
+
+### Sesgos del estimador
+
+--
+
+.pull-left[
+
+**Estimator insesgado:** `\(\mathop{\boldsymbol{E}}\left[ \hat{\beta} \right] = \beta\)`
+
+&lt;img src="Class02_files/figure-html/nosesgo pdf-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+--
+
+.pull-right[
+
+**Estimator sesgado:** `\(\mathop{\boldsymbol{E}}\left[ \hat{\beta} \right] \neq \beta\)`
+
+&lt;img src="Class02_files/figure-html/sesgo pdf-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+---
+layout:false
+class: inverse, middle
+
+# La varianza en estimadores 😩
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+# Mínima Varianza
+
+--
+
+Los valores esperados (medias) de las distribuciones no son lo único que importa. También nos importa la **varianza** de un estimador.
+
+--
+
+`$$\text{Var}= (\hat{\beta}) = E [(\hat{\beta} - E[\hat{\beta}])^2]$$`
+
+--
+
+Los estimadores de .hi[menor varianza] significan que vamos a obtener estimaciones más cercanas a la media en cada muestra y por ende buscarán la precisión.
+
+--
+
+**S5** Homocedasticidad, `\(Var(u|\mathbf{X})=\sigma^2\)`. Es decir que la varianza condicional del error es la misma para todos los valores de las variables explicativas.
+
+--
+
+Con **S5** entonces podemos mostrar que 
+
+`$$\tag{11}
+Var(\hat{\boldsymbol{\beta}}|\mathbf{X})=\sigma^2\mathbf{(X'X)}^{-1}$$`
+
+--
+
+Para entenderlo mejor, la varianza para un `\(\beta_j\)` particular sería
+
+--
+
+`$$Var(\hat{\beta_j}|\mathbf{X})=\dfrac{\sigma^2}{\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2(1-R_j^2)}$$`
+
+--
+
+Donde `\(R_j^2\)` es el `\(R\)`-cuadrado de una regresión de `\(x_j\)` contra las demás independiente. Entre más correlacionada esté `\(x_j\)` con las demás variables, mayor será el `\(R\)`-cuadrado.
+
+
+---
+# Mínima Varianza
+
+&lt;img src="Class02_files/figure-html/varianza en pdf-1.svg" style="display: block; margin: auto;" /&gt;
+---
+# Mínima Varianza
+
+--
+
++ Siempre habrá una especie de **intercambio** en lo que es el sesgo y la varianza de un estimador.
+
+--
+
++ Para el caso de .hi[Econometría] buscamos todo el tiempo insesgadez (consistencia).
+
+--
+
++ En otras ciencias (como data science) sin embargo hacen hincapié en la varianza.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M27.5 162.2L9 187.1h90.5l6.9-130.7-78.9 105.8zM396.3 45.7L267.7 32l135.7 147.2-7.1-133.5zM112.2 218.3l-11.2-22H9.9L234.8 458zm2-31.2h284l-81.5-88.5L256.3 33zm297.3 9.1L277.6 458l224.8-261.7h-90.9zM415.4 69L406 56.4l.9 17.3 6.1 113.4h90.3zM113.5 93.5l-4.6 85.6L244.7 32 116.1 45.7zm287.7 102.7h-290l42.4 82.9L256.3 480l144.9-283.8z"/></svg> La varianza depende de tres cosas:
+
+--
+
+- La .hi[varianza del error] `\(\sigma^2\)`. Esto es una **característica de la población**. Si se agregan más variables esta podría reducirse. Sin embargo, si el modelo ya incluye las variables relevantes, entonces ya no habría .black[nada] que agregar
+
+--
+
+-  La .hi[variabilidad muestral] de `\(x_j\)`: `\(\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2\)` Entre mayor sea la **variabilidad** menor es la .ul[varianza]. Al aumentar el tamaño de *muestra* la variabilidad se incrementa y disminuye la varianza del estimador
+
+--
+
+- El grado de **relación lineal** entre las variables independientes: `\(R_j^2\)`. Entre mayor sea la correlación la varianza es más grande. Una alta correlación significa que a pesar de tener muchos datos tengo poca información.
+
+---
+class: inverse, middle
+
+## Error estándar e inferencia 🤔
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+# Error Estandar
+
+---
+
+--
+
+Como `\(\sigma^2\)` no es observable `\(Var(\hat{\beta_j}|\mathbf{X})\)` no es computable. Para ello debo tener un **estimador insesgado** de `\(\sigma^2\)`, esto es un `\(\hat{\sigma}^2\)` tal que `\(E(\hat{\sigma}^2)=\sigma^2\)`, y por lo tanto que tengamos un estimador insesgado de la .hi[varianza del estimador]
+
+--
+
+Como `\(\sigma^2=E(u^2)\)`, entonces un estimador es la **media muestral**, promedio, de los residuales
+
+`$$\hat{\sigma}^2=\dfrac{\sum_{i=1}^n\hat{u}_i^2}{n-k}$$`
+--
+
+Luego el error estándar es
+
+--
+
+
+`$$\tag{12}
+se(\hat{\beta})=\dfrac{\hat{\sigma}}{\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2(1-R_j^2)}$$`
+
+
+.attn[Importante. La formula anterior es válida bajo el supuesto de homocedasticidad]
+
+--
+
+El próximo paso es hacer **inferencia estadística**, es decir, la realización de .hi[pruebas de hipótesis]. Para ello necesitamos la .hi[distribución muestral] de `\(\hat{\beta_j}\)`. De la ecuación `\((9)\)` es claro que la distribución muestral, condicionada en las independientes, depende del error. 
+
+---
+
+--
+
+- **S5** El error se distribuye normal con media cero y varianza `\(\sigma^2\)`: `\(u\sim N(0,\sigma^2)\)`
+
+--
+
+Bajo los supuestos anteriores y **S5**, tenemos entonces que
+
+`$$\tag{13}
+\hat{\beta}_j\sim N(\beta,Var(\hat{\beta}))$$`
+
+--
+
+Luego
+
+`$$\tag{14}
+\dfrac{\hat{\beta}_j-\beta_j}{se(\hat{\beta}_j)}\sim N(0,1)$$`
+
+---
+
+--
+
+Para hacer .hi[pruebas de hipótesis] sobre un solo parámetro usamos la ecuación `\((14)\)` pero teniendo en cuenta que `\(sd(\hat{\beta})\)` no es observable, pero su estimación es el error estándar, de donde tenemos que
+
+--
+
+`$$\tag{15}
+\dfrac{\hat{\beta}_j-\beta_j}{se(\hat{\beta}_j)}\sim t_{n-k}$$`
+
+Ahora, para probar `\(H_0:\beta_j=0\)` usamos la estadística `\(t\equiv(\hat{\beta_j}-\beta_{j,H_0})/se(\hat{\beta}_j)\)`. Esta me dice que tanto se desvia el valor estimado del valor bajo la hipótesis nula en relación a la desviación estándar.
+
+--
+
+Por ejemplo, si `\(t=1\)` decimos que el **valor estimado** es mayor a cero en una desviación estándar del estimador. Dado que se obtiene un valor puntual de `\(\hat{\beta_j}\)`, pero sabemos que pudimos haber obtenido un valor diferente con otra muestra, entonces debemos examinar la distribución de `\(\hat{\beta}_j\)` para saber que tan probable es que hubiésemos obtenido un valor estimado de cero. La **prueba** `\(t\)` permite responder esa pregunta
+
+---
+
+--
+
+### Ejemplo de modelo:
+
+
+.pull-left[
+
+```
+#&gt; # A tibble: 3 × 5
+#&gt;   term        estimate std.error statistic    p.value
+#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+#&gt; 1 (Intercept)  1.29       0.341      3.77  0.000238  
+#&gt; 2 hsGPA        0.453      0.0958     4.73  0.00000542
+#&gt; 3 ACT          0.00943    0.0108     0.875 0.383
+```
+]
+
+.pull-right[
+**Paso 1.** Estimar el modelo
+&lt;br/&gt;
+**Paso 2.** Extraer el residuo
+&lt;br/&gt;
+**Paso 3.** Calcular la varianza del residuo
+&lt;br/&gt;
+**Paso 4.** Calcular el error estándar de cada estimador
+]
+
+---
+
+--
+
+La varianza o `\((\sigma^2)\)` del error es aplicar la formula
+
+.pull-left[
+
+```r
+n=140 # tamaño de la muestra
+k=2 # Número de parámetros
+uhat&lt;-GPAres$residuals # Residuos del modelo
+u2&lt;-uhat^2
+sigmau&lt;-u2/(n-k)
+sigmau
+```
+]
+
+--
+
+.pull-right[
+
+```
+#&gt; [1] 0.3403158
+```
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></svg> Este es un insumo fuerte para realizar el resto de la inferencia con cada uno de los .ul[parámetros] del modelo. 
+]
+
+
+---
+
+--
+
+Un ejemplo para uno de los parámetros o `\((\beta's)\)` que acompañan a la regresión o modelo que hacemos:
+
+.pull-left[
+```r
+GPAres &lt;- lm(colGPA ~ hsGPA+ACT, data=gpa1) # Modelo
+n&lt;- nobs(GPAres) # Tamaño de observaciones
+k &lt;- length(GPAres$coefficients) - 1 # Grados de libertad
+R2 &lt;- summary(GPAres)$r.squared # R-cuadrado
+u&lt;- resid(GPAres)
+se &lt;- sqrt(sum(u^2)/(n-k-1))
+
+# Calcular errores estándar de los parámetros
+se_beta1 &lt;- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$hsGPA - mean(gpa1$hsGPA))^2)) * (1 / (1 - R2)))
+se_beta2 &lt;- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$ACT - mean(gpa1$ACT))^2)) * (1 / (1 - R2)))
+
+```
+]
+
+.pull-right[
+
+```
+#&gt; Error estándar para GPA: 0.09870708
+```
+
+```
+#&gt; Error estándar para ACT: 0.01110273
+```
+
+```
+#&gt; Error estándar del Modelo: 0.3403158
+```
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"/></svg> El resultado del error estándar del estimador nos permite entonces hacer la inferencia debida y tener el **estimador** real que buscamos en nuestro universo poblacional
+]
+
+---
+
+
+&lt;template id="2bdd1355-1059-44ce-8dd9-51add7b9848e"&gt;&lt;style&gt;
+.tabwid table{
+  border-spacing:0px !important;
+  border-collapse:collapse;
+  line-height:1;
+  margin-left:auto;
+  margin-right:auto;
+  border-width: 0;
+  display: table;
+  margin-top: 1.275em;
+  margin-bottom: 1.275em;
+  border-color: transparent;
+}
+.tabwid_left table{
+  margin-left:0;
+}
+.tabwid_right table{
+  margin-right:0;
+}
+.tabwid td {
+    padding: 0;
+}
+.tabwid a {
+  text-decoration: none;
+}
+.tabwid thead {
+    background-color: transparent;
+}
+.tabwid tfoot {
+    background-color: transparent;
+}
+.tabwid table tr {
+background-color: transparent;
+}
+&lt;/style&gt;&lt;div class="tabwid"&gt;&lt;style&gt;.cl-7bd1e048{}.cl-7bceb9a4{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-7bceb9ae{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:italic;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-7bcec4e4{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-7bcec4e5{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-7bcee5e6{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee5f0{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee5f1{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee5fa{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee5fb{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee5fc{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee604{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee605{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee606{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee60e{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee60f{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee618{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee619{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee61a{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee622{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee623{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee624{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee62c{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee62d{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee62e{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee636{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee637{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee638{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee640{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee641{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee64a{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee64b{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee64c{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee64d{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee654{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee655{width:63.3pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee656{width:33.4pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee65e{width:52.9pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee65f{width:54.2pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee660{width:92.7pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-7bcee661{width:70.7pt;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}&lt;/style&gt;&lt;table class='cl-7bd1e048'&gt;&lt;thead&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee661"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;Tabla #1: Regresión Múltiple&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td class="cl-7bcee661"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee655"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;Estimate&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee660"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;Standard Error&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee65e"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;t value&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee65f"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;Pr(&amp;gt;|t|)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee656"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td class="cl-7bcee5fc"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;(Intercept)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee5fb"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;1.286&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee5fa"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.341&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee5e6"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;3.774&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee5f0"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.0002&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee5f1"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;***&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td class="cl-7bcee605"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;hsGPA&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee604"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.453&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee60e"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.096&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee618"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;4.733&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee60f"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.0000&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee606"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;***&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td class="cl-7bcee623"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;ACT&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee622"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.009&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee62c"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.011&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee619"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.875&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee624"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9a4"&gt;0.3833&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td class="cl-7bcee61a"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;tfoot&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee640"&gt;&lt;p class="cl-7bcec4e5"&gt;&lt;span class="cl-7bceb9ae"&gt;Signif. codes: 0 &amp;lt;= '***' &amp;lt; 0.001 &amp;lt; '**' &amp;lt; 0.01 &amp;lt; '*' &amp;lt; 0.05 &amp;lt; '.' &amp;lt; 0.1 &amp;lt; '' &amp;lt; 1&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee64b"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee64b"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;Residual standard error: 0.3403 on 138 degrees of freedom&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee64b"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;Multiple R-squared: 0.1764, Adjusted R-squared: 0.1645&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style="overflow-wrap:break-word;"&gt;&lt;td  colspan="6"class="cl-7bcee64b"&gt;&lt;p class="cl-7bcec4e4"&gt;&lt;span class="cl-7bceb9a4"&gt;F-statistic: 14.78 on 138 and 2 DF, p-value: 0.0000&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;&lt;/table&gt;&lt;/div&gt;&lt;/template&gt;
+&lt;div class="flextable-shadow-host" id="4a1109b5-e67a-41b3-8877-ff0462135d0b"&gt;&lt;/div&gt;
+&lt;script&gt;
+var dest = document.getElementById("4a1109b5-e67a-41b3-8877-ff0462135d0b");
+var template = document.getElementById("2bdd1355-1059-44ce-8dd9-51add7b9848e");
+var caption = template.content.querySelector("caption");
+if(caption) {
+  caption.style.cssText = "display:block;text-align:center;";
+  var newcapt = document.createElement("p");
+  newcapt.appendChild(caption)
+  dest.parentNode.insertBefore(newcapt, dest.previousSibling);
+}
+var fantome = dest.attachShadow({mode: 'open'});
+var templateContent = template.content;
+fantome.appendChild(templateContent);
+&lt;/script&gt;
+
++ El modelo con cada uno de los estadísticos en resumen y presentación para interpretar, *observe* que contiene los elementos que manualmente hemos expuesto con anterioridad
+
+---
+
+--
+
+- Construimos **intervalos de confianza** a un nivel de `\((1- \alpha)\)` para `\(\beta_1\)`:
+
+`$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$`
+
+--
+
+- Por ejemplo, si con 100 obs., tenemos dos coeficientes, `\((\hat{\beta}_0 \; \text{y} \; \hat{\beta}_1 \implies k = 2), \; \text{y tenemos un}\; \alpha = 0.025\)` (Para un intervalo de confianza del 98%) nos brinda un .black[estadístico] de `\(t_{0.025,\,98}\)` = -1.98
+
+--
+
+&lt;img src="Class02_files/figure-html/t distr-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+--
+
+
+
+
+
+**Del lo anterior** Tenemos certeza que con un 97.8% de confiabilidad nuestros intervalos de confianza contienen el verdadero valor de nuestro `\(\beta_1\)`.
+
+&lt;img src="Class02_files/figure-html/simulation ci-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+--
+
+- Construimos intervalos de confianza a un nivel de `\((1- \alpha)\)` para `\(\beta_1\)` en la regresión del rendimiento en clases:
+
+`$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$`
+--
+
+**Ejemplo:**
+
+```r
+lm(colGPA ~ hsGPA+ACT, data=gpa1)%&gt;% tidy()
+```
+
+```
+#&gt; # A tibble: 3 × 5
+#&gt;   term        estimate std.error statistic    p.value
+#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+#&gt; 1 (Intercept)  1.29       0.341      3.77  0.000238  
+*#&gt; 2 hsGPA        0.453      0.0958     4.73  0.00000542
+#&gt; 3 ACT          0.00943    0.0108     0.875 0.383
+```
+
+--
+
++ Nuestro intervalo de confianza del 98% es en nuestro caso `\(0.453 \pm 1.98 \times 0.0958 = \left[ 0.2640,\; 0.6429 \right]\)`
+
+--
+
+.hi[El valor crítico puede obtenerlo de:]
+
+--
+
+
+```r
+qt(0.975,140)
+```
+
+```
+#&gt; [1] 1.977054
+```
+
+
+---
+
+--
+
+- Construimos intervalos de confianza a un nivel de `\((1- \alpha)\)` para `\(\beta_1\)`:
+
+`$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$`
+
+--
+
+Directamente en .black[R]:
+
+
+```r
+modelk&lt;-lm(colGPA ~ hsGPA+ACT, data=gpa1)
+confint(modelk)
+```
+
+```
+#&gt;                   2.5 %     97.5 %
+#&gt; (Intercept)  0.61241898 1.96023655
+*#&gt; hsGPA        0.26400467 0.64290710
+#&gt; ACT         -0.01188376 0.03073578
+```
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 384 512" style="height:1em;width:0.75em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M384 312.7c-55.1 136.7-187.1 54-187.1 54-40.5 81.8-107.4 134.4-184.6 134.7-16.1 0-16.6-24.4 0-24.4 64.4-.3 120.5-42.7 157.2-110.1-41.1 15.9-118.6 27.9-161.6-82.2 109-44.9 159.1 11.2 178.3 45.5 9.9-24.4 17-50.9 21.6-79.7 0 0-139.7 21.9-149.5-98.1 119.1-47.9 152.6 76.7 152.6 76.7 1.6-16.7 3.3-52.6 3.3-53.4 0 0-106.3-73.7-38.1-165.2 124.6 43 61.4 162.4 61.4 162.4.5 1.6.5 23.8 0 33.4 0 0 45.2-89 136.4-57.5-4.2 134-141.9 106.4-141.9 106.4-4.4 27.4-11.2 53.4-20 77.5 0 0 83-91.8 172-20z"/></svg> _si esta interesado(a)_ en mirar los otros niveles de confianza es usar el código con la opción **level** _p.e_: 
+
+`confint(modelk, level=0.99)`
+
+---
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M519.442 288.651c-41.519 0-59.5 31.593-82.058 31.593C377.409 320.244 432 144 432 144s-196.288 80-196.288-3.297c0-35.827 36.288-46.25 36.288-85.985C272 19.216 243.885 0 210.539 0c-34.654 0-66.366 18.891-66.366 56.346 0 41.364 31.711 59.277 31.711 81.75C175.885 207.719 0 166.758 0 166.758v333.237s178.635 41.047 178.635-28.662c0-22.473-40-40.107-40-81.471 0-37.456 29.25-56.346 63.577-56.346 33.673 0 61.788 19.216 61.788 54.717 0 39.735-36.288 50.158-36.288 85.985 0 60.803 129.675 25.73 181.23 25.73 0 0-34.725-120.101 25.827-120.101 35.962 0 46.423 36.152 86.308 36.152C556.712 416 576 387.99 576 354.443c0-34.199-18.962-65.792-56.558-65.792z"/></svg> Qué significa el intervalo:
+
+--
+
+&lt;font size="+5"&gt;$$\left[ 0.2640 \leq \hat{\beta}_{i} \leq 0.6429 \right]$$&lt;/font&gt;
+
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M503.691 189.836L327.687 37.851C312.281 24.546 288 35.347 288 56.015v80.053C127.371 137.907 0 170.1 0 322.326c0 61.441 39.581 122.309 83.333 154.132 13.653 9.931 33.111-2.533 28.077-18.631C66.066 312.814 132.917 274.316 288 272.085V360c0 20.7 24.3 31.453 39.687 18.164l176.004-152c11.071-9.562 11.086-26.753 0-36.328z"/></svg> **Informalmente:** El intervalo de confianza nos da una región (intervalo) en la que podemos depositar cierta confianza para contener el parámetro estimado.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M503.691 189.836L327.687 37.851C312.281 24.546 288 35.347 288 56.015v80.053C127.371 137.907 0 170.1 0 322.326c0 61.441 39.581 122.309 83.333 154.132 13.653 9.931 33.111-2.533 28.077-18.631C66.066 312.814 132.917 274.316 288 272.085V360c0 20.7 24.3 31.453 39.687 18.164l176.004-152c11.071-9.562 11.086-26.753 0-36.328z"/></svg> **Más formalmente:** Si con nuestras muestras de la población repetimos el proceso n veces y construimos intervalos de confianza para cada una de estas, `\((1-\alpha)\)` por ciento de nuestros intervalos ( _p.e_, 97.5%) contendrán el parámetro poblacional *en algún lugar del intervalo*.
+
+---
+layout: false
+class: inverse, middle
+
+## Pruebas de hipótesis 😭
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+
+# Pruebas de hipótesis <svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z"/></svg>
+
+---
+
+--
+
+&gt; **Pruebas de hipótesis**:
+En muchas aplicaciones, queremos saber algo más que una estimación puntual o un rango de valores. Queremos saber qué dicen nuestras pruebas estadísticas sobre las **teorías** existentes.
+
+En **MCO** las pruebas de hipótesis se hacen a los parámetros:
+
+`\(\hat{\beta}_1\)` es igual al valor `\(\beta_j\)`, _p.e._, planteamos que `\(H_o:\: \beta_1 = \beta_j\)`
+
+--
+
+Luego un _test_ para medir:
+
+`$$t_\text{estadístico} = \dfrac{\hat{\beta}_1 - \beta_j}{\mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)}$$`
+--
+
+&gt; Note que `\(\beta_j\)` regularmente se iguala a cero (0) y la hipotesis nula pasa a ser `\(H_o:\: \beta_1 = 0\)`.
+
+---
+
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M575.7 280.8C547.1 144.5 437.3 62.6 320 49.9V32c0-17.7-14.3-32-32-32s-32 14.3-32 32v17.9C138.3 62.6 29.5 144.5.3 280.8c-2.2 10.1 8.5 21.3 18.7 11.4 52-55 107.7-52.4 158.6 37 5.3 9.5 14.9 8.6 19.7 0 20.2-35.4 44.9-73.2 90.7-73.2 58.5 0 88.2 68.8 90.7 73.2 4.8 8.6 14.4 9.5 19.7 0 51-89.5 107.1-91.4 158.6-37 10.3 10 20.9-1.3 18.7-11.4zM256 301.7V432c0 8.8-7.2 16-16 16-7.8 0-13.2-5.3-15.1-10.7-5.9-16.7-24.1-25.4-40.8-19.5-16.7 5.9-25.4 24.2-19.5 40.8 11.2 31.9 41.6 53.3 75.4 53.3 44.1 0 80-35.9 80-80V301.6c-9.1-7.9-19.8-13.6-32-13.6-12.3.1-22.4 4.8-32 13.7z"/></svg> Con un nivel de confianza `\(\alpha\)` y un test de **dos colas**, se rechaza la _hipótesis nula_ cuando ocurra lo siguiente:
+
+--
+
+`$$\left|t_\text{estadístico}\right| &gt; \left|t_{1-\alpha/2,\;df}\right|$$`
+
+--
+
+Lo que significa que nuestro **estadístico de prueba es más extremo que el valor crítico**.
+
+--
+
+Otra manera, es calcular el **valor p** que acompaña a nuestro estadístico de prueba, lo que nos da efectivamente la probabilidad de mirar que nuestro estadístico de prueba es lo suficientemente fuerte.
+
+--
+
+Los **valores p** muy pequeños (generalmente &lt; 0,05) _significan_ que sería poco probable ver nuestros resultados si la hipótesis nula fuera realmente cierta; tendemos a rechazar la hipótesis nula para valores p inferiores a 0,05.
+
+--
+
+En **R**:
+
+--
+
+
+```r
+library(broom) # Para tener el p-value
+modelo.a&lt;- lm(colGPA ~ hsGPA+ACT, data=gpa1)
+glance(modelo.a)$p.value
+```
+
+```
+#&gt;        value 
+#&gt; 1.526306e-06
+```
+
+---
+
+--
+
+
+```r
+lm(colGPA ~ hsGPA+ACT, data=gpa1) %&gt;% tidy()
+```
+
+```
+#&gt; # A tibble: 3 × 5
+#&gt;   term        estimate std.error statistic    p.value
+#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+#&gt; 1 (Intercept)  1.29       0.341      3.77  0.000238  
+*#&gt; 2 hsGPA        0.453      0.0958     4.73  0.00000542
+#&gt; 3 ACT          0.00943    0.0108     0.875 0.383
+```
+
+--
+
+H.sub[o]: `\(\beta_1 = 0\)` *vs.* H.sub[a]: `\(\beta_1 \neq 0\)`
+
+--
+
+ `\(t_\text{estadístico} = 4.73\)` y el `\(t_\text{0.95, 138} = 1.66\)`
+
+--
+
+El cual implica que *p*-value `\(&lt; 0.05\)`
+
+--
+
+Entonces, podemos .black[rechazar Ho].
+
+---
+
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34zm192-34l-136-136c-9.4-9.4-24.6-9.4-33.9 0l-22.6 22.6c-9.4 9.4-9.4 24.6 0 33.9l96.4 96.4-96.4 96.4c-9.4 9.4-9.4 24.6 0 33.9l22.6 22.6c9.4 9.4 24.6 9.4 33.9 0l136-136c9.4-9.2 9.4-24.4 0-33.8z"/></svg> El p-value o .black[p-valor] nos dice que probabilidad tenemos de caer en la zona de **no rechazo** (la zona mas grande de toda la distribución).
+
+--
+
+&gt; Cientificamente, esto implica la probabilidad de cometer el error tipo I en las pruebas de hipótesis. _Esto es, usted .grey[rechaza] Ho cuando ella es verdadera_ 
+
+--
+
+La formula de cálculo es:
+
+--
+
+`$$\text{p-value}= \color{#0000FF}{2 \times P(T_{n-1}&gt; |t|)} \equiv 2 \times (1-Ft_{n-1}(|t|))$$`
+--
+
+_Donde `\(|t|\)` es el **valor crítico** y `\(Ft\)` es la función de densidad_ 
+
+--
+
+en **R**:
+
+--
+
+
+```r
+n&lt;- 140 # Por el tamaño muestral del ejemplo de salarios/educación 
+t&lt;- 4.73 # Valor de T-calculado 
+(p&lt;-2*(1-pt(abs(t), n-1)))
+```
+
+```
+#&gt; [1] 5.452598e-06
+```
+
+---
+
+
+--
+
+
+
+En nuestro ejemplo con las notas del colegio, hay un 95% (por ciento) que nuestro `\(t\)` estadístico esté en la zona de **rechazo** y por ende esa .black[variable] _explique las variaciones o rendimiento académico_ 
+
+--
+
+La distribución de nuestro `\(t\)` estadístico es: (teniendo presente las zonas de rechazo).
+
+--
+
+&lt;img src="Class02_files/figure-html/simulacion t plot-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# R.super[2] 
+
+&lt;br&gt;
+&lt;img src="images/lognig.png" width="380" /&gt;
+ 
+
+---
+layout: true
+# R.super[2]  <svg aria-hidden="true" role="img" viewBox="0 0 640 512" style="height:1em;width:1.25em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:steelblue;overflow:visible;position:relative;"><path d="M592.604 208.244C559.735 192.836 515.777 184 472 184H186.327c-4.952-6.555-10.585-11.978-16.72-16H376C229.157 137.747 219.403 32 96.003 32H96v128H80V32c-26.51 0-48 28.654-48 64v64c-23.197 0-32 10.032-32 24v40c0 13.983 8.819 24 32 24v16c-23.197 0-32 10.032-32 24v40c0 13.983 8.819 24 32 24v64c0 35.346 21.49 64 48 64V352h16v128h.003c123.4 0 133.154-105.747 279.997-136H169.606c6.135-4.022 11.768-9.445 16.72-16H472c43.777 0 87.735-8.836 120.604-24.244C622.282 289.845 640 271.992 640 256s-17.718-33.845-47.396-47.756zM488 296a8 8 0 0 1-8-8v-64a8 8 0 0 1 8-8c31.909 0 31.942 80 0 80z"/></svg>
+
+---
+
+--
+
+- **Suma Total de Cuadrados** (SST): Mide variación muestral total de `\(y_{i}\)`.
+
+`$$SST \equiv \sum \limits_{i=1}^{n} \left ( y_{i} - \bar{y} \right )^{2}$$`
+--
+
+- **Suma Explicada de Cuadrados** (SSE): Mide variación de `\(\hat{y}_{i}\)`.
+
+`$$SSE \equiv \sum \limits_{i=1}^{n} \left ( \hat{y}_{i} - \bar{y} \right )^{2}$$`
+--
+
+- **Suma de los Residuos al Cuadrado** (SSR): Mide variación en `\(\mu_{i}\)`.
+
+`$$SSR \equiv \sum \limits_{i=1}^{n} \hat{\mu}_{i}^{2}$$`
+
+--
+
+La **variación total** en `\(y\)` puede ser expresada como la suma de la variación explicada y la no explicada:
+
+`$$SST= SSE+SSR$$`
+
+---
+
+
+--
+
+- **Coeficiente de determinación** `\(R^2\)`: Mide el grado de precisión del modelo, la proporción de la variación de la variable _dependiente_ que es explicado por `\(x\)`.
+
+`$$R^{2} \equiv \frac{SSE}{SST}=1-\frac{SSR}{SST} \quad R^{2} \in \left [ 0,1 \right ]$$`
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M43.246 466.142c-58.43-60.289-57.341-157.511 1.386-217.581L254.392 34c44.316-45.332 116.351-45.336 160.671 0 43.89 44.894 43.943 117.329 0 162.276L232.214 383.128c-29.855 30.537-78.633 30.111-107.982-.998-28.275-29.97-27.368-77.473 1.452-106.953l143.743-146.835c6.182-6.314 16.312-6.422 22.626-.241l22.861 22.379c6.315 6.182 6.422 16.312.241 22.626L171.427 319.927c-4.932 5.045-5.236 13.428-.648 18.292 4.372 4.634 11.245 4.711 15.688.165l182.849-186.851c19.613-20.062 19.613-52.725-.011-72.798-19.189-19.627-49.957-19.637-69.154 0L90.39 293.295c-34.763 35.56-35.299 93.12-1.191 128.313 34.01 35.093 88.985 35.137 123.058.286l172.06-175.999c6.177-6.319 16.307-6.433 22.626-.256l22.877 22.364c6.319 6.177 6.434 16.307.256 22.626l-172.06 175.998c-59.576 60.938-155.943 60.216-214.77-.485z"/></svg> Cuando se interpreta se multiplica por 100 para interpretarlo como porcentaje.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M43.246 466.142c-58.43-60.289-57.341-157.511 1.386-217.581L254.392 34c44.316-45.332 116.351-45.336 160.671 0 43.89 44.894 43.943 117.329 0 162.276L232.214 383.128c-29.855 30.537-78.633 30.111-107.982-.998-28.275-29.97-27.368-77.473 1.452-106.953l143.743-146.835c6.182-6.314 16.312-6.422 22.626-.241l22.861 22.379c6.315 6.182 6.422 16.312.241 22.626L171.427 319.927c-4.932 5.045-5.236 13.428-.648 18.292 4.372 4.634 11.245 4.711 15.688.165l182.849-186.851c19.613-20.062 19.613-52.725-.011-72.798-19.189-19.627-49.957-19.637-69.154 0L90.39 293.295c-34.763 35.56-35.299 93.12-1.191 128.313 34.01 35.093 88.985 35.137 123.058.286l172.06-175.999c6.177-6.319 16.307-6.433 22.626-.256l22.877 22.364c6.319 6.177 6.434 16.307.256 22.626l-172.06 175.998c-59.576 60.938-155.943 60.216-214.77-.485z"/></svg> Un `\(R^{2}\)` **cercano a cero** indica un bajo ajuste de la linea de M.C.O.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M43.246 466.142c-58.43-60.289-57.341-157.511 1.386-217.581L254.392 34c44.316-45.332 116.351-45.336 160.671 0 43.89 44.894 43.943 117.329 0 162.276L232.214 383.128c-29.855 30.537-78.633 30.111-107.982-.998-28.275-29.97-27.368-77.473 1.452-106.953l143.743-146.835c6.182-6.314 16.312-6.422 22.626-.241l22.861 22.379c6.315 6.182 6.422 16.312.241 22.626L171.427 319.927c-4.932 5.045-5.236 13.428-.648 18.292 4.372 4.634 11.245 4.711 15.688.165l182.849-186.851c19.613-20.062 19.613-52.725-.011-72.798-19.189-19.627-49.957-19.637-69.154 0L90.39 293.295c-34.763 35.56-35.299 93.12-1.191 128.313 34.01 35.093 88.985 35.137 123.058.286l172.06-175.999c6.177-6.319 16.307-6.433 22.626-.256l22.877 22.364c6.319 6.177 6.434 16.307.256 22.626l-172.06 175.998c-59.576 60.938-155.943 60.216-214.77-.485z"/></svg> Un `\(R^{2}\)` **cercano a uno**, la(s) variable(s) `\(x\)` explica la mayoría de `\(y\)`.
+
+---
+
+--
+
+- En **R** se puede implementar así:
+
+--
+
+
+
+```r
+modelo.ab &lt;- lm(colGPA ~ hsGPA+ACT, data=gpa1)
+gpa.pred &lt;- fitted(modelo.ab) #Predichos
+u.hat &lt;- resid(modelo.ab) 
+
+# R cuadrado puede obtenerse:
+GPA &lt;- gpa1$colGPA
+var(gpa.pred)/var(GPA) #Primera forma
+```
+
+```
+#&gt; [1] 0.1764216
+```
+
+```r
+1 - var(u.hat)/ var(GPA) #Segunda forma
+```
+
+```
+#&gt; [1] 0.1764216
+```
+
+```r
+cor(GPA, gpa.pred)^2 # Tercera forma 
+```
+
+```
+#&gt; [1] 0.1764216
+```
+
+---
+layout: false
+class: inverse
+# Bibliografía
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Angrist, J. D., &amp; Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., &amp; Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+&lt;br/&gt;
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+&lt;img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" /&gt;
+
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg> Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg> @keynes37](https://twitter.com/keynes37)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"/></svg> cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

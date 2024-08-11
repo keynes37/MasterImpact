@@ -1,0 +1,1320 @@
+---
+title: "Econometría"
+subtitle: "<br/> Estimador MCO"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte"
+date: "2023-I"
+output:
+  xaringan::moon_reader:
+    css: 
+       - xaringan-themer.css
+       - my-css.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1b9aaa",
+  secondary_color = "#ffc43d",
+  text_font_google = google_font("Ubuntu"),  #<< Prueba 1
+  header_font_google = google_font("Josefin Sans") #<< Prueba2
+)
+```
+
+```{r, setup, include = F}
+# devtools::install_github("dill/emoGG")
+library(pacman)
+p_load(
+  broom, tidyverse,
+  latex2exp, ggplot2, ggthemes, ggforce, viridis, extrafont, gridExtra,
+  kableExtra, snakecase, janitor,
+  data.table, dplyr, estimatr,
+  lubridate, knitr, parallel,
+  lfe, emoGG,
+  here, magrittr, fontawesome, shiny, babynames
+)
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#fb6107"
+blue <- "#2b59c3"
+green <- "#8bb174"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+slate <- "#314f4f"
+met_slate <- "#272822"
+# Dark slate grey: #314f4f
+# Opciones
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# A blank theme para ggplot
+theme_empty <- theme_bw() + theme(
+  line = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = structure(c(0, 0, -0.5, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_simple <- theme_bw() + theme(
+  line = element_blank(),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text.x = element_text(size = 18, family = "STIXGeneral"),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  # plot.margin = structure(c(0, 0, -1, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_math <- theme_void() + theme(
+  text = element_text(family = "MathJax_Math"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_serif <- theme_void() + theme(
+  text = element_text(family = "MathJax_Main"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes <- theme_void() + theme(
+  text = element_text(family = "Fira Sans Book"),
+  axis.title = element_text(size = 18),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = grey_light,
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_set(theme_gray(base_size = 20))
+# Nombres de las columnas para la regresión
+reg_columns <- c("Term", "Est.", "S.E.", "t stat.", "p-Value")
+# Formato de p valores
+format_pvi <- function(pv) {
+  return(ifelse(
+    pv < 0.0001,
+    "<0.0001",
+    round(pv, 4) %>% format(scientific = F)
+  ))
+}
+format_pv <- function(pvs) lapply(X = pvs, FUN = format_pvi) %>% unlist()
+# Tidy regression results table
+tidy_table <- function(x, terms, highlight_row = 1, highlight_color = "black", highlight_bold = T, digits = c(NA, 3, 3, 2, 5), title = NULL) {
+  x %>%
+    tidy() %>%
+    select(1:5) %>%
+    mutate(
+      term = terms,
+      p.value = p.value %>% format_pv()
+    ) %>%
+    kable(
+      col.names = reg_columns,
+      escape = F,
+      digits = digits,
+      caption = title
+    ) %>%
+    kable_styling(font_size = 20) %>%
+    row_spec(1:nrow(tidy(x)), background = "white") %>%
+    row_spec(highlight_row, bold = highlight_bold, color = highlight_color)
+}
+# A few extras
+xaringanExtra::use_xaringan_extra(c("tile_view", "fit_screen"))
+```
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **`r rmarkdown::metadata$title`**
+----
+
+## **`r rmarkdown::metadata$subtitle`**
+
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+```{r xaringanExtra-share-again, echo=FALSE}
+xaringanExtra::use_share_again()
+```
+
+---
+class: inverse, middle
+
+# Preguntas... sesión anterior? 
+<img src="images/lognig.png" width="280" />
+
+---
+# Estimador
+
+--
+
+### Objetivo de la sesión
+
+--
+
+> Estudiar las propiedades **estadísticas** del estimador MCO, a partir de lo cual se identifican las circunstancias bajo las cuales la estimación con el conjunto particular de datos que tenemos produce estimaciones que podemos interpretar de **forma causal**
+
+--
+
+### Adicional
+
+--
+
+`r fa("exclamation-triangle", fill="blue")` Miraremos las propiedades de los estimadores y las pruebas de hipótesis.
+
+--
+
+`r fa("exclamation-triangle", fill="blue")` Aprenderemos de los contrastes estadísticos, sobre todo lo que tiene que ver con las distribuciones estándar como la t-student.
+
+---
+# Estimador
+
+--
+
+### Ejemplo
+
+--
+
+Queremos saber si las personas que tienen **seguro médico** gozan de una .hi[mejor] salud aquellos que no tienen seguro médico. Al fin y al cabo si tiene seguro tiene unas condiciones de acceso a servicios de salud más favorables. Para probar esta .hi-purple[hipótesis] tiene datos que provienen de una muestra aleatoria con datos del estado de salud de cada individuo y *si está* o *no* .hi[asegurado]. Como el estado de salud varía entre individuos, vamos a comparar la media de la salud de los que tienen seguro con la media de la salud de aquellos que no lo tienen, esto es:
+
+--
+
+\begin{equation}
+E(Salud|Seguro=1)-E(Salud|Seguro=0)
+\end{equation}
+
+--
+
+Si la función de expectativa condicional es lineal, entonces lo anterior lo podemos estudiar a partir del siguiente modelo
+
+\begin{equation}
+Salud=\alpha+\beta Seguro+u
+\end{equation}
+
+--
+
+Recuerde que $(\alpha)$ es la constante o término $\beta_0$ de la ecuación lineal, al igual que $(\beta)$ quien es nuestro .hi[coeficiente] marginal y finalmente $(u)$ como los residuos de nuestro modelo.
+
+---
+```{r, echo=FALSE, fig.align="center",out.width="55%", fig.cap="Características de asegurados y no asegurados, tabla 1.1 de Angrist y Pischke (2014)"}
+knitr::include_graphics("images/tableang.png")
+```
+---
+# Estimador
+
+--
+
+Si vemos la primera línea para los .hi-orange[esposos] vemos que $E(Salud|Seguro=1)=4.01$ y $E(Salud|Seguro=0)=3.7$, luego si hacemos/aplicamos la diferencia encontramos que
+
+--
+
+\begin{equation}
+E(Salud|Seguro=1)-E(Salud|Seguro=0)=\beta=0.31
+\end{equation}
+
+--
+
+Luego podríamos concluir que tener seguro médico mejora el estado de salud en promedio 0.31 puntos .hi[¿Será que es correcta esa interpretación?], **¿Podemos atribuir la mejor salud a la tenencia del seguro médico?**
+
+--
+
+Sabemos que dicha interpretación sería correcta si $E(u|Seguro)=0$, en otras palabras que el error no guarde ninguna relación con la tenencia del seguro. 
+
+--
+
+Para saberlo, es importante recordar que $u$ recoge la **variabilidad aleatoria** en $Salud$, así como la incidencia de otras variables que son importantes para explicar el estado de salud pero que no se han incorporado de manera explícita en el modelo. Por ejemplo, se ha documentado que en general las personas de ingresos más bajos y/o en situación de *desempleo* tienden a tener un .ul[peor estado] de salud debido al estrés y las restricciones de acceso a alimentos frescos, por ejemplo. Además, es más probable que esas personas no tengan seguro médico. Lo anterior nos lleva a pensar que $E(u|Seguro)\neq0$. 
+
+---
+# Estimador
+
+--
+
+Un mejor .hi[análisis] tendría en cuenta estas variables.super[.hi-pink[<span>&#8224;</span>]], luego se plantearía el siguiente modelo
+
+.footnote[.super[.hi-pink[<span>&#8224;</span>]] Estoy suponiendo que no hay nada más que importe]
+
+\begin{equation}
+Salud=\alpha+\beta Seguro + \gamma_1 Empleo+\gamma_2Ingreso+e
+\end{equation}
+
+--
+
+Al sacar estas dos variables del error $(u)$ y colocarlas de manera explícita en el modelo tenemos que la relación entre $Seguro$ y el error desaparece, se cumple el supuesto de de **independencia condicional**, CIA, y por lo tanto en este caso $(\beta)$ si recoge el efecto causal del aseguramiento en la salud.
+
+--
+
+Hasta ahora hemos dado vueltas sobre lo mismo, pero no hemos abordado la cuestión de cómo obtener el valor de $(\beta)$ con el conjunto particular de datos que tenemos. Esto nos lleva a la **regresión lineal** y el estimador de mínimos cuadrados ordinarios (MCO)
+
+---
+# Estimador
+
+--
+
+```{r graph, dev = "svg", echo = F, fig.height=4.5}
+# Modelo simulado 2 variable
+N<-100
+a<-100
+b1<-10
+sig2e<-2500 #varianza del error
+sde<-sqrt(sig2e) #desviación estándar del error
+
+#generamos datos artificiales
+set.seed(12345) #para iniciar la obtención de números aleatorios
+x<-runif(n=N,min=1,max=25)
+set.seed(12345) #para iniciar la obtención de números aleatorios
+e<-rnorm(N,mean=0,sd=sde)
+
+y<-a+b1*x+e #creamos la variable y
+df<-data.frame(y,x) #creamos base de datos
+df$lr1<-80+5*df$x
+df$lr2<-100+12*df$x
+df$lr3<-60+10*df$x
+df$lr4<-100+10*df$x
+
+library(ggplot2)
+lr_plot<-ggplot(df,aes(x=x,y=y))+geom_point()+theme_minimal()
+lr_plot+labs(title=expression(Dependiente %~% Control))
+
+```
+
+---
+# Estimador
+
+--
+
+```{r graph02, dev = "svg", echo = F, fig.height=4.5}
+library(ggpubr)
+lr1_plot<-ggplot(df,aes(x=x))+geom_point(aes(y=y))+geom_line(aes(y=lr1,colour="lr1"))+theme_minimal()+
+  theme(legend.position = "none")+scale_color_manual("",breaks=c("lr1"),values=c("lr1"="blue"))
+lr2_plot<-ggplot(df,aes(x=x))+geom_point(aes(y=y))+geom_line(aes(y=lr2,colour="lr2"))+theme_minimal()+
+  theme(legend.position = "none")+scale_color_manual("",breaks=c("lr2"),values=c("lr2"="red"))
+lr3_plot<-ggplot(df,aes(x=x))+geom_point(aes(y=y))+geom_line(aes(y=lr3,colour="lr3"))+theme_minimal()+
+  theme(legend.position = "none")+scale_color_manual("",breaks=c("lr3"),values=c("lr3"="green"))
+lr4_plot<-ggplot(df,aes(x=x))+geom_point(aes(y=y))+geom_line(aes(y=lr4,colour="lr4"))+theme_minimal()+
+  theme(legend.position = "none")+scale_color_manual("",breaks=c("lr4"),values=c("lr4"="#FF9900"))
+lines<-ggarrange(lr1_plot,lr2_plot,lr3_plot,lr4_plot,nrow=2,ncol=2,
+                 labels=c("A","B","C","D"))
+annotate_figure(lines,top="¿Cuál prefiere?")
+
+```
+---
+class: inverse, middle
+
+# Las propiedades estadísticas del estimador MCO 
+<img src="images/lognig.png" width="280" />
+
+---
+layout:true
+# Propiedades de un estimador
+
+---
+
+--
+
+Nuestro punto de partida es el modelo poblacional
+
+\begin{equation}
+\tag{1}
+y=\beta_1+\beta_2x_2+\beta_3x_3+...+\beta_kx_k+u
+\end{equation}
+
+--
+
+Donde donde las variables $y,x_2,...,x_k$ son aleatorias y observables, y $u$ es un error no observable. Los parámetros $\beta_1,\beta_2,...,\beta_k$ son los que queremos .hi[estimar]. El error $u$ recoge perturbaciones aleatorias, y también todo aquello que es importante para explicar $y$ pero que no hemos incluido explícitamente en el modelo, es decir *variables omitidas*.
+
+---
+
+--
+
+La idea de .hi[población] no hace referencia, necesariamente, a una población física en el mundo real. Significa que si tenemos una observación para el individuo i, $(y_i,x_i)$, esta la consideramos como la realización de una .ul[función de probabilidad conjunta] $F(y,x)$. Nosotros no conocemos $F$, y el propósito de la .hi[inferencia] es aprender sus características a partir de una muestra, es decir del conjunto particular de datos que tenemos.
+
+--
+
+Lo anterior significa que a partir de nuestros datos estimamos los valores de $\boldsymbol{\beta}$, y a estos los llamamos $\hat{\boldsymbol{\beta}}$ El estimador MCO consiste en estimar dichos parámetros a partir de encontrar el valor de ellos tales que se minimiza la .hi-orange[diferencia al cuadrado] entre el **valor observado** y el valor predicho, con una muestra particular de datos. Esto quiere decir que son aquellos que minimizan la expresión
+
+--
+
+$$\tag{2}
+\sum_i^n(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})^2$$
+
+--
+
+Donde $i=1,...,n$ identifica cada observación en la muestra. 
+
+---
+
+--
+
+Al tomar las condiciones del .hi[primer orden] obtenemos
+
+--
+
+
+$$\begin{align}
+\tag{3}
+\sum_i^n(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&=0\\
+\sum_i^nx_{i2}(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&=0\\
+&\\
+&\\
+\sum_i^nx_{ik}(y_i-\hat{\beta_1}-\hat{\beta_2}x_{i2}-...-\hat{\beta_k}x_{ik})&=0
+\end{align}$$
+
+--
+
+Fíjese que tenemos un sistema de $k$ ecuaciones con $k$ incognitas. En términos matriciales esto lo podemos escribir como
+
+--
+
+$$\tag{4}
+\mathbf{X'}(\mathbf{y}-\mathbf{X}\boldsymbol{\hat{\beta}})=0$$
+
+---
+
+--
+
+Donde $\mathbf{X}$ es $n\times k$ y recoje los datos de las variables independientes, mientras que $\mathbf{y}$ es $n\times 1$ y contiene los valores de la variable dependiente, y $\boldsymbol{\hat{\beta}}$ es la matriz de parámetros estimados, de dimensión $k\times 1$.
+
+--
+
+La expresión anterior es equivalente a
+
+$$\tag{5}
+\mathbf{(X'X)}\hat{\boldsymbol{\beta}}=\mathbf{X'y}$$
+
+--
+
+Si la matriz $\mathbf{(X'X)}$ es invertible entonces podemos premultiplicar a ambos lados por $\mathbf{(X'X)}^{-1}$ y obtenemos
+
+--
+
+
+$$\tag{6}
+\hat{\boldsymbol{\beta}}=\mathbf{(X'X)}^{-1}\mathbf{X'y}$$
+
+La matriz $\mathbf{(X'X)}$ es invertible si no hay colinealidad perfecta entre las variables. 
+
+--
+
+Como el valor estimado de los **parámetros** se obtuvo de una muestra particular de datos entonces debemos tener en cuenta que pudimos haber observado una muestra *diferente*, con la cual el valor puntual estimado habría sido diferente. Nuestro objetivo es obtener las **propiedades estadísticas del estimador**
+
+---
+layout: false
+class: inverse, middle
+
+# El valor esperado del estimador MCO
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# El valor esperado del estimador MCO
+
+---
+
+--
+
+- **S1** Modelo poblacional 
+
+
+$$y=\color{#e64173}{\beta_1}+\color{#e64173}{\beta_2}x_2+\color{#e64173}{\beta_3}x_3+...+\color{#e64173}{\beta_k}x_k+u$$
+--
+
+
+- **S2** Tenemos una muestra aleatoria de tamaño $n$, $\{(x_{i1},x_{i2},...,x_{ik}):i=1,2,...,n\}$, es decir que las observaciones son independientes e identicamente distribuidas. Por ejemplo, el ingreso y nivel educativo del individuo $i$ es independiente del individuo $j$.
+
+--
+
+- **S3** No hay colinealidad perfecta, y por lo tanto $\mathbf{(X'X)}$ es invertible
+
+--
+
+- **S4** $E(u|x_1,x_2,...,x_k)=0$ El valor esperado condicional del error es cero. Es decir que el error no está relacionado con las variables independientes. 
+
+--
+
+Bajo estos supuestos, podemos mostrar que 
+
+$$\tag{7}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\boldsymbol{\beta}$$
+
+---
+
+--
+
+Veamos. Primero tomemos el valor esperado condicional en la ecuación $(6)$
+
+--
+
+$$\tag{8}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\mathbf{(X'X)}^{-1}E(\mathbf{X'y}|\mathbf{X})$$
+
+--
+
+Como $\mathbf{y}=\mathbf{X}\boldsymbol{\beta}+u$, entonces
+
+--
+
+
+$$\tag{9}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\mathbf{(X'X)}^{-1}\mathbf{X'X}\boldsymbol{\beta}+\mathbf{(X'X)}^{-1}\mathbf{X'}E(u|\mathbf{X})$$
+
+--
+
+Luego, si se cumple **S4**
+
+
+$$\tag{10}
+E(\hat{\boldsymbol{\beta}}|\mathbf{X})=\boldsymbol{\beta}$$
+
+--
+
+Es decir que el estimador es **insesgado** 😎.
+
+---
+
+--
+
+```{R, graphic, echo = F, dev = "svg", fig.height = 4.5}
+# Para poligonos
+
+d1 <- tibble(x = seq(-7.5, 7.5, 0.01), y = dnorm(x, mean = 1, sd = 1)) %>%
+  rbind(., tibble(x = seq(7.5, -7.5, -0.01), y = 0))
+d2 <- tibble(x = seq(-7.5, 7.5, 0.01), y = dunif(x, min = -2.5, max = 1.5)) %>%
+  rbind(., tibble(x = seq(7.5, -7.5, -0.01), y = 0))
+d3 <- tibble(x = seq(-7.5, 7.5, 0.01), y = dnorm(x, mean = 0, sd = 2.5)) %>%
+  rbind(., tibble(x = seq(7.5, -7.5, -0.01), y = 0))
+# graficos
+ggplot() +
+geom_polygon(data = d1, aes(x, y), alpha = 0.8, fill = "orange") +
+geom_polygon(data = d2, aes(x, y), alpha = 0.65, fill = red_pink) +
+geom_polygon(data = d3, aes(x, y), alpha = 0.6, fill = "darkslategray") +
+geom_hline(yintercept = 0, color = "black") +
+geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+scale_x_continuous(breaks = 0, labels = TeX("$\\beta$")) +
+theme_simple +
+theme(axis.text.x = element_text(size = 20))
+```
+---
+
+--
+
+### Sesgos del estimador
+
+--
+
+.pull-left[
+
+**Estimator insesgado:** $\mathop{\boldsymbol{E}}\left[ \hat{\beta} \right] = \beta$
+
+```{R, nosesgo pdf, echo = F, dev = "svg"}
+tmp <- tibble(x = seq(-4, 4, 0.01), y = dnorm(x))
+tmp <- rbind(tmp, tibble(x = seq(4, -4, -0.01), y = 0))
+ggplot(data = tmp, aes(x, y)) +
+geom_polygon(fill = red_pink, alpha = 0.9) +
+geom_hline(yintercept = 0, color = "black") +
+geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+scale_x_continuous(breaks = 0, labels = TeX("$\\beta$")) +
+theme_simple +
+theme(axis.text.x = element_text(size = 40))
+```
+
+]
+
+--
+
+.pull-right[
+
+**Estimator sesgado:** $\mathop{\boldsymbol{E}}\left[ \hat{\beta} \right] \neq \beta$
+
+```{R, sesgo pdf, echo = F, dev = "svg"}
+ggplot(data = tmp, aes(x, y)) +
+geom_polygon(aes(x = x + 2), fill = "darkslategray", alpha = 0.9) +
+geom_hline(yintercept = 0, color = "black") +
+geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+scale_x_continuous(breaks = 0, labels = TeX("$\\beta$")) +
+theme_simple +
+theme(axis.text.x = element_text(size = 40))
+```
+
+]
+---
+layout:false
+class: inverse, middle
+
+# La varianza en estimadores 😩
+<img src="images/lognig.png" width="280" />
+
+---
+# Mínima Varianza
+
+--
+
+Los valores esperados (medias) de las distribuciones no son lo único que importa. También nos importa la **varianza** de un estimador.
+
+--
+
+$$\text{Var}= (\hat{\beta}) = E [(\hat{\beta} - E[\hat{\beta}])^2]$$
+
+--
+
+Los estimadores de .hi[menor varianza] significan que vamos a obtener estimaciones más cercanas a la media en cada muestra y por ende buscarán la precisión.
+
+--
+
+**S5** Homocedasticidad, $Var(u|\mathbf{X})=\sigma^2$. Es decir que la varianza condicional del error es la misma para todos los valores de las variables explicativas.
+
+--
+
+Con **S5** entonces podemos mostrar que 
+
+$$\tag{11}
+Var(\hat{\boldsymbol{\beta}}|\mathbf{X})=\sigma^2\mathbf{(X'X)}^{-1}$$
+
+--
+
+Para entenderlo mejor, la varianza para un $\beta_j$ particular sería
+
+--
+
+$$Var(\hat{\beta_j}|\mathbf{X})=\dfrac{\sigma^2}{\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2(1-R_j^2)}$$
+
+--
+
+Donde $R_j^2$ es el $R$-cuadrado de una regresión de $x_j$ contra las demás independiente. Entre más correlacionada esté $x_j$ con las demás variables, mayor será el $R$-cuadrado.
+
+
+---
+# Mínima Varianza
+
+```{R, varianza en pdf, echo = F, dev = "svg", fig.height = 5, warning=FALSE}
+d4 <- tibble(x = seq(-7.5, 7.5, 0.01), y = dnorm(x, mean = 0, sd = 1)) %>%
+  rbind(., tibble(x = seq(7.5, -7.5, -0.01), y = 0))
+d5 <- tibble(x = seq(-7.5, 7.5, 0.01), y = dnorm(x, mean = 0, sd = 2)) %>%
+  rbind(., tibble(x = seq(7.5, -7.5, -0.01), y = 0))
+ggplot() +
+geom_polygon(data = d4, aes(x, y), fill = red_pink, alpha = 0.9) +
+geom_polygon(data = d5, aes(x, y), fill = "darkslategray", alpha = 0.8) +
+geom_hline(yintercept = 0, color = "black") +
+geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+scale_x_continuous(breaks = 0, labels = TeX("$\\beta$")) +
+theme_simple +
+theme(axis.text.x = element_text(size = 20))
+```
+---
+# Mínima Varianza
+
+--
+
++ Siempre habrá una especie de **intercambio** en lo que es el sesgo y la varianza de un estimador.
+
+--
+
++ Para el caso de .hi[Econometría] buscamos todo el tiempo insesgadez (consistencia).
+
+--
+
++ En otras ciencias (como data science) sin embargo hacen hincapié en la varianza.
+
+--
+
+`r fa("sketch", fill="blue")` La varianza depende de tres cosas:
+
+--
+
+- La .hi[varianza del error] $\sigma^2$. Esto es una **característica de la población**. Si se agregan más variables esta podría reducirse. Sin embargo, si el modelo ya incluye las variables relevantes, entonces ya no habría .black[nada] que agregar
+
+--
+
+-  La .hi[variabilidad muestral] de $x_j$: $\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2$ Entre mayor sea la **variabilidad** menor es la .ul[varianza]. Al aumentar el tamaño de *muestra* la variabilidad se incrementa y disminuye la varianza del estimador
+
+--
+
+- El grado de **relación lineal** entre las variables independientes: $R_j^2$. Entre mayor sea la correlación la varianza es más grande. Una alta correlación significa que a pesar de tener muchos datos tengo poca información.
+
+---
+class: inverse, middle
+
+## Error estándar e inferencia 🤔
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Error Estandar
+
+---
+
+--
+
+Como $\sigma^2$ no es observable $Var(\hat{\beta_j}|\mathbf{X})$ no es computable. Para ello debo tener un **estimador insesgado** de $\sigma^2$, esto es un $\hat{\sigma}^2$ tal que $E(\hat{\sigma}^2)=\sigma^2$, y por lo tanto que tengamos un estimador insesgado de la .hi[varianza del estimador]
+
+--
+
+Como $\sigma^2=E(u^2)$, entonces un estimador es la **media muestral**, promedio, de los residuales
+
+$$\hat{\sigma}^2=\dfrac{\sum_{i=1}^n\hat{u}_i^2}{n-k}$$
+--
+
+Luego el error estándar es
+
+--
+
+
+$$\tag{12}
+se(\hat{\beta})=\dfrac{\hat{\sigma}}{\sum_{i=1}^n(x_{ij}-\bar{x}_j)^2(1-R_j^2)}$$
+
+
+.attn[Importante. La formula anterior es válida bajo el supuesto de homocedasticidad]
+
+--
+
+El próximo paso es hacer **inferencia estadística**, es decir, la realización de .hi[pruebas de hipótesis]. Para ello necesitamos la .hi[distribución muestral] de $\hat{\beta_j}$. De la ecuación $(9)$ es claro que la distribución muestral, condicionada en las independientes, depende del error. 
+
+---
+
+--
+
+- **S5** El error se distribuye normal con media cero y varianza $\sigma^2$: $u\sim N(0,\sigma^2)$
+
+--
+
+Bajo los supuestos anteriores y **S5**, tenemos entonces que
+
+$$\tag{13}
+\hat{\beta}_j\sim N(\beta,Var(\hat{\beta}))$$
+
+--
+
+Luego
+
+$$\tag{14}
+\dfrac{\hat{\beta}_j-\beta_j}{se(\hat{\beta}_j)}\sim N(0,1)$$
+
+---
+
+--
+
+Para hacer .hi[pruebas de hipótesis] sobre un solo parámetro usamos la ecuación $(14)$ pero teniendo en cuenta que $sd(\hat{\beta})$ no es observable, pero su estimación es el error estándar, de donde tenemos que
+
+--
+
+$$\tag{15}
+\dfrac{\hat{\beta}_j-\beta_j}{se(\hat{\beta}_j)}\sim t_{n-k}$$
+
+Ahora, para probar $H_0:\beta_j=0$ usamos la estadística $t\equiv(\hat{\beta_j}-\beta_{j,H_0})/se(\hat{\beta}_j)$. Esta me dice que tanto se desvia el valor estimado del valor bajo la hipótesis nula en relación a la desviación estándar.
+
+--
+
+Por ejemplo, si $t=1$ decimos que el **valor estimado** es mayor a cero en una desviación estándar del estimador. Dado que se obtiene un valor puntual de $\hat{\beta_j}$, pero sabemos que pudimos haber obtenido un valor diferente con otra muestra, entonces debemos examinar la distribución de $\hat{\beta}_j$ para saber que tan probable es que hubiésemos obtenido un valor estimado de cero. La **prueba** $t$ permite responder esa pregunta
+
+---
+
+--
+
+### Ejemplo de modelo:
+
+
+.pull-left[
+```{R, mode1, echo = F, dev = "svg", fig.height = 5, warning=FALSE}
+data(gpa1, package='wooldridge')
+# Store results under "GPAres" and display full table:
+GPAres <- lm(colGPA ~ hsGPA+ACT, data=gpa1)
+tidy(GPAres)
+```
+]
+
+.pull-right[
+**Paso 1.** Estimar el modelo
+<br/>
+**Paso 2.** Extraer el residuo
+<br/>
+**Paso 3.** Calcular la varianza del residuo
+<br/>
+**Paso 4.** Calcular el error estándar de cada estimador
+]
+
+---
+
+--
+
+La varianza o $(\sigma^2)$ del error es aplicar la formula
+
+.pull-left[
+
+```r
+n=140 # tamaño de la muestra
+k=2 # Número de parámetros
+uhat<-GPAres$residuals # Residuos del modelo
+u2<-uhat^2
+sigmau<-u2/(n-k)
+sigmau
+```
+]
+
+--
+
+.pull-right[
+```{r boom form, echo=FALSE}
+n=140 # tamaño de la muestra
+k=2 # Número de parámetros
+uhat<-GPAres$residuals # Residuos del modelo
+u2<-sum(uhat^2)
+sigmau<-sqrt(u2/(n-k)) # Para el error estándar de la regresión
+sigmau
+```
+
+`r fa("exclamation-triangle", fill="red")` Este es un insumo fuerte para realizar el resto de la inferencia con cada uno de los .ul[parámetros] del modelo. 
+]
+
+
+---
+
+--
+
+Un ejemplo para uno de los parámetros o $(\beta's)$ que acompañan a la regresión o modelo que hacemos:
+
+.pull-left[
+```r
+GPAres <- lm(colGPA ~ hsGPA+ACT, data=gpa1) # Modelo
+n<- nobs(GPAres) # Tamaño de observaciones
+k <- length(GPAres$coefficients) - 1 # Grados de libertad
+R2 <- summary(GPAres)$r.squared # R-cuadrado
+u<- resid(GPAres)
+se <- sqrt(sum(u^2)/(n-k-1))
+
+# Calcular errores estándar de los parámetros
+se_beta1 <- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$hsGPA - mean(gpa1$hsGPA))^2)) * (1 / (1 - R2)))
+se_beta2 <- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$ACT - mean(gpa1$ACT))^2)) * (1 / (1 - R2)))
+
+```
+]
+
+.pull-right[
+```{r pro, echo=FALSE}
+GPAres <- lm(colGPA ~ hsGPA+ACT, data=gpa1) # Modelo
+n<- nobs(GPAres) # Tamaño de observaciones
+k <- length(GPAres$coefficients) - 1 # Grados de libertad
+R2 <- summary(GPAres)$r.squared # R-cuadrado
+u<- resid(GPAres)
+se <- sqrt(sum(u^2)/(n-k-1))
+
+# Calcular errores estándar de los parámetros
+se_beta1 <- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$hsGPA - mean(gpa1$hsGPA))^2)) * (1 / (1 - R2)))
+se_beta2 <- sqrt(sum(u^2) / ((length(gpa1$colGPA) - k) * sum((gpa1$ACT - mean(gpa1$ACT))^2)) * (1 / (1 - R2)))
+
+# Mostrar resultados
+cat("Error estándar para GPA:", se_beta1, "\n")
+cat("Error estándar para ACT:", se_beta2, "\n")
+cat("Error estándar del Modelo:", se, "\n")
+```
+
+`r fa("exclamation-triangle", fill="blue")` El resultado del error estándar del estimador nos permite entonces hacer la inferencia debida y tener el **estimador** real que buscamos en nuestro universo poblacional
+]
+
+---
+
+```{R model2 flex, echo=F}
+library(flextable)
+model1<- as_flextable(GPAres)
+mult1<- add_header_lines(model1, values = "Tabla #1: Regresión Múltiple")
+mult1
+```
+
++ El modelo con cada uno de los estadísticos en resumen y presentación para interpretar, *observe* que contiene los elementos que manualmente hemos expuesto con anterioridad
+
+---
+
+--
+
+- Construimos **intervalos de confianza** a un nivel de $(1- \alpha)$ para $\beta_1$:
+
+$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$
+
+--
+
+- Por ejemplo, si con 100 obs., tenemos dos coeficientes, $(\hat{\beta}_0 \; \text{y} \; \hat{\beta}_1 \implies k = 2), \; \text{y tenemos un}\; \alpha = 0.025$ (Para un intervalo de confianza del 98%) nos brinda un .black[estadístico] de $t_{0.025,\,98}$ = `r qt(0.025, 98) %>% round(2)`
+
+--
+
+```{R, t distr, echo = F, dev = "svg", fig.height = 3}
+d6 <- tibble(x = seq(-4, 4, 0.01), y = dt(x, df = 98)) %>%
+  rbind(., tibble(x = seq(4, -4, -0.01), y = 0))
+ggplot() +
+geom_polygon(data = d6, aes(x, y), fill = "grey85") +
+geom_polygon(data = d6 %>% filter(x <= qt(0.025, 98)), aes(x, y), fill = red_pink) +
+geom_hline(yintercept = 0, color = "black") +
+geom_vline(xintercept = qt(0.025, 98), size = 0.35, linetype = "solid") +
+theme_simple +
+theme(axis.text.x = element_text(size = 12))
+```
+
+---
+
+--
+
+```{R, gen dataset, include = F, cache = T}
+# Poblacion y muestra
+n_p <- 100
+n_s <- 30
+# Semilla
+set.seed(12468)
+# Generar datos
+pop_df <- tibble(
+  i = 3,
+  x = rnorm(n_p, mean = 5, sd = 1.5),
+  e = rnorm(n_p, mean = 0, sd = 1),
+  y = i + 0.5 * x + e,
+  row = rep(1:sqrt(n_p), times = sqrt(n_p)),
+  col = rep(1:sqrt(n_p), each = sqrt(n_p)),
+  s1 = sample(x = c(rep(T, n_s), rep(F, n_p - n_s))),
+  s2 = sample(x = c(rep(T, n_s), rep(F, n_p - n_s))),
+  s3 = sample(x = c(rep(T, n_s), rep(F, n_p - n_s)))
+)
+# Regresiones
+lm0 <- lm(y ~ x, data = pop_df)
+lm1 <- lm(y ~ x, data = filter(pop_df, s1 == T))
+lm2 <- lm(y ~ x, data = filter(pop_df, s2 == T))
+lm3 <- lm(y ~ x, data = filter(pop_df, s3 == T))
+# Simulación
+set.seed(12468)
+sim_df <- mclapply(mc.cores = 10, X = 1:1e4, FUN = function(x, size = n_s) {
+  lm(y ~ x, data = pop_df %>% sample_n(size = size)) %>% tidy()
+}) %>% do.call(rbind, .) %>% as_tibble()
+```
+
+```{R, simulation ci data, include = F}
+# Creando los intervalos de confianza para b1
+ci_df <- sim_df %>% filter(term == "x") %>%
+  mutate(
+    lb = estimate - std.error * qt(.975, 28),
+    ub = estimate + std.error * qt(.975, 28),
+    ci_contains = (lm0$coefficients[2] >= lb) & (lm0$coefficients[2] <= ub),
+    ci_above = lm0$coefficients[2] < lb,
+    ci_below = lm0$coefficients[2] > ub,
+    ci_group = 2 * ci_above + (!ci_below)
+  ) %>%
+  arrange(ci_group, estimate) %>%
+  mutate(x = 1:1e4)
+```
+
+**Del lo anterior** Tenemos certeza que con un `r ci_df$ci_contains %>% multiply_by(100) %>% mean() %>% round(1)`% de confiabilidad nuestros intervalos de confianza contienen el verdadero valor de nuestro $\beta_1$.
+
+```{R, simulation ci, echo = F, dev = "svg", fig.height = 5}
+# Plot
+ggplot(data = ci_df) +
+geom_segment(aes(y = lb, yend = ub, x = x, xend = x, color = ci_contains)) +
+geom_hline(yintercept = lm0$coefficients[2]) +
+scale_y_continuous(breaks = lm0$coefficients[2], labels = TeX("$\\beta_1$")) +
+scale_color_manual(values = c(red_pink, "grey85")) +
+theme_simple +
+theme(
+  axis.text.x = element_blank(),
+  axis.text.y = element_text(size = 18)
+)
+```
+
+
+---
+
+--
+
+- Construimos intervalos de confianza a un nivel de $(1- \alpha)$ para $\beta_1$ en la regresión del rendimiento en clases:
+
+$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$
+--
+
+**Ejemplo:**
+```{R ic9081, echo = T, highlight.output = 5}
+lm(colGPA ~ hsGPA+ACT, data=gpa1)%>% tidy()
+```
+
+--
+
++ Nuestro intervalo de confianza del 98% es en nuestro caso $0.453 \pm 1.98 \times 0.0958 = \left[ 0.2640,\; 0.6429 \right]$
+
+--
+
+.hi[El valor crítico puede obtenerlo de:]
+
+--
+
+```{R cttable, echo = T}
+qt(0.975,140)
+```
+
+
+---
+
+--
+
+- Construimos intervalos de confianza a un nivel de $(1- \alpha)$ para $\beta_1$:
+
+$$\hat{\beta}_1 \pm t_{\alpha/2,\;\text{df}} \, \mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)$$
+
+--
+
+Directamente en .black[R]:
+
+```{r confin, highlight.output = 3}
+modelk<-lm(colGPA ~ hsGPA+ACT, data=gpa1)
+confint(modelk)
+```
+
+--
+
+`r fa('pagelines')` _si esta interesado(a)_ en mirar los otros niveles de confianza es usar el código con la opción **level** _p.e_: 
+
+`confint(modelk, level=0.99)`
+
+---
+
+--
+
+`r fa("puzzle-piece", fill= "red")` Qué significa el intervalo:
+
+--
+
+<font size="+5">$$\left[ 0.2640 \leq \hat{\beta}_{i} \leq 0.6429 \right]$$</font>
+
+
+--
+
+`r fa("share")` **Informalmente:** El intervalo de confianza nos da una región (intervalo) en la que podemos depositar cierta confianza para contener el parámetro estimado.
+
+--
+
+`r fa("share")` **Más formalmente:** Si con nuestras muestras de la población repetimos el proceso n veces y construimos intervalos de confianza para cada una de estas, $(1-\alpha)$ por ciento de nuestros intervalos ( _p.e_, 97.5%) contendrán el parámetro poblacional *en algún lugar del intervalo*.
+
+---
+layout: false
+class: inverse, middle
+
+## Pruebas de hipótesis 😭
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+
+# Pruebas de hipótesis `r fa("eye", fill = "red")`
+
+---
+
+--
+
+> **Pruebas de hipótesis**:
+En muchas aplicaciones, queremos saber algo más que una estimación puntual o un rango de valores. Queremos saber qué dicen nuestras pruebas estadísticas sobre las **teorías** existentes.
+
+En **MCO** las pruebas de hipótesis se hacen a los parámetros:
+
+$\hat{\beta}_1$ es igual al valor $\beta_j$, _p.e._, planteamos que $H_o:\: \beta_1 = \beta_j$
+
+--
+
+Luego un _test_ para medir:
+
+$$t_\text{estadístico} = \dfrac{\hat{\beta}_1 - \beta_j}{\mathop{\hat{\text{SE}}} \left( \hat{\beta}_1 \right)}$$
+--
+
+> Note que $\beta_j$ regularmente se iguala a cero (0) y la hipotesis nula pasa a ser $H_o:\: \beta_1 = 0$.
+
+---
+
+
+--
+
+`r fa("umbrella", fill="red")` Con un nivel de confianza $\alpha$ y un test de **dos colas**, se rechaza la _hipótesis nula_ cuando ocurra lo siguiente:
+
+--
+
+$$\left|t_\text{estadístico}\right| > \left|t_{1-\alpha/2,\;df}\right|$$
+
+--
+
+Lo que significa que nuestro **estadístico de prueba es más extremo que el valor crítico**.
+
+--
+
+Otra manera, es calcular el **valor p** que acompaña a nuestro estadístico de prueba, lo que nos da efectivamente la probabilidad de mirar que nuestro estadístico de prueba es lo suficientemente fuerte.
+
+--
+
+Los **valores p** muy pequeños (generalmente < 0,05) _significan_ que sería poco probable ver nuestros resultados si la hipótesis nula fuera realmente cierta; tendemos a rechazar la hipótesis nula para valores p inferiores a 0,05.
+
+--
+
+En **R**:
+
+--
+
+```{r outmo}
+library(broom) # Para tener el p-value
+modelo.a<- lm(colGPA ~ hsGPA+ACT, data=gpa1)
+glance(modelo.a)$p.value
+```
+
+---
+
+--
+
+```{R testeo, echo = T, highlight.output = 5}
+lm(colGPA ~ hsGPA+ACT, data=gpa1) %>% tidy()
+```
+
+--
+
+H.sub[o]: $\beta_1 = 0$ *vs.* H.sub[a]: $\beta_1 \neq 0$
+
+--
+
+ $t_\text{estadístico} = 4.73$ y el $t_\text{0.95, 138} = `r qt(0.95, 138) %>% round(2)`$
+
+--
+
+El cual implica que *p*-value $< 0.05$
+
+--
+
+Entonces, podemos .black[rechazar Ho].
+
+---
+
+
+--
+
+`r fa("angle-double-right", fill="blue")` El p-value o .black[p-valor] nos dice que probabilidad tenemos de caer en la zona de **no rechazo** (la zona mas grande de toda la distribución).
+
+--
+
+> Cientificamente, esto implica la probabilidad de cometer el error tipo I en las pruebas de hipótesis. _Esto es, usted .grey[rechaza] Ho cuando ella es verdadera_ 
+
+--
+
+La formula de cálculo es:
+
+--
+
+$$\text{p-value}= \color{#0000FF}{2 \times P(T_{n-1}> |t|)} \equiv 2 \times (1-Ft_{n-1}(|t|))$$
+--
+
+_Donde $|t|$ es el **valor crítico** y $Ft$ es la función de densidad_ 
+
+--
+
+en **R**:
+
+--
+
+```{r, hiptest}
+n<- 140 # Por el tamaño muestral del ejemplo de salarios/educación 
+t<- 4.73 # Valor de T-calculado 
+(p<-2*(1-pt(abs(t), n-1)))
+```
+
+---
+
+
+--
+
+```{R, simulation t data, include = F}
+# Calculamos los test estadisticos del sim
+t_df <- sim_df %>%
+  filter(term == "x") %>%
+  mutate(
+    t_stat = (estimate - lm0$coefficients[2]) / std.error,
+    reject = abs(t_stat) > abs(qt(0.975, 28))
+  )
+t_density <- density(t_df$t_stat, from = -5, to = 4) %$%
+  data.frame(x = x, y = y) %>%
+  mutate(area = abs(x) > abs(qt(0.975, 28)))
+```
+
+En nuestro ejemplo con las notas del colegio, hay un 95% (por ciento) que nuestro $t$ estadístico esté en la zona de **rechazo** y por ende esa .black[variable] _explique las variaciones o rendimiento académico_ 
+
+--
+
+La distribución de nuestro $t$ estadístico es: (teniendo presente las zonas de rechazo).
+
+--
+
+```{R, simulacion t plot, echo = F, dev = "svg", fig.height = 3.75}
+ggplot(data = t_density, aes(x = x, ymin = 0, ymax = y)) +
+geom_vline(xintercept = 0) +
+geom_vline(xintercept = 0.06, linetype = "dashed", colour = "red") +  
+geom_ribbon(fill = "grey85", alpha = 0.8) +
+geom_ribbon(
+  data = t_density %>% filter(x < qt(0.025, 28)),
+  fill = red_pink
+) +
+geom_ribbon(
+  data = t_density %>% filter(x > qt(0.975, 28)),
+  fill = red_pink
+) +
+geom_hline(yintercept = 0) +
+# geom_vline(xintercept = qt(c(0.025, 0.975), df = 28), color = red_pink) +
+theme_simple
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# R.super[2] 
+
+<br>
+<img src="images/lognig.png" width="380" />
+ 
+
+---
+layout: true
+# R.super[2]  `r fa("space-shuttle", fill="steelblue")`
+
+---
+
+--
+
+- **Suma Total de Cuadrados** (SST): Mide variación muestral total de $y_{i}$.
+
+$$SST \equiv \sum \limits_{i=1}^{n} \left ( y_{i} - \bar{y} \right )^{2}$$
+--
+
+- **Suma Explicada de Cuadrados** (SSE): Mide variación de $\hat{y}_{i}$.
+
+$$SSE \equiv \sum \limits_{i=1}^{n} \left ( \hat{y}_{i} - \bar{y} \right )^{2}$$
+--
+
+- **Suma de los Residuos al Cuadrado** (SSR): Mide variación en $\mu_{i}$.
+
+$$SSR \equiv \sum \limits_{i=1}^{n} \hat{\mu}_{i}^{2}$$
+
+--
+
+La **variación total** en $y$ puede ser expresada como la suma de la variación explicada y la no explicada:
+
+$$SST= SSE+SSR$$
+
+---
+
+
+--
+
+- **Coeficiente de determinación** $R^2$: Mide el grado de precisión del modelo, la proporción de la variación de la variable _dependiente_ que es explicado por $x$.
+
+$$R^{2} \equiv \frac{SSE}{SST}=1-\frac{SSR}{SST} \quad R^{2} \in \left [ 0,1 \right ]$$
+--
+
+`r fa("paperclip", fill="red")` Cuando se interpreta se multiplica por 100 para interpretarlo como porcentaje.
+
+--
+
+`r fa("paperclip", fill="red")` Un $R^{2}$ **cercano a cero** indica un bajo ajuste de la linea de M.C.O.
+
+--
+
+`r fa("paperclip", fill="red")` Un $R^{2}$ **cercano a uno**, la(s) variable(s) $x$ explica la mayoría de $y$.
+
+---
+
+--
+
+- En **R** se puede implementar así:
+
+--
+
+
+```{r r2calculate}
+modelo.ab <- lm(colGPA ~ hsGPA+ACT, data=gpa1)
+gpa.pred <- fitted(modelo.ab) #Predichos
+u.hat <- resid(modelo.ab) 
+
+# R cuadrado puede obtenerse:
+GPA <- gpa1$colGPA
+var(gpa.pred)/var(GPA) #Primera forma
+
+1 - var(u.hat)/ var(GPA) #Segunda forma
+
+cor(GPA, gpa.pred)^2 # Tercera forma 
+```
+
+---
+layout: false
+class: inverse
+# Bibliografía
+
+`r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+`r fa('book')` Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., & Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+<br/>
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+<img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" />
+
+[`r fontawesome::fa("link")` Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)<br/>
+[`r fontawesome::fa("twitter")` @keynes37](https://twitter.com/keynes37)<br/>
+[`r fontawesome::fa("envelope")` cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+

@@ -1,0 +1,1235 @@
+---
+title: "Econometría"
+subtitle: "<br/> Modelos Logísticos"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte"
+date: "2023-I"
+output:
+  xaringan::moon_reader:
+    css: 
+       - xaringan-themer.css
+       - my-css.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1b9aaa",
+  secondary_color = "#ffc43d",
+  text_font_google = google_font("Ubuntu"),  #<< Prueba 1
+  header_font_google = google_font("Josefin Sans") #<< Prueba2
+)
+```
+
+```{r, setup, include = F}
+# devtools::install_github("dill/emoGG")
+library(pacman)
+p_load(
+  broom, tidyverse,
+  latex2exp, ggplot2, ggthemes, ggforce, viridis, extrafont, gridExtra, ggdag, dagitty,
+  ggthemes, ggridges, wooldridge,
+  kableExtra, snakecase, janitor,
+  data.table, dplyr, estimatr,
+  lubridate, knitr, parallel,
+  lfe, emoGG,
+  here, magrittr, fontawesome, shiny, babynames,
+  sjmisc, descr, scales, xtable, ggmosaic, stargazer, summarytools, sjPlot
+)
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#fb6107"
+blue <- "#2b59c3"
+green <- "#8bb174"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+slate <- "#314f4f"
+met_slate <- "#272822"
+# Dark slate grey: #314f4f
+# Opciones
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# A blank theme para ggplot
+theme_empty <- theme_bw() + theme(
+  line = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = structure(c(0, 0, -0.5, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_simple <- theme_bw() + theme(
+  line = element_blank(),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text.x = element_text(size = 18, family = "STIXGeneral"),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  # plot.margin = structure(c(0, 0, -1, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_math <- theme_void() + theme(
+  text = element_text(family = "MathJax_Math"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_serif <- theme_void() + theme(
+  text = element_text(family = "MathJax_Main"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes <- theme_void() + theme(
+  text = element_text(family = "Fira Sans Book"),
+  axis.title = element_text(size = 18),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = grey_light,
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_set(theme_gray(base_size = 20))
+
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+# Pendiente de ed
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# Column names for regression results
+reg_columns <- c("Term", "Est.", "S.E.", "t stat.", "p-Value")
+# Function for formatting p values
+format_pvi <- function(pv) {
+  return(ifelse(
+    pv < 0.0001,
+    "<0.0001",
+    round(pv, 4) %>% format(scientific = F)
+  ))
+}
+format_pv <- function(pvs) lapply(X = pvs, FUN = format_pvi) %>% unlist()
+# Tidy regression results table
+tidy_table <- function(x, terms, highlight_row = 1, highlight_color = "black", highlight_bold = T, digits = c(NA, 3, 3, 2, 5)) {
+  x %>%
+    tidy() %>%
+    select(1:5) %>%
+    mutate(
+      term = terms,
+      p.value = p.value %>% format_pv()
+    ) %>%
+    kable(
+      col.names = reg_columns,
+      escape = F,
+      digits = digits
+    ) %>%
+    kable_styling(font_size = 20) %>%
+    row_spec(1:nrow(tidy(x)), background = "white") %>%
+    row_spec(highlight_row, bold = highlight_bold, color = highlight_color)
+}
+# A few extras
+xaringanExtra::use_xaringan_extra(c("tile_view", "fit_screen"))
+```
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **`r rmarkdown::metadata$title`**
+----
+
+## **`r rmarkdown::metadata$subtitle`**
+
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+```{r xaringanExtra-share-again, echo=FALSE}
+xaringanExtra::use_share_again()
+```
+
+---
+class: inverse, middle
+
+# Preguntas... de la sesión anterior? 
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Pruebas de hipótesis
+
+---
+
+--
+
+De acuerdo a lo ya visto:
+
+--
+
+.hi[P]: ¿Qué se entiende por estimación de la media poblacional?
+
+--
+
+- ¿Es significativamente diferente a la evidencia existente sobre la media poblacional?
+- ¿Es _estadísticamente distinguible_ de los valores de la media de la población previamente hipotetizados?
+- ¿Es la estimación lo suficientemente extrema como para actualizar nuestras creencias previas sobre la media de la población?
+
+--
+
+Debemos realizar **pruebas estadísticas** para responder a estas preguntas.
+
+---
+
+--
+
+### Recordemos
+
+--
+
+__Hipótesis nula (H.sub[0]):__ $\widehat{\beta} = \beta$
+
+__Hipótesis alternativa (H.sub[1]):__ $\widehat{\beta} \neq \beta$
+
+--
+
+Hay **cuatro** posibles .hi[resultados] de nuestra prueba:
+
+--
+
+1. No __rechazamos__ la hipótesis nula y la nula es cierta.
+
+2. __Rechazamos__ la hipótesis nula y la nula es falsa.
+
+3. __Rechazamos__ la hipótesis nula, pero la nula es realmente cierta (**error de tipo I**).
+
+4. No __rechazamos__ la hipótesis nula, pero la nula es realmente falsa (**error de tipo II**).
+
+---
+
+--
+
+No __rechazamos__ la hipótesis nula y la nula es cierta.
+
+--
+
+- El acusado fue absuelto y no cometió el delito.
+
+--
+
+__Rechazamos__ la hipótesis nula y la nula es falsa.
+
+--
+
+- El acusado fue condenado y cometió el delito.
+
+--
+
+__Rechazamos__ la hipótesis nula, pero en realidad la nula es cierta. 
+
+--
+
+- El acusado fue condenado, ¡pero no cometió el delito!
+- Error **tipo I** (también conocido como _falsos positivos_)
+
+--
+
+No __rechazamos__ la hipótesis nula, pero en realidad la nula es falsa.
+
+--
+
+- El acusado fue absuelto, ¡pero cometió el delito!
+- Error de **tipo II** (también conocido como _falso negativo_)
+
+---
+
+--
+
+$\hat{\beta}$ es .hi[aleatorio]: podría ser cualquier cosa, incluso si $\hat{\beta} = \beta$ es cierto.
+
+- Pero si $\beta = 0$ es cierto, entonces $\hat{\beta}$ es poco probable que tome valores lejos de cero.
+
+- A medida que la varianza de $\hat{\beta}$ se reduce, somos aún menos propensos a observar valores "extremos" de $\hat{\beta}$ (suponiendo $\hat{\beta} = \beta$).
+
+--
+
+Nuestra prueba debe tomar los .ul[valores extremos] de $\hat{\beta}$ como evidencia contra la hipótesis nula, pero también debe ponderarlos por lo que sabemos acerca de la varianza de $\hat{\beta}$.
+
+- Por ahora, supondremos que la variable de interés $X$ se distribuye normalmente y con ella obtenemos un estimador con media $\bar{x}$ y desviación típica $sd(x)$.
+
+---
+
+--
+
+```{r, echo = F, dev = "svg", fig.height = 3.75}
+df <- tibble(
+    x = seq(-4,4, by = 0.01),
+    y = dnorm(seq(-4,4, by = 0.01))
+)
+crit <- qnorm(c(.025,.975))
+tail_left <- rbind(c(crit[1],0), subset(df, x < crit[1]))
+tail_right <- rbind(c(crit[2],0), subset(df, x > crit[2]), c(3,0))
+ggplot() +
+  scale_x_continuous(limits = c(-4, 4), expand=c(0,0), breaks = c(-1.96, 0, 1.96), labels = c(TeX("$\\mu_0 - 1.96 \\, s.d.$"), TeX("$\\mu_0$"), TeX("$\\mu_0 + 1.96 \\, sd$"))) +
+  scale_y_continuous(limits = c(0, 0.5), expand=c(0,0), breaks = c(0, 0.5), labels = c(0, 0.5)) +
+  geom_polygon(data = df, aes(x, y), fill = "grey85") +
+  geom_polygon(data = tail_left, aes(x=x, y=y), fill = red_pink) +
+  geom_polygon(data = tail_right, aes(x=x, y=y), fill = red_pink) +
+  geom_polygon(data = df %>% filter(x <= qnorm(1 - 0.975) & x >= qnorm(0.975)), aes(x, y), fill = red_pink) +
+  geom_vline(xintercept = qnorm(0.975), size = 0.35, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = qnorm(1 - 0.975), size = 0.35, linetype = "dashed", color = met_slate) +
+  theme_simple +
+  xlab("") + 
+  ylab("") + theme(axis.text.y = element_blank(), axis.line.y = element_blank())
+```
+Rechazar H.sub[0] si $\hat{\beta}$ cae en la zona de .hi[rechazo].
+
+
+---
+
+
+```{r, echo = F, dev = "svg", fig.height = 3.75}
+df <- tibble(
+    x = seq(-4,4, by = 0.01),
+    y = dnorm(seq(-4,4, by = 0.01))
+)
+crit <- qnorm(c(.025,.975))
+tail_left <- rbind(c(crit[1],0), subset(df, x < crit[1]))
+tail_right <- rbind(c(crit[2],0), subset(df, x > crit[2]), c(3,0))
+ggplot() +
+  scale_x_continuous(limits = c(-4, 4), expand=c(0,0), breaks = c(-1.96, 0, 1.96), labels = c(TeX("$\\mu_0 - 1.96 \\, s.d.$"), TeX("$\\mu_0$"), TeX("$\\mu_0 + 1.96 \\, sd$"))) +
+  scale_y_continuous(limits = c(0, 0.5), expand=c(0,0), breaks = c(0, 0.5), labels = c(0, 0.5)) +
+  geom_polygon(data = df, aes(x, y), fill = "grey85") +
+  geom_polygon(data = tail_left, aes(x=x, y=y), fill = red_pink) +
+  geom_polygon(data = tail_right, aes(x=x, y=y), fill = red_pink) +
+  geom_polygon(data = df %>% filter(x <= qnorm(1 - 0.975) & x >= qnorm(0.975)), aes(x, y), fill = red_pink) +
+  geom_vline(xintercept = qnorm(0.975), size = 0.35, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = qnorm(1 - 0.975), size = 0.35, linetype = "dashed", color = met_slate) +
+  theme_simple +
+  xlab("") + 
+  ylab("") + theme(axis.text.y = element_blank(), axis.line.y = element_blank())
+```
+Rechazamos H.sub[0] si $\left| t_{calc} \right| =\left| \dfrac{\hat{\beta} - \beta}{\mathop{\text{sd}}(\hat{\beta})} \right| > 1.96$.
+
+Qué ocurre con $t$ cuando $\left| \hat{\beta} - \beta \right|$ se incrementa?
+--
+ Qué ocurre con $t$ cuando $\mathop{\text{sd}}(\hat{\beta})$ se incrementa?
+
+---
+
+--
+
+La formula del $t$ estadístico asume que conocemos $\mathop{\text{sd}}(\hat{\beta})$.
+
+- Pero en la *práctica*, no conocemos $\mathop{\text{sd}}(\hat{\beta})$, Así que hay que estimarlo.
+
+--
+
+Si la .ul[varianza] de $X$ es $\sigma^2$, entonces 
+
+$$\sigma^2_{\hat{\beta}} = \dfrac{\sigma^2}{n}.$$
+
+- Podemos estimar $\sigma^2$ con la varianza muestral $S_{X}^2$.
+
+
+---
+
+--
+
+### .hi-green[Distribución Normal] vs. .hi-purple[Distribución t- student ]
+
+- Una distribución normal tiene la .hi[misma forma] para cualquier tamaño de muestra.
+- La forma de la distribución t depende de los **grados de libertad**.
+
+```{r, echo = F, dev = "svg", fig.height = 3.5}
+n <- 5
+df <- tibble(
+    x = seq(-4,4, by = 0.01),
+    y = dt(seq(-4,4, by = 0.01), n),
+    y_norm = dnorm(seq(-4,4, by = 0.01))
+)
+crit <- qt(c(.025,.975), n)
+tail_left <- rbind(c(crit[1],0), subset(df, x < crit[1]))
+tail_right <- rbind(c(crit[2],0), subset(df, x > crit[2]), c(3,0))
+ggplot() +
+  scale_x_continuous(limits = c(-4, 4), expand=c(0,0)) +
+  scale_y_continuous(limits = c(0, 0.5), expand=c(0,0), breaks = c(0, 0.5), labels = c(0, 0.5)) +
+  geom_line(data = df, aes(x, y), color = "#9370DB", size = 1) +
+  geom_line(data = df, aes(x, y_norm), color = "#007935", size = 1) +
+  # geom_polygon(data = tail_left, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = tail_right, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = df %>% filter(x <= qt(1 - 0.975, n) & x >= qt(0.975, n)), aes(x, y), fill = red_pink) +
+  geom_vline(xintercept = qt(0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = qt(1 - 0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = -1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  geom_vline(xintercept = 1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  theme_simple +
+  xlab("") + 
+  ylab("") + theme(axis.text.y = element_blank(), axis.line.y = element_blank())
+```
+
+- Grados de libertad .mono[=] 5.
+
+---
+count: false
+
+### .hi-green[Distribución Normal] vs. .hi-purple[Distribución t- student ]
+
+- Una distribución normal tiene la .hi[misma forma] para cualquier tamaño de muestra.
+- La forma de la distribución t depende de los **grados de libertad**.
+
+```{r, echo = F, dev = "svg", fig.height = 3.5}
+n <- 50
+df <- tibble(
+    x = seq(-4,4, by = 0.01),
+    y = dt(seq(-4,4, by = 0.01), n),
+    y_norm = dnorm(seq(-4,4, by = 0.01))
+)
+crit <- qt(c(.025,.975), n)
+tail_left <- rbind(c(crit[1],0), subset(df, x < crit[1]))
+tail_right <- rbind(c(crit[2],0), subset(df, x > crit[2]), c(3,0))
+ggplot() +
+  scale_x_continuous(limits = c(-4, 4), expand=c(0,0)) +
+  scale_y_continuous(limits = c(0, 0.5), expand=c(0,0), breaks = c(0, 0.5), labels = c(0, 0.5)) +
+  geom_line(data = df, aes(x, y), color = "#9370DB", size = 1) +
+  geom_line(data = df, aes(x, y_norm), color = "#007935", size = 1) +
+  # geom_polygon(data = tail_left, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = tail_right, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = df %>% filter(x <= qt(1 - 0.975, n) & x >= qt(0.975, n)), aes(x, y), fill = red_pink) +
+  geom_vline(xintercept = qt(0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = qt(1 - 0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = -1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  geom_vline(xintercept = 1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  theme_simple +
+  xlab("") + 
+  ylab("") + theme(axis.text.y = element_blank(), axis.line.y = element_blank())
+```
+
+- Grados de libertad .mono[=] 50.
+
+---
+count: false
+
+### .hi-green[Distribución Normal] vs. .hi-purple[Distribución t- student ]
+
+- Una distribución normal tiene la .hi[misma forma] para cualquier tamaño de muestra.
+- La forma de la distribución t depende de los **grados de libertad**.
+
+```{r, echo = F, dev = "svg", fig.height = 3.5}
+n <- 500
+df <- tibble(
+    x = seq(-4,4, by = 0.01),
+    y = dt(seq(-4,4, by = 0.01), n),
+    y_norm = dnorm(seq(-4,4, by = 0.01))
+)
+crit <- qt(c(.025,.975), n)
+tail_left <- rbind(c(crit[1],0), subset(df, x < crit[1]))
+tail_right <- rbind(c(crit[2],0), subset(df, x > crit[2]), c(3,0))
+ggplot() +
+  scale_x_continuous(limits = c(-4, 4), expand=c(0,0)) +
+  scale_y_continuous(limits = c(0, 0.5), expand=c(0,0), breaks = c(0, 0.5), labels = c(0, 0.5)) +
+  geom_line(data = df, aes(x, y), color = "#9370DB", size = 1) +
+  geom_line(data = df, aes(x, y_norm), color = "#007935", size = 1) +
+  # geom_polygon(data = tail_left, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = tail_right, aes(x=x, y=y), fill = red_pink) +
+  # geom_polygon(data = df %>% filter(x <= qt(1 - 0.975, n) & x >= qt(0.975, n)), aes(x, y), fill = red_pink) +
+  geom_vline(xintercept = qt(0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = qt(1 - 0.975, n), size = 0.35, linetype = "dashed", color = "#9370DB") +
+  geom_vline(xintercept = -1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  geom_vline(xintercept = 1.96, size = 0.35, linetype = "dashed", color = "#007935") +
+  theme_simple +
+  xlab("") + 
+  ylab("") + theme(axis.text.y = element_blank(), axis.line.y = element_blank())
+```
+
+- Grados de libertad .mono[=] 500.
+
+---
+
+--
+
+### **Pruebas t** (de dos colas)
+
+--
+
+Para realizar una prueba t, hay que comparar el estadístico $t$ con el .hi[valor crítico] apropiado de la distribución t.
+
+- Para encontrar el valor crítico en una tabla t, necesitamos los grados de libertad y el nivel de significancia $\alpha$.
+
+--
+
+Debe Rechazar H.sub[0] al nivel $\alpha \cdot 100$ por ciento si 
+
+$$\left| t_{calc} \right| = \left| \dfrac{\hat{\beta} - \beta}{\mathop{\text{se}}(\hat{\beta})} \right| > t_\text{crit}.$$
+
+---
+layout: false
+class: inverse, middle
+
+# Introducción modelos logísticos
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Variables dependientes dicotómicas
+
+---
+
+--
+
+### Definición de Variables (recordeis)
+
+--
+
+- Discretas (con rango finito de valores):
+
+      - Dicotómicas
+      - Politómicas
+
+- Continuas:
+
+      - Un rango (teóricamente) infinito de valores.
+
+---
+
+--
+
+### Formato de medición de variables
+
+--
+
+- NOIR: Nominal, Ordinal, Intervalos, Razón
+
+
+| **Tipo**    | **Características**                     	     | **Propiedad de números** | **Ejemplo**|
+:|:----------:|:---------------------------------------:|:---------------:|:-------------:|:
+| *Nominal*   | Uso de números en lugar de palabras 	| + Identidad           | Nacionalidad |
+| *Ordinal*   | Números se usan para ordenar series 	| + ranking            	| Nivel educativo|
+| *Intervalos*| Intervalos iguales entre números    	| + igualdad           	| Temperatura  |
+| *Razón*     | Cero real                           	| + aditividad         	| Distancia    |
+
+
+--
+
+_Una manera mas de mostrar en ejemplos lo anterior_:
+
+--
+
+  - .hi[Nominal]: Números empleados como etiquetas (ej. sexo, raza)
+  - .hi[Ordinales]: Distintas categorías puede sen ordenados en serie. Posición, no distancia. _P.e._(cargos en una empresa)
+  - .hi[Intervalares]: Escalas de unidades iguales. Diferencia entre dos números consecutivos que refleja un diferencia. _P.e._ (Horas del día)
+  - .hi[Razón]: caracterizados por la presencia de un cero absoluto. (ej. frecuencias de eventos)
+  
+---
+
+--
+
+### Tipos de datos en relación a escalas de medición.
+
+--
+
+* *Datos categóricos*: pueden ser .hi[medidos] sólo mediante escalas nominales, u ordinales en caso de orden de rango como _p.e:_ (Muy favorable, favorable, medianamente, desfavorable, muy desfavorable) 
+
+--
+
+* *Datos continuos*:
+    - Medidos en escalas intervalares o de razón
+    - Pueden ser transformados a datos categóricos
+    
+--
+
+???
+Conversión de .hi-orange[continuo] a .hi-purple[categórico]: estatura (cms) a categorías bajo – mediano – alto
+
+
+---
+
+--
+
+### Descriptivos según el tipo de variable
+
+<br>
+
+|             	| Categórica                      	| Continua                      	| Categ.(y)/Categ.(x)                    	| Cont.(y)/Categ.(x)                	|
+|-------------	|---------------------------------	|-------------------------	|------------------------------------------------	|------------------------------------------	|
+| **Ejemplo**     	| **Estatus Ocupacional**             	| **Ingreso**                       	| **Estatus Ocupacional (Y) / Género (X)**           	| **Ingreso (Y) / Género (X)**                 	|
+| Tabla       	| Frecuencias / porcentajes                  	| Necesidad de recodificar      	| Tabla de Contingencia                          	| Clasificar Y                             	|
+| Gráfico     	| Barras                          	| Histograma / boxplot          	| Gráfico de barras condicionado                 	| Histograma, box plot condicionado        	|
+
+
+---
+
+--
+
+### Análisis estadístico según tipos de variables
+
+--
+
+- Variable .hi-orange[Dependiente/resultado(y)] : lo que busco/quiero .ul[explicar]
+
+- Variable .hi[Independiente (x)]: lo que me permite explicar la variable resultado/dependiente
+
+--
+
+```{r, echo=F}
+Tab1_ <- tibble(
+  col1 = c("Categórica", "Continua"),
+  col2 = c("Análisis de tabla de Contigencia, Ji-2", "Regresión Logística"),
+  col3 = c("Análisis de Varianza ANOVA, Pruebas T", "Correlación / Regresión Lineal")
+  ) %>% 
+  kable(
+  escape = F,
+  col.names = c("Variable (X)", "Variable Dependiente Categórica", "Variable Dependiente Continua "),
+  align = c("c", "l", "l")
+) %>% 
+  column_spec(1, color = "red", bold = T, italic = T, extra_css = "vertical-align:top;") %>% 
+  column_spec(2, color = "orange", italic = T) %>%
+  column_spec(3, color = "purple", italic = T) 
+Tab1_
+```
+
+
+---
+layout: false
+class: inverse
+
+.pull-left[
+<img src="images/titanic-1.jpg" width="480" />
+]
+
+--
+
+.pull-right[
+### ¿Podemos decir que va ocurrir al final de la película?
+
+Si vas en algun momento al cine a ver esta película, y si antes conoces los datos sobre el Titanic, puedes **anticipar** lo que va a ocurrir al final?
+]
+
+---
+layout: true
+# Caso: Titanic
+
+---
+
+--
+
+```{r echo=FALSE}
+load("dattitan.Rdata")
+```
+
+
+```{r echo=FALSE}
+base_t <- tt %>% select(survived,sex,age )  
+print(dfSummary(base_t, headings = FALSE), method = "render")
+```
+
+---
+
+--
+
+### Sobrevivientes
+
+--
+
+.pull-left[
+```{r, echo=TRUE, fig.height=5}
+graph01 <-ggplot(tt, 
+     aes(survived, fill=survived)) + 
+  geom_bar() + 
+  geom_text(
+     aes(label = scales::percent((..count..)/sum(..count..))),
+     stat='count',size=10, vjust = 3) +
+  labs(title = "Sobrevivientes", x = "Si/no", y = "Porcentaje (%)") +
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12))+
+  theme(legend.position="none", 
+        text = element_text(size = 30),
+        axis.title=element_blank())
+```
+]
+
+--
+
+.pull-right[
+```{r echo=FALSE}
+graph01 <-ggplot(tt, 
+     aes(survived, fill=survived)) + 
+  geom_bar() + 
+  geom_text(
+     aes(label = scales::percent((..count..)/sum(..count..))),
+     stat='count',size=10, vjust = 3) +
+  labs(title = "Sobrevivientes", x = "Si/no", y = "Porcentaje (%)") +
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.y = element_text(angle = 90, hjust = 1))+
+theme(legend.position="none", 
+        text = element_text(size = 30),
+        axis.title=element_blank())
+
+graph01 <- graph01 +
+  annotate("text", x = Inf, y = -Inf, label = "Credito: Estadistica Multivariada. U de Chile", hjust = 1, vjust = 0,
+           size = 10, color = "gray")
+# Mostrar el gráfico
+graph01
+```
+]
+---
+
+--
+
+### Genero
+
+--
+
+.pull-left[
+`r fa("fan", fill="red")` En el barco de "El Titanic" habian mas .pink[Hombres] que **mujeres**.
+
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height=5}
+(ggplot(tt, aes(sex, fill=sex))
+ + geom_bar()
+ + geom_text(
+     aes(label = scales::percent((..count..)/sum(..count..))),
+     stat='count',
+      size=10,
+    vjust = 3)+
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.y = element_text(angle = 90, hjust = 1))+
+  theme(legend.position="none", text = element_text(size = 30),axis.title=element_blank())
+)
+```
+]
+
+---
+
+--
+
+.hi[P]: Qué ocurre si combinamos entonces la .red[supervivencia] con el genero?
+
+--
+
+### Sobrevivencia / sexo
+
+.pull-left[
+```{r, echo=FALSE}
+ggplot(data = tt) +
+  geom_mosaic(aes(x = product(survived,sex), fill=survived)) + 
+  labs(title='Porcentajes de Supervivencia')
+```
+]
+
+--
+
+.pull-right[
+`r fa("sketch", fill="blue")` Veamos algunas estadísticas
+```{r message=FALSE,warning=FALSE, echo=FALSE}
+round(prop.table(table(tt$survived,tt$sex),2),2)
+```
+El 75% de las mujeres sobrevive, mientras que el 25% no lo hace.
+
+]
+---
+layout: false
+class: inverse, middle
+
+# Fué el género un determinante de la supervivencia?
+<img src="images/lognig.png" width="280" />
+---
+layout: true
+
+# Métodos
+
+---
+
+--
+
+### Regresión lineal simple
+
+.attn[Vamos a modelar la probabilidad de sobrevivir con un modelo de regresión MCO]
+
+--
+
+```{r echo=FALSE, results='hide'}
+# Generar dummy sexo
+str(tt$sex)
+# tt$sex_f<-tt$sex
+#str(tt$sex_f)
+# tt <- tt %>% mutate(sex=recode(sex, "Hombre"=0, "Mujer"=1), label="Mujer")
+#str(tt$sex)
+```
+
+```{r warning=T, echo=TRUE}
+reg_tit=lm(survived ~ sex, data= tt)
+```
+
+-> Advertencia de <span style="color:lightblue"> **R** </span>. Nos dice que nuestra variable .hi-orange[dependiente] será tratada como continua -*cuando en realidad es un factor!!, o no?*-  
+
+---
+
+--
+
+### Modelo de probabilidad lineal
+
+.pull-left[
+Así se denominan los .hi[modelos de regresión] donde una variable .ul[dependiente] dicotómica se estima de manera la forma tradicional como lo son los (mínimos cuadrados ordinarios)
+
+```{r echo=TRUE}
+str(tt$survived)
+tt <- tt %>% mutate(survived_n=recode(survived,
+"No sobrevive"=0, "Sobrevive"=1))
+str(tt$survived_n)
+```
+]
+
+--
+
+.pull-right[
+```{r echo=TRUE}
+reg_tit=lm(survived_n ~ sex, data=tt)
+```
+
+```{r results='asis', echo=FALSE}
+sjPlot::tab_model(reg_tit,
+        show.se=TRUE,
+        show.ci=FALSE,
+        digits=3,
+        p.style = "stars",
+        dv.labels = c("Modelo MPL"),
+        string.pred = "Predictores",
+        string.est = "β")
+```
+]
+
+---
+
+--
+
+### Significado coeficientes modelo probabilidad lineal
+
+.pull-left[
+**Promedio de supervivencia por sexo**
+```{r results='asis', echo=FALSE}
+print(xtable(compmeans(tt$survived_n,tt$sex, plot=FALSE), digits=c(0,3,0,2)),type="html")
+```
+]
+
+.pull-right[
+- El valor del intercepto $\widehat{\beta}_0$=0.205, es el valor "predicho" para la categoría de referencia en genero conocido como "hombre".
+
+- El $\widehat{\beta}_1$ del género/sex (mujer) =0.547 sumado al intercepto nos brinda el porcentaje de supervivencia de mujeres]
+
+---
+layout: false
+class: inverse, middle
+
+# Funciona por lo pronto ... .hi[PERO]
+<img src="images/lognig.png" width="280" />
+---
+layout: true
+# Límitaciones del MCO
+
+---
+
+--
+
+### Cuando MCO posee (cualitativa) como variable dependiente
+
+--
+
+```{r echo=FALSE,fig.height=4}
+ggplot(data = tt, aes(x = as.numeric(sex), y = survived_n)) +
+  geom_point(aes(color = as.factor(survived_n)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal MCO",
+       y = "Sobrevive") +
+  theme(legend.position = "none", text = element_text(size = 20))
+```
+
+
+---
+
+
+
+### Lo que ocurre
+
+
+
+```{r echo=FALSE, fig.height=4}
+ggplot(data = tt, aes(x = age, y = survived_n)) +
+  geom_point(aes(color = as.factor(survived_n)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal por MCO",
+       y = "Sobrevive") +
+  theme(legend.position = "none", text = element_text(size = 20))
+```
+
+---
+
+--
+
+### Esto es
+
+.pull-left[
+Si hubieran sobrevivido los menores de 20 años y muerto todos los mayores de 40 ...
+```{r echo=FALSE}
+tt$survived_n2 <-tt$survived_n
+tt$survived_n2[tt$age>40]<-0
+tt$survived_n2[tt$age<20]<-1
+```
+]
+
+.pull-right[
+```{r echo=FALSE, fig.height=5}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal por MCO",
+       y = "Sobrevive") +
+theme(legend.position = "none", text = element_text(size = 20))
+```
+]
+
+
+---
+
+--
+
+### Problemas regresión tradicional (OLS) para dependientes dicotómicas
+
+- Eventuales predicciones fuera del rango de probabilidades posibles
+- Ajuste a los datos / residuos: ¿Es la mejor aproximación una recta?
+
+---
+layout: false
+class: inverse, right
+
+## La regresión .hi[logística] ofrece una solución a los problemas del rango de predicciones y de ajuste a los datos del modelo de probabilidad lineal 😰
+
+--
+
+## Se logra mediante una _transformación_ de lo(s) coeficientes beta(s)  a .hi[coeficientes  *LOGIT*]
+
+---
+layout: true
+
+# Modelos MCO vs Logit
+
+---
+
+--
+
+.pull-left[
+```{r echo=FALSE}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal MCO",
+       y = "Sobrevive") +
+  theme(legend.position = "none", text = element_text(size = 20))
+```
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+modelo_logistico2 <- glm(survived_n2 ~ age, data = tt, family = "binomial")
+```
+
+```{r echo=FALSE}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  stat_function(fun = function(x){predict(modelo_logistico2,
+                                          newdata = data.frame(age = x),
+                                          type = "response")}) +
+  theme_bw() +
+  labs(title = "Regresión logística",
+       y = "Probabilidad sobrevivir") +
+  theme(legend.position = "none", text = element_text(size = 20))
+
+```
+]
+
+
+---
+
+--
+
+## Definición de modelo Logit
+
+--
+
+
+`r fa("fighter-jet", fill="blue")` Es el logaritmo de los (odds)
+
+--
+
+`r fa("fighter-jet", fill="blue")`... qué rayos son los odds?
+
+--
+
+`r fa("fighter-jet", fill="blue")` Una razón de *probabilidades*
+
+
+--
+`r fa("fighter-jet", fill="blue")` Para llegar hasta **regresión logística**, hay que pasar por los odds (chances), y los odds-ratio (proporción de chances)
+
+---
+
+--
+
+### Odds 
+
+- **odds** (chances): probabilidad de que algo ocurra dividido por la probabilidad de que no ocurra
+
+$$Odds=\frac{p}{1-p}$$
+
+--
+
+Ej. con lo del Titanic:
+  - 427 sobrevivientes (41%), 619 muertos (59%)
+  
+$$Odds_{sobrevivir}=\frac{427}{619} \Rightarrow \frac{0.41}{0.59}=0.69$$
+
+**Es decir, las chances de sobrevivir es de 0.69**
+---
+
+--
+
+### Odds
+
+- Odds de 1 significan chances iguales, menores a 1 son negativas y mayores a 1 son positivas
+
+- _Propiedad simétrica_: 
+  - un $Odd=4$ es una asociación positiva proporcional a la asociación negativa $Odd=1/4=0.25$
+
+---
+.pull-left[
+### Odds de superviviencia para los hombres del Barco
+.medium[
+```{r message=FALSE,warning=FALSE}
+table(tt$survived,tt$sex)
+```
+]
+
+.medium[
+```{r message=FALSE,warning=FALSE}
+round(prop.table(table(tt$survived,tt$sex),2),2)
+```
+El 21% de los hombres sobrevive mientras el 79% no sobrevive.
+]
+]
+--
+.pull-right[
+.medium[
+
+$$Odds_{hombres}=\frac{0.21}{0.79}=0.27$$
+
+*La probabilidad de sobrevivencia en los hombres es 0.27 veces a la no sobrevivencia*
+
+... o en otros términos
+
+*Hay 0.27 hombres que sobreviven por cada uno que no sobrevive*
+
+*Hay 27 hombres que sobreviven por cada 100 hombres que no sobreviven*
+]
+]
+
+---
+### Odds de superviviencia para las mujeres del barco
+
+.pull-left[
+.medium[
+```{r message=FALSE,warning=FALSE}
+round(prop.table(table(tt$survived,tt$sex),2),2)
+```
+El 75% de las mujeres sobrevive, mientras el 25% no sobrevive.
+
+
+]
+]
+--
+.pull-right[
+.medium[
+$$Odds_{mujeres}=\frac{0.75}{0.25}=3$$
+*La probabilidad de sobrevivencia en las mujeres es 3 veces a la no sobrevivencia*
+
+
+*Hay 3 mujeres que sobreviven por cada mujer que no sobrevive*
+
+o en otros términos
+
+*Hay 300 mujeres que sobreviven al titanic por cada 100 mujeres que no sobreviven*
+]
+]
+
+
+---
+
+--
+
+### Odds ratio (OR)
+
+.pull-left[
+- Los odds-ratio (o razón de chances) permiten reflejar la asociación entre las chances de dos variables dicotómicas
+
+
+**¿Tienen las mujeres más chances de sobrevivir que los hombres?**
+]
+
+--
+.pull-right[
+.medium[
+```{r}
+sjt.xtab(tt$survived, tt$sex,
+        show.col.prc=TRUE,
+        show.summary=FALSE
+)
+```
+]
+]
+
+---
+
+--
+
+### Odds Ratio
+
+**¿Cuantas más chances de sobrevivir tienen las mujeres respecto de los hombres?**
+
+- OR supervivencia mujeres / OR supervivencia hombres
+
+.medium[
+$$OR=\frac{p_{m}/(1-p_{m})}{p_{h}/(1-p_{h})}=\frac{0.753/(1-0.753)}{0.205/(1-0.205)}=\frac{3.032}{0.257}=11.78$$
+]
+
+--
+
+### Las chances de sobrevivir de las mujeres son **11.78** veces más que las de los hombres.
+
+---
+
+--
+
+`r fa("sketch", fill="blue")` El Odds-Ratio (OR) nos permiten expresar **en un número** la relación entre dos variables categóricas que nos interesan
+
+--
+
+`r fa("sketch", fill="blue")` Por lo tanto, es una versión del $\beta$ para dependientes categóricas
+
+--
+
+`r fa("sketch", fill="blue")` Pero ... el **OR** tiene algunas limitaciones que requieren una transformación adicional, tema de la .yellow[próxima clase] 
+
+---
+class: inverse
+
+--
+
+### Resumen
+
+- Limitaciones del MCO para dependientes dicotómicas
+
+- Requiere de ajustes y transformaciones para que la estimación tenga sentido
+
+- Regresión logística: ajusta el modelo para dependientes dicotómicas
+
+- Pasa por el cálculo de los odds-ratio, que resumen en 1 número la relación entre dos variables categóricas
+
+---
+layout: false
+class: inverse
+# Bibliografía
+
+`r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+`r fa('book')` Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., & Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+`r fa('file-code')` Rubin, E. (2021) *Econometrics Lectures class*.
+
+---
+class: middle, center
+background-image: url(https://media.giphy.com/media/93cpgDZ8ZvE8qtUDTi/giphy.gif)
+background-size: cover
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+<br/>
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+<img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" />
+
+[`r fontawesome::fa("link")` Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)<br/>
+[`r fontawesome::fa("twitter")` @keynes37](https://twitter.com/keynes37)<br/>
+[`r fontawesome::fa("envelope")` cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+
+
+
+
+

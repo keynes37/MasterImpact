@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Econometría</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Carlos A. Yanes Guerra" />
+    <script src="libs/header-attrs-2.11/header-attrs.js"></script>
+    <link href="libs/tile-view-0.2.6/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view-0.2.6/tile-view.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <script src="libs/clipboard-2.0.6/clipboard.min.js"></script>
+    <link href="libs/shareon-1.4.1/shareon.min.css" rel="stylesheet" />
+    <script src="libs/shareon-1.4.1/shareon.min.js"></script>
+    <link href="libs/xaringanExtra-shareagain-0.2.6/shareagain.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-shareagain-0.2.6/shareagain.js"></script>
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="my-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **Econometría**
+----
+
+## **&lt;br/&gt; Variables Instrumentales**
+
+### Carlos A. Yanes Guerra
+### 2023-I
+
+
+
+---
+class: inverse, middle
+
+# Preguntas... de la sesión de ayer? 
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+
+# Variables Instrumentales
+
+
+---
+
+--
+
+### Objetivo de la sesión
+
+En esta **sesión** se avanzará sobre el concepto de .hi[endogeneidad], su relación con la idea de causalidad, y el uso de los métodos de .ul[variables instrumentales] como medio para obtener estimadores consistentes cuando *falla* el estimador MCO
+
+--
+
+El estimador se dice .hi-purple[consistente] cuando
+
+`$$\tag{1}
+plim(\hat{\beta})=\beta$$`
+
+--
+
+En el caso del estimador MCO este resultado requiere que `\(E(X|u)=0\)`. Sin embargo, hay situaciones en las que esto no es así, entre ellas tenemos
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M27.5 162.2L9 187.1h90.5l6.9-130.7-78.9 105.8zM396.3 45.7L267.7 32l135.7 147.2-7.1-133.5zM112.2 218.3l-11.2-22H9.9L234.8 458zm2-31.2h284l-81.5-88.5L256.3 33zm297.3 9.1L277.6 458l224.8-261.7h-90.9zM415.4 69L406 56.4l.9 17.3 6.1 113.4h90.3zM113.5 93.5l-4.6 85.6L244.7 32 116.1 45.7zm287.7 102.7h-290l42.4 82.9L256.3 480l144.9-283.8z"/></svg> Variable omitida
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M27.5 162.2L9 187.1h90.5l6.9-130.7-78.9 105.8zM396.3 45.7L267.7 32l135.7 147.2-7.1-133.5zM112.2 218.3l-11.2-22H9.9L234.8 458zm2-31.2h284l-81.5-88.5L256.3 33zm297.3 9.1L277.6 458l224.8-261.7h-90.9zM415.4 69L406 56.4l.9 17.3 6.1 113.4h90.3zM113.5 93.5l-4.6 85.6L244.7 32 116.1 45.7zm287.7 102.7h-290l42.4 82.9L256.3 480l144.9-283.8z"/></svg> Error de medición
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M27.5 162.2L9 187.1h90.5l6.9-130.7-78.9 105.8zM396.3 45.7L267.7 32l135.7 147.2-7.1-133.5zM112.2 218.3l-11.2-22H9.9L234.8 458zm2-31.2h284l-81.5-88.5L256.3 33zm297.3 9.1L277.6 458l224.8-261.7h-90.9zM415.4 69L406 56.4l.9 17.3 6.1 113.4h90.3zM113.5 93.5l-4.6 85.6L244.7 32 116.1 45.7zm287.7 102.7h-290l42.4 82.9L256.3 480l144.9-283.8z"/></svg> Simultaneidad
+
+--
+
+Decimos que un **regresor** es .hi[endógeno] si está correlacionado con el error, lo cual ocurre por alguna de las tres situaciones mencionadas.
+
+---
+
+--
+
+En Colombia, las zonas de deforestación han coincidido con áreas de presencia de grupos armados, surge la pregunta: ¿La violencia causa la deforestación? [Ferguson, Romero, y Vargas (2014)](https://ageconsearch.umn.edu/record/209328/) intentan estimar el efecto de la expansión paramilitar sobre la deforestación.
+
+--
+
+- Considere la siguiente especificación
+
+`$$forest_{m,t}=\beta_0+\beta_1\text{Paramilitares}_{m,t}+\epsilon_{m,t}$$`
+
+
+Donde `\(forest_{m,t}\)` es la proporción de la municipalidad `\(m\)` cubierta de bosque en el año `\(t\)`, mientras que `\(\text{Paramilitares}_{m,t}\)` son los ataques paramilitares hasta el año `\(t\)`
+
+--
+
+- Al estimar por **MCO** encuentran que `\(\hat{\beta_1}=0.045\)` con `\(s.e=0.0117\)`
+
+--
+
+- ¿Podría decir que el estimador es .hi[insesgado]?
+
+--
+
+- ¿Qué pasa si la deforestación y la presencia del conflicto dependen de las características ecológicas y geológicas del terreno?
+
+---
+
+--
+
+### Simultaneidad
+
+--
+
+Usted quiere estimar el *efecto* de los aranceles sobre el volumen de comercio. Sugiere el siguiente modelo
+
+
+`$$comercio_i=\beta_0+\beta_1arancel_i+\upsilon_i$$`
+--
+
+Sin embargo, si los grupos de presión logran hacer que el gobierno suba los aranceles como respuesta a la creciente competencia con importaciones, entonces 
+
+--
+
+`$$arancel_i=\gamma_0+\gamma_1comercio_i+\omega_i$$`
+--
+
+En consecuencia
+
+--
+
+`$$comercio=\beta_0+\beta_1(\gamma_0+\gamma_1comercio+\omega)+\upsilon$$`
+--
+
+- Un choque al comercio, `\(\upsilon\)`, afecta también a los aranceles, luego `\(Cov(arancel_i,\upsilon_i)\neq0\)`
+
+---
+
+--
+
+### Error de Medición
+
+--
+
+Digamos que ahora quiere estimar el efecto del *ingreso familiar* sobre el desempeño académico. Tiene un modelo
+
+--
+
+`$$Nota_i=\beta_0+\beta_1ing^*_i+u_i$$`
+--
+
+Acá, `\(ing^*\)` es la medida ideal del ingreso. Sin embargo, lo que tiene es lo que reporta el estudiante es `\(ing\)`
+
+`$$ing_i=ing^*_i+e$$`
+
+--
+
+luego
+
+`$$\begin{aligned}
+nota_i&amp;=\beta_0+\beta_1(ing_i-e_i)+u_i\\
+&amp;=\beta_0+\beta_1ing_i+\upsilon_i
+\end{aligned}$$`
+
+Con `\(\upsilon=u-\beta_1e\)`. 
+
+--
+
+- Note que `\(Cov(ing_i,\upsilon_i)\neq0\)` porque `\(ing\)` está correlacionado con `\(e_i\)`
+
+---
+layout: false
+class: inverse, middle
+
+# La idea del instrumento 😮
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+
+# El Instrumento
+
+---
+
+--
+
+Para resolver el problema de .hi[endogeneidad] necesitamos exogeneidad, obvio, pero ¿Cómo?
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M507.73 109.1c-2.24-9.03-13.54-12.09-20.12-5.51l-74.36 74.36-67.88-11.31-11.31-67.88 74.36-74.36c6.62-6.62 3.43-17.9-5.66-20.16-47.38-11.74-99.55.91-136.58 37.93-39.64 39.64-50.55 97.1-34.05 147.2L18.74 402.76c-24.99 24.99-24.99 65.51 0 90.5 24.99 24.99 65.51 24.99 90.5 0l213.21-213.21c50.12 16.71 107.47 5.68 147.37-34.22 37.07-37.07 49.7-89.32 37.91-136.73zM64 472c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"/></svg> La idea básica es pensar que si `\(x_j\)` tiene una parte que está *correlacionada* con el error, `\(e_i\)`, y otra que no lo está, entonces puede usarse la parte de `\(x_j\)` que no está correlacionada con el error. Para ello necesitamos un instrumento
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 496 512" style="height:1em;width:0.97em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M336.5 160C322 70.7 287.8 8 248 8s-74 62.7-88.5 152h177zM152 256c0 22.2 1.2 43.5 3.3 64h185.3c2.1-20.5 3.3-41.8 3.3-64s-1.2-43.5-3.3-64H155.3c-2.1 20.5-3.3 41.8-3.3 64zm324.7-96c-28.6-67.9-86.5-120.4-158-141.6 24.4 33.8 41.2 84.7 50 141.6h108zM177.2 18.4C105.8 39.6 47.8 92.1 19.3 160h108c8.7-56.9 25.5-107.8 49.9-141.6zM487.4 192H372.7c2.1 21 3.3 42.5 3.3 64s-1.2 43-3.3 64h114.6c5.5-20.5 8.6-41.8 8.6-64s-3.1-43.5-8.5-64zM120 256c0-21.5 1.2-43 3.3-64H8.6C3.2 212.5 0 233.8 0 256s3.2 43.5 8.6 64h114.6c-2-21-3.2-42.5-3.2-64zm39.5 96c14.5 89.3 48.7 152 88.5 152s74-62.7 88.5-152h-177zm159.3 141.6c71.4-21.2 129.4-73.7 158-141.6h-108c-8.8 56.9-25.6 107.8-50 141.6zM19.3 352c28.6 67.9 86.5 120.4 158 141.6-24.4-33.8-41.2-84.7-50-141.6h-108z"/></svg> **Ejemplo**
+
+[Feyrer (2009)](https://voxeu.org/article/1967-75-suez-canal-closure-lessons-trade) quiere estimar el efecto del comercio sobre el crecimiento económico. Propone el siguiente modelo
+
+--
+
+
+`$$lny_{it}=\alpha+\gamma_i+\gamma_t+\beta\; ln\;(trade_{it})+\epsilon_{it}$$`
+
+--
+
+La estimación .ul[consistente] de `\(\beta\)` requiere que `\(corr(\epsilon_{it},ln\;(trade_{it}))=0\)`. Este supuesto no es plausible, al fin y al cabo entre mayor sea el *ingreso per cápita* de un país mayor tenderá a ser su volumen de importaciones y por lo tanto de comercio.
+
+---
+
+--
+
+Imagine que podemos descomponer la variabilidad de `\(ln\;trade\)` en dos partes. Una correlacionada con `\(\epsilon\)` y otra no correlacionada `\(\epsilon\)`. Acá es donde entra el *instrumento* <svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M507.73 109.1c-2.24-9.03-13.54-12.09-20.12-5.51l-74.36 74.36-67.88-11.31-11.31-67.88 74.36-74.36c6.62-6.62 3.43-17.9-5.66-20.16-47.38-11.74-99.55.91-136.58 37.93-39.64 39.64-50.55 97.1-34.05 147.2L18.74 402.76c-24.99 24.99-24.99 65.51 0 90.5 24.99 24.99 65.51 24.99 90.5 0l213.21-213.21c50.12 16.71 107.47 5.68 147.37-34.22 37.07-37.07 49.7-89.32 37.91-136.73zM64 472c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"/></svg>, que no es más que otra variable, `\(z\)` que debe cumplir con dos condiciones
+
+--
+
+**C1** No estar correlacionada con el error. Es decir, que sea exógena
+
+**C2** Debe estar correlacionada con la variable endógena. Esto se conoce como condición de relevancia
+
+---
+
+--
+
+### Definición
+
+--
+
+Sea un modelo
+
+`$$\begin{align}
+  \text{Y}_{i} = \beta_0 + \beta_1 \text{D}_{i} + \varepsilon_i \tag{1}
+\end{align}$$`
+
+--
+
+Un .attn[instrumento] valido es una variable `\(\color{#e64173}{\text{Z}_{i}}\)` tal que
+
+1. `\(\mathop{\text{Cov}} \left( \color{#e64173}{\text{Z}_{i}},\, \text{D}_{i} \right) \neq 0\)`
+--
+&lt;br&gt;Nuestro .pink[instrumento] se correlaciona con el tratamiento
+--
+ (para que podamos conservar parte de `\(\text{D}_{i}\)`)
+
+--
+
+2. `\(\mathop{\text{Cov}} \left( \color{#e64173}{\text{Z}_{i}},\, \varepsilon_i \right) = 0\)`
+--
+&lt;br&gt;Nuestro .pink[instrumento] no esta correlacionado con `\((\text{D}_{i})\)`, mas "otros" determinantes de `\(\text{Y}_{i}\)`
+--
+, _p.e._, `\(\color{#e64173}{\text{Z}_{i}}\)` lo podemos excluir de la ecuación `\((1)\)`.
+--
+ .attn[(restricción de exclusión)]
+
+---
+
+--
+
+
+
+&lt;img src="Class03_files/figure-html/dag-plot-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+.qa[P] ¿Cómo ilustra esta DAG los requisitos y la identificación de IV? 
+
+---
+
+&lt;img src="Class03_files/figure-html/dag-plot-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+.qa[Relevancia:] .b.purple[Z] causa un efecto en .b.purple[D].
+
+---
+
+&lt;img src="Class03_files/figure-html/dag-plot-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+.qa[Restricción de exclusión:] 
+&lt;br&gt;  1\. .b.purple[Z] es .b.pink[exogena] (no se asocia con) .b.purple[U] porque la razón es que
+--
+ .b.purple[D] es una covariable (binaria).
+--
+&lt;br&gt;  .white[1\.] .it[P.e.], .b.purple[Z → D ← U → Y] es cerrado sin condicionar a lo (inobservable) .b.purple[U].  
+
+---
+
+&lt;img src="Class03_files/figure-html/dag-plot-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+.qa[Restricción de exclusión:] 
+&lt;br&gt;  1\. .b.purple[Z] es .b.pink[exogena] (no se asocia con) .b.purple[U] porque .b.purple[D] is una covariable.
+&lt;br&gt;  2\. Ademas: .b.purple[Z] no afecta directamente a .b.purple[Y].
+
+---
+
+--
+
+### Diagrama causal
+
+--
+
+Lo anteriormente expuesto se conoce como el **diagrama causal**, donde se denota a `\(U\)` como una variable no observada que afecta tanto a `\(D\)` como `\(Y\)`. Note que si `\(Z\)` varía, entonces `\(Y\)` varía sin que lo haga `\(U\)`. Si en `\(D\)` tenemos personas, y suponemos que una grupo de ellas cambia su comportamiento debido a `\(Z\)`, entonces el cambio inducido en `\(Y\)` solo reflejará el efecto causal para el grupo particular que cambió su comportamiento. Por ello, este efecto causal suele llamarse *LATE* por lo de su significado de *Local Average Treatment Effect*
+
+---
+
+--
+
+### Mas ejemplos
+
+--
+
+Volvamos al estudio de Feyrer (2009).  Propuso usar el [cierre del canal del Suez entre 1967 y 1975](https://www.britannica.com/topic/Suez-Canal/History) como `\(z\)`. Si el cierre fue un evento motivado principalmente por razones políticas, pero que impactó los flujos comerciales, entonces podría funcionar.  En el estudio estimaron parámetros que arrojaron resultados como `\(\hat{\beta}_{OLS}=0.3(0.053)\)` y `\(\hat{\beta}_{IV}=0.23(0.083)\)`
+
+Note que el **error estándar** del estimador de .hi[variables instrumentales] es mayor. Si calculamos los intervalos de confianza al 95% para cada estimación obtenemos 
+
+- `\(0.3\pm 1.96(0.053)=[0.196,0.404]\)`
+
+
+- `\(0.23\pm 1.96(0.083)=[0.07,0.39]\)`
+
+No es evidente que la diferencia sea *estadísticamente* significativa. El intervalo de IV contiene la estimación por MCO.
+
+---
+
+
+--
+
+### Mas del Estimador IV:
+
+--
+
+Considere el siguiente modelo de regresión lineal
+
+
+`$$y_i=\beta_0+\beta_1x_1+\beta_2x_2+...+\beta_kx_k+e_i$$`
+
+--
+
+- Si para todos los regresores `\(j=1,...,k-1\)` tenemos que `\(Cov(x_j,e)=0\)`, pero sospechamos que `\(Cov(x_k,e)\neq0\)` entonces para obtener *estimadores consistentes* de `\(\beta_k\)` necesitamos información adicional. Esta la obtenemos de `\(z\)`. Esta es una variable observable que debe cumplir con las condiciones estipuladas
+
+--
+
+**C1**: Exogeneidad 
+
+`$$Cov(z,e)=0$$`
+
+--
+
+**C2**: Relevancia
+
+`\(\pi_1\neq0\)` en la regresión
+
+`$$x_k=\delta_0+\delta_1x_1+...+\delta_{k-1}x_{k-1}+\pi_1z+\upsilon$$`
+
+Donde `\(E(\upsilon)=0\)` y además no está correlacionado con `\(x_1,x_2,...,x_{k-1},z\)`
+
+
+---
+
+--
+
+De donde podemos obtener
+
+`$$\hat{x_k}=\hat{\delta}_0+\hat{\delta}_1x_1+...+\hat{\delta}_{k-1}x_{k-1}+\hat{\pi}_1z$$`
+
+--
+
+Es claro que `\(Cov(\hat{x_k},e)=0\)`. Luego lo usamos en
+
+`$$y=\beta_0+\beta_1x+\beta_2x_2+...+\beta_k\hat{x}_k+e$$`
+
+
+--
+
+En sintesis,
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 192 512" style="height:1em;width:0.38em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M176 432c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80zM25.26 25.199l13.6 272C39.499 309.972 50.041 320 62.83 320h66.34c12.789 0 23.331-10.028 23.97-22.801l13.6-272C167.425 11.49 156.496 0 142.77 0H49.23C35.504 0 24.575 11.49 25.26 25.199z"/></svg> **C1** No se puede probar estadísticamente
+<svg aria-hidden="true" role="img" viewBox="0 0 192 512" style="height:1em;width:0.38em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M176 432c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80zM25.26 25.199l13.6 272C39.499 309.972 50.041 320 62.83 320h66.34c12.789 0 23.331-10.028 23.97-22.801l13.6-272C167.425 11.49 156.496 0 142.77 0H49.23C35.504 0 24.575 11.49 25.26 25.199z"/></svg> **C2** Se puede probar estadísticamente
+
+--
+
+Además,
+
+
+<svg aria-hidden="true" role="img" viewBox="0 0 192 512" style="height:1em;width:0.38em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M176 432c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80zM25.26 25.199l13.6 272C39.499 309.972 50.041 320 62.83 320h66.34c12.789 0 23.331-10.028 23.97-22.801l13.6-272C167.425 11.49 156.496 0 142.77 0H49.23C35.504 0 24.575 11.49 25.26 25.199z"/></svg> Perdemos precisión en la estimación
+<svg aria-hidden="true" role="img" viewBox="0 0 192 512" style="height:1em;width:0.38em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M176 432c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80zM25.26 25.199l13.6 272C39.499 309.972 50.041 320 62.83 320h66.34c12.789 0 23.331-10.028 23.97-22.801l13.6-272C167.425 11.49 156.496 0 142.77 0H49.23C35.504 0 24.575 11.49 25.26 25.199z"/></svg> Si `\(z\)` no cumple las condiciones, entonces puede ser peor que usar MCO
+
+
+---
+
+--
+
+### En el modelo simple
+
+Si tenemos una única .hi[variable independiente], `\(x\)`
+
+--
+
+`$$\tag{1}
+y=\beta_0+\beta_1x+e$$`
+
+--
+
+`$$\tag{C.1}
+Cov(z,e)=0$$`
+
+--
+
+Ademas de 
+
+`$$\tag{C.2}
+Cov(z,x)\neq0$$`
+
+Usando la propiedad **distributiva** de la covarianza escribimos
+
+--
+
+
+`$$\tag{2}
+Cov(z,y)=\beta_1Cov(z,x)+Cov(z,e)$$`
+Note que bajo C.1 y C.2 podemos **identificar** `\(\beta_1\)`. Esto quiere decir que podemos escribir `\(\beta_1\)` en términos de de los momentos poblacionales de variables observables
+
+---
+
+--
+
+Tenemos entonces
+
+--
+
+`$$\tag{3}
+\beta_1=\dfrac{Cov(z,y)}{Cov(z,x)}$$`
+
+Usando el estimador de la **covarianza**, obtenemos el .hi-purple[estimador IV]
+
+--
+
+`$$\tag{4}
+\hat{\beta}_1=\dfrac{n^{-1}\sum_i^n(z_i-\bar{z})(y_i-\bar{y})}{n^{-1}\sum_i^n(z_i-\bar{z})(x_i-\bar{x})}$$`
+
+--
+
+Usando la **ley de grandes números** podemos mostrar que el estimador es .hi[consistente]: `\(plim(\hat{\beta_1})=\beta_1\)`
+
+
+---
+
+--
+
+### De forma general: modelo justamente identificado
+
+--
+
+En el caso que hemos venido planteado tenemos una .hi[endógena] y un instrumento. A esto lo llamamos *justamente* identificado.
+
+--
+
+Escribiendo el modelo en forma **compacta**
+
+
+`$$\tag{5}
+y=\mathbf{x}\boldsymbol{\beta}+e$$`
+
+
+--
+
+Donde `\(\mathbf{x}=(1,x_2,...,x_k)\)` y definimos `\(\mathbf{z}=(1,x_2,...,x_{k-1},z)\)` como el vector de **variables exógenas**. Si tenemos que para todos los .hi[regresores] `\(j=1,...,k-1\)` `\(Cov(x_j,e)=0\)` y si se cumple la condición de .hi[exogeneidad], `\(Cov(z,e)=0\)`, entonces decimos que 
+
+`$$E(\mathbf{z}'e)=\mathbf{0}$$`
+--
+
+Si multiplicamos por ec.(5) por `\(\mathbf{z}'\)`, tomamos **valor esperado**, y si además se cumple que la matriz `\(E(\mathbf{z}'\mathbf{x})\)` tiene rango completo, entonces
+
+--
+
+
+`$$\tag{6}
+\boldsymbol{\beta}=[E(\mathbf{z'x})]^{-1}E(\mathbf{z'}y)$$`
+
+---
+
+--
+
+Los **valores esperados** los estimamos una muestra aleatoria. En la ecuación (6) el vector de parámetros `\(\boldsymbol{\beta}\)` queda identificado. Si reemplazamos por las contrapartes muestrales, obtenemos
+
+--
+
+
+`$$\boldsymbol{\hat{\beta}}_{iv}=\Big(\dfrac{1}{n}\sum_{i}^n\mathbf{z'}_i\mathbf{x}_i\Big)^{-1}\Big(\dfrac{1}{n}\sum_i^n\mathbf{z'}_iy_i\Big)$$`
+
+--
+
+Que, al escribirlo en términos de las matrices completas de datos tenemos
+
+
+`$$\boldsymbol{\hat{\beta}}_{iv}=(\mathbf{Z'X})^{-1}\mathbf{Z'Y}$$`
+
+--
+
+`\(\mathbf{Z}\)` y `\(\mathbf{X}\)` son `\(n\times K\)` y `\(\mathbf{Y}\)` es `\(n\times 1\)`. Por la ley de grandes números este estimador es .hi[consistente]
+
+---
+layout: false
+class: inverse, middle
+
+# Un punto más gráfico 😮
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+
+---
+class: middle
+
+# Instrumentos
+
+.qa[Vamos] a mirar la intuición de los instrumentos (con diagramas de Venn!).
+
+.note[Créditos a] [Glen Waddell](http://www.glenwaddell.com) la idea nació de él para el profesor Ed Rubin (Oregon's University) y mi persona.
+
+
+---
+layout: true
+
+# Gráficos
+
+---
+
+--
+
+&lt;img src="Class03_files/figure-html/venn_iv-1.svg" style="display: block; margin: auto;" /&gt;
+---
+&lt;img src="Class03_files/figure-html/venn-endog-1.svg" style="display: block; margin: auto;" /&gt;
+---
+&lt;img src="Class03_files/figure-html/venn-irrelevant-1.svg" style="display: block; margin: auto;" /&gt;
+---
+&lt;img src="Class03_files/figure-html/venn-iv-endog2-1.svg" style="display: block; margin: auto;" /&gt;
+---
+&lt;img src="Class03_files/figure-html/venn-iv-endog1-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+--
+
+### Explicación de lo anterior
+
+--
+
+En los diagramas anteriores nos indican lo siguiente:
+
+- Cada **circulo** es una .black[variable].
+- La **sobreposición** de un circulo sobre otro es la .hi[correlación] entre ellas.
+- Las variables *omitidas* están como líneas intercontinuas.
+
+--
+
+Por tanto
+
+--
+
+- Figura 1: .hi-pink[Instrumento valido] (relevante; exógeno)
+- Figura 2: .hi-slate[Instrumento invalido] (relevante; no exógeno)
+- Figura 3: .hi-slate[Instrumento invalido] (no relevante; no exógenos)
+- Figura 4: .hi-slate[Instrumento invalido] (relevante; no exógenos)
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Múltiples instrumentos 🥱
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+# Múltiples instrumentos
+
+---
+
+--
+
+### Idea
+
+--
+
+Si tenemos una variable .hi[endógena] y más de un .hi-orange[instrumento] decimos que el modelo está .hi[sobre-identificado]. Veamos,
+
+--
+
+Suponga que tiene `\(M\)` instrumentos, `\(z_1,z_2,...,z_M\)`, tales que no están correlacionados con el error
+
+--
+
+- **C1** 
+
+`$$Cov(z_j,e)=0 \quad j=1,2,...,M$$`
+
+--
+
+El vector de variables exógenas sería `\(\mathbf{z}\equiv (1,x_2,...,x_{k-1},z_1,...,z_M)\)` de dimensión `\(1\times L\)`, con $L=K+M. Hacemos
+
+--
+
+- **C2** 
+
+
+`$$x_k=\delta_0+\delta_1x_1+...+\delta_{k-1}x_{k-1}+\pi_1z_1+...+\pi_Mz_M+\upsilon$$`
+---
+
+--
+
+En la ecuación anterior debe cumplirse que al menos **uno** de los **coeficientes** es .hi[diferente] de cero. Hacemos una *prueba F* donde `\(H_0:\pi_1=\pi_2=...=\pi_M=0\)`, y la .black[alternativa] es que al menos uno es diferente de cero. Siendo esto así, obtenemos
+
+--
+
+
+`$$\hat{x}_k=\hat{\delta}_0+\hat{\delta}_1x_1+...+\hat{\delta}_{k-1}x_{k-1}+\hat{\pi}_1z_1+...+\hat{\pi}_Mz_M$$`
+
+--
+
+Para cada `\(i\)` definimos `\(\mathbf{x}_i=(1,x_{i1},...\hat{x}_{ik})\)`, `\(i=1,2,...,n\)`. Si usamos `\(\mathbf{x}_i\)` como los instrumentos, entonces 
+
+--
+
+
+`$$\hat{\boldsymbol{\beta}}=\Big(\dfrac{1}{n}\sum_{i}^n\mathbf{\hat{x}'}_i\mathbf{x}_i\Big)^{-1}\Big(\dfrac{1}{n}\sum_i^n\mathbf{\hat{x}'}_iy_i\Big)$$`
+
+---
+
+--
+
+Usamos el hecho que `\(\mathbf{\hat{x}}=\mathbf{z(z'z)^{-1}z'x}\)`, luego el .hi[estimador IV] también puede escribirse como
+
+
+`$$\boldsymbol{\hat{\beta}}=\Big[\Big(\sum_i^n\mathbf{x'_iz_i}\Big)\Big(\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(\sum_i^n\mathbf{z'_ix_i}\Big)\Big]^{-1}\Big(\sum_i^n\mathbf{x'_iz_i}\Big)\Big(\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(\sum_i^n\mathbf{x'_i}y_i\Big)$$`
+
+--
+
+Bajo los siguientes supuestos se puede mostrar que el estimador es insesgado
+
+**S1**: `\(E(\mathbf{z}'u)=\mathbf{0}\)`
+
+**S2**: el rango `\(E(\mathbf{z'z})=L\)` y `\(E(\mathbf{z'x})=K\)`. Está última es importante y se cumple bajo la condición **C2**
+
+---
+
+--
+
+Para ello, usamos `\(y=\mathbf{x\beta}+e\)` y escribimos
+
+`$$\boldsymbol{\hat{\beta}}=\boldsymbol{\beta}+\Big[\Big(n^{-1}\sum_i^n\mathbf{x'_iz_i}\Big)\Big(n^{-1}\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(n^{-1}\sum_i^n\mathbf{z'_ix_i}\Big)\Big]^{-1}\Big(n^{-1}\sum_i^n\mathbf{x'_iz_i}\Big)\Big(n^{-1}\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(n^{-1}\sum_i^n\mathbf{z'_i}e_i\Big)$$`
+--
+
+Al aplicar la .hi[ley de grandes números] y el teorema de mapeo continuo tenemos que
+
+
+`$$plim\hat{\boldsymbol{\beta}}=\beta$$`
+
+---
+
+--
+
+### Inferencia: necesitamos un error estándar
+
+--
+
+Para simplificar, suponemos
+
+*C.3* Homocedasticidad
+
+
+`$$E(e^2\mathbf{z'z})=\sigma^2\mathbf{z'z} \quad \text{Donde}\quad \sigma^2=E(e^2)$$`
+
+--
+
+Hacemos `\(\sqrt n(\boldsymbol{\hat{\beta}-\boldsymbol{\beta}})\)`. Por teorema central del límite tenemos que
+
+--
+
+`$$n^{-1/2}\sum_i^n\mathbf{z'_i}u_i \underset{d}{\to} N(0,\sigma^2E(\mathbf{z'z}))$$`
+
+--
+
+De donde `\(\sqrt n(\boldsymbol{\hat{\beta}-\boldsymbol{\beta}})\)` se distribuye, asintóticamente, normal con media cero y varianza 
+
+--
+
+
+`$$\sigma^2([E(\mathbf{x'z})][E(\mathbf{z'z})]^{-1}E(\mathbf{z'x})^{-1})$$`
+
+---
+
+--
+
+Y para un coeficiente particular, la varianza asintótica es
+
+--
+
+`$$\sqrt n (\hat{\beta}_k-\beta_k)=\dfrac{\sigma^2}{\hat{SSR}_K}$$`
+
+Donde `\(\hat{SSR}_K\)` es la suma de cuadrados de los residuales de la regresión de `\(\hat{x}_k\)` sobre `\(x_1,x_2,...\)` Que también puede escribirse como `\(\hat{SST}_k(1-\hat{R}^2_K)\)`
+
+--
+
+
+De lo anterior, podemos decir lo siguiente:
+
+--
+
+- Entre menor sea la correlación de la endógena con el .hi[instrumento], mayor es la varianza del estimador. 
+
+- Entre menor sea la variabilidad de `\(\hat{x}_k\)` mayor es la varianza del estimador
+
+- La inclusión de muchos instrumentos tiende a incrementar la varianza
+
+---
+
+--
+
+### El problema de instrumentos débiles
+
+--
+
+En el caso de una variable endógena y un instrumento podemos escribir el estimador como está en la ecuación (4)
+
+--
+
+
+`$$\hat{\beta}_1=\dfrac{n^{-1}\sum_i^n(z_i-\bar{z})(y_i-\bar{y})}{n^{-1}\sum_i^n(z_i-\bar{z})(x_i-\bar{x})}$$`
+
+--
+
+De donde podemos escribir
+
+--
+
+
+`$$\hat{\beta_1}=\beta_1+\dfrac{\sigma_u}{\sigma_x}\dfrac{Corr(z,u)}{Corr(z,x)}$$`
+
+--
+
+De acá es claro que si se viola la condición de .hi[exogeneidad] y tenemos `\(Corr(z,u)\neq 0\)`, entonces en la medida que `\(Corr(z,x)\)` tienda a cero la *inconsistencia* puede aumentar sustancialmente. De esta manera, si hay dudas sobre el estimador podríamos tener un grado de inconsistencia superior al que tendríamos con el estimador MCO. El remedio resulta peor que la enfermedad.
+
+---
+layout: false
+class: inverse, middle
+
+# El desarrollo en <svg aria-hidden="true" role="img" viewBox="0 0 581 512" style="height:1em;width:1.13em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:steelblue;overflow:visible;position:relative;"><path d="M581 226.6C581 119.1 450.9 32 290.5 32S0 119.1 0 226.6C0 322.4 103.3 402 239.4 418.1V480h99.1v-61.5c24.3-2.7 47.6-7.4 69.4-13.9L448 480h112l-67.4-113.7c54.5-35.4 88.4-84.9 88.4-139.7zm-466.8 14.5c0-73.5 98.9-133 220.8-133s211.9 40.7 211.9 133c0 50.1-26.5 85-70.3 106.4-2.4-1.6-4.7-2.9-6.4-3.7-10.2-5.2-27.8-10.5-27.8-10.5s86.6-6.4 86.6-92.7-90.6-87.9-90.6-87.9h-199V361c-74.1-21.5-125.2-67.1-125.2-119.9zm225.1 38.3v-55.6c57.8 0 87.8-6.8 87.8 27.3 0 36.5-38.2 28.3-87.8 28.3zm-.9 72.5H365c10.8 0 18.9 11.7 24 19.2-16.1 1.9-33 2.8-50.6 2.9v-22.1z"/></svg>
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+layout: true
+# Lo práctico en <svg aria-hidden="true" role="img" viewBox="0 0 581 512" style="height:1em;width:1.13em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:steelblue;overflow:visible;position:relative;"><path d="M581 226.6C581 119.1 450.9 32 290.5 32S0 119.1 0 226.6C0 322.4 103.3 402 239.4 418.1V480h99.1v-61.5c24.3-2.7 47.6-7.4 69.4-13.9L448 480h112l-67.4-113.7c54.5-35.4 88.4-84.9 88.4-139.7zm-466.8 14.5c0-73.5 98.9-133 220.8-133s211.9 40.7 211.9 133c0 50.1-26.5 85-70.3 106.4-2.4-1.6-4.7-2.9-6.4-3.7-10.2-5.2-27.8-10.5-27.8-10.5s86.6-6.4 86.6-92.7-90.6-87.9-90.6-87.9h-199V361c-74.1-21.5-125.2-67.1-125.2-119.9zm225.1 38.3v-55.6c57.8 0 87.8-6.8 87.8 27.3 0 36.5-38.2 28.3-87.8 28.3zm-.9 72.5H365c10.8 0 18.9 11.7 24 19.2-16.1 1.9-33 2.8-50.6 2.9v-22.1z"/></svg>
+
+---
+
+--
+
+Regresemos a una antigua batalla (retornos de educación).
+
+--
+
+
+```
+#&gt; # A tibble: 722 × 4
+#&gt;     wage education education_dad education_mom
+#&gt;    &lt;int&gt;     &lt;int&gt;         &lt;int&gt;         &lt;int&gt;
+#&gt;  1   769        12             8             8
+#&gt;  2   808        18            14            14
+#&gt;  3   825        14            14            14
+#&gt;  4   650        12            12            12
+#&gt;  5   562        11            11             6
+#&gt;  6   600        10             8             8
+#&gt;  7  1154        15             5            14
+#&gt;  8  1000        12            11            12
+#&gt;  9   930        18            14            13
+#&gt; 10   900        15            12            12
+#&gt; # ℹ 712 more rows
+```
+---
+
+--
+
+MCO nos muestra que los retornos de la educación parecen (definitivamente) sesgados
+
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$`
+
+.hi-slate[MCO (al parecer) sesgados]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 176.504 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 89.152 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 1.98 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.0481 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; Educación &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 58.594 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 6.439 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 9.10 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+--
+
+Pero -*puede que*- la educación de la madre del individuo ser un .hi[instrumento valido]?
+
+---
+
+--
+
+Tratemos de checkear la *relevancia* de .hi-pink[educación de la madre] para .hi-purple[educación].
+
+--
+
+Esta regresión se le conoce como .hi-slate[*Primera etapa*:]
+&lt;br&gt; El efecto del .pink[instrumento]  en nuestra .purple[variable explicativa endogena].
+
+`$$\begin{align}
+  \color{#6A5ACD}{\text{Educación}_i} = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)_i} + v_i
+\end{align}$$`
+
+--
+
+.hi-slate[Resultados de la primera regresión:]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 10.487 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 0.306 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 34.32 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; Educación de la madre &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.294 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.027 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 10.75 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+--
+
+El *p*-valor sugiere una relación muy fuerte (bastante *relevante*).
+---
+
+--
+
+### Visualizando la primera etapa
+
+&lt;img src="Class03_files/figure-html/first_stage_plot-1.svg" style="display: block; margin: auto;" /&gt;
+---
+count: false
+
+
+### Visualizando la primera etapa
+
+&lt;img src="Class03_files/figure-html/first_stage_plot2-1.svg" style="display: block; margin: auto;" /&gt;
+---
+
+--
+
+### Exogeneidad
+
+**P:** Qué significa la .hi[exogeneidad] en ese caso?
+
+--
+&lt;br&gt;**R:** Necesitamos
+
+1. .pink[Educación de la madre (nuestro instrumento)] solo afecte a nuestra variable explicatiba que viene a ser .purple[la educación (nuestra variable endogena)].
+2. .pink[Educación de la madre] no debe estar correlacionada con otras variables que afecten o tengan efecto sobre los .orange[salarios (nuestra variable de resultado)].
+
+--
+
+Queremos poder comparar a dos personas (*A* y *B*) cuyas madres tienen distintos niveles educativos y decir que las únicas diferencias entre las dos personas (*A* y *B*) se deben a los niveles educativos de sus madres.
+
+--
+
+**P:** ¿Parece probable que la *educación de la madre* satisface la exogeneidad?
+---
+
+--
+
+Ahora vamos a estimar la .hi-turquoise[*forma reducida*]:
+&lt;br&gt; El efecto de nuestro .pink[instrumento] en nuestra .orange[variable de resultado].
+
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \pi_0 + \pi_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)_i} + w_i
+\end{align}$$`
+
+--
+
+.hi-turquoise[Resultados de la forma reducida]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 633.34 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 58.58 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 10.81 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; Educación de la madre &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 31.81 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 5.24 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 6.07 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+--
+
+**P.sub[1]:** Cómo podemos interpretar el estimador  `\(\left( \hat{\pi}_1 \right)\)`?
+--
+&lt;br&gt;**P.sub[2]:** si nuestro instrumento es *valido*, podemos decir que esa estimación es .hi[causal]?
+---
+
+--
+
+Entonces, ¿cuál es nuestra estimación basada en el IV para los rendimientos de la educación?
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$`
+
+--
+
+Sabemos que la estimación IV para `\(\beta_1\)` es
+
+`$$\begin{align}
+  \hat{\beta}_1^\text{IV} = \dfrac{\color{#20B2AA}{\hat{\pi}_1}}{\color{#314f4f}{\hat{\gamma}_1}}
+\end{align}$$`
+
+--
+
+1. En la ecuación de .hi-turquoise[forma reducida], estimamos `\(\color{#20B2AA}{\hat{\pi}_1 \approx 31.81}\)`.
+2. En la .hi-slate[Primera etapa], estimamos `\(\color{#314f4f}{\hat{\gamma}_1 \approx 0.294}\)`.
+
+--
+
+`$$\begin{align}
+  \implies\hat{\beta}_1^\text{IV} = \dfrac{\color{#20B2AA}{\hat{\pi}_1}}{\color{#314f4f}{\hat{\gamma}_1}} = \dfrac{\color{#20B2AA}{31.81}}{\color{#314f4f}{0.294}} \approx 108.2
+\end{align}$$`
+
+---
+
+--
+
+**Alternativa:** usar la función `iv_robust()` del paquete `estimatr`.
+
+Esta nueva función `iv_robust` trabaja de forma similar que nuestro amigo `lm`:
+
+`iv_robust(y ~ x | z, data = dataset)`
+
+- `formula` La parte especifica del signo `|` de la regresión separa y dice quien es nuestro instrumento (`z`).
+- `data` la parte de como se llama su base de datos.
+
+--
+
+***Nota:*** Como puede adivinar por su nombre, `iv_robust` calcula por defecto errores estándar robustos de heteroscedasticidad.
+
+---
+
+--
+
+En practica...
+
+
+```r
+# Estimamos nuestra regresión
+iv_est &lt;- iv_robust(wage ~ education | education_mom, data = wage_df)
+```
+
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -501.474 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 226.476 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -2.21 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.0271 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; Educación &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 108.214 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 16.810 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 6.44 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+Así que ya "sabemos" como hacer regresiones de variables instrumentales
+--
+ *cuando tenemos una variable endogena y otra variable exogena.*
+
+--
+
+1. Estimamos de forma reducida la (regresión .orange[resultado] con el .pink[instrumento]).
+2. Estimamos la primera etapa (regresión .purple[explicativa] con el .pink[instrumento]).
+3. Calculamos el IV con las referencias de (1) y (2).
+
+Nuestro mágico .pink[instrumento] aisla la variación exogena de nuestra .purple[variable endogena].
+
+--
+
+**P:** Qué pasa si queremos más?
+--
+ (_p.e._, mas instrumentos o mas variables endogenas)
+--
+&lt;br&gt;**R:** Muy mal.
+---
+count: false
+
+Así que ya "sabemos" como hacer regresiones de variables instrumentales *cuando tenemos una variable endogena y otra variable exogena.*
+
+1. Estimamos de forma reducida la (regresión .orange[resultado] con el .pink[instrumento]).
+2. Estimamos la primera etapa (regresión .purple[explicativa] con el .pink[instrumento]).
+3. Calculamos el IV con las referencias de (1) y (2).
+
+Nuestro mágico .pink[instrumento] aisla la variación exogena de nuestra .purple[variable endogena].
+
+**P:** Qué pasa si queremos más?  (_p.e._, mas instrumentos o mas variables endogenas)
+&lt;br&gt;**R:** .st[Muy mal.] Extendemos lo de IV a .hi[two-stage least squares (2SLS)].
+
+---
+
+--
+
+### 2SLS (Mínimos cuadrados en dos etapas)
+
+--
+
+La intuición y las ideas del IV se trasladan a los mínimos cuadrados en dos etapas.
+
+--
+
+**Plus:** La *primera etapa* de la que hemos hablado es en realidad la *primera* de las *dos etapas* de los mínimos cuadrados en dos etapas.
+
+--
+
+`$$\begin{align}
+  {\color{#c5c5c5}{\text{Modelo Endogeno}}}&amp; &amp;\color{#FFA500}{\text{Resultado}_i} &amp;= \beta_0 + \beta_1 \color{#6A5ACD}{\left( \text{Endogena} \right)_i} + u_i\\[0.5em]
+  {\text{Primera etapa}}&amp; &amp;\color{#6A5ACD}{\left( \text{Endogena} \right)_i} &amp;= \pi_0 + \pi_1 \color{#e64173}{\text{Instrumento}_i} + v_i\\[0.25em]
+  {\text{Segunda etapa}}&amp; &amp;\color{#FFA500}{\text{Resultado}_i} &amp;= \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\left( \text{Endogena} \right)}_i} + \varepsilon_i\\[0.5em]
+  {\color{#c5c5c5}{\text{Forma reducida}}}&amp; &amp;\color{#FFA500}{\text{Resultado}_i} &amp;= \pi_0 + \pi_1 \color{#e64173}{\text{Instrumento}_i} + w_i\\[0.25em]
+\end{align}$$`
+
+Donde `\(\color{#6A5ACD}{\widehat{\left( \text{Variable endogena} \right)}_i}\)` denota los valores predichos (*valores ajustados*) de la regresión de primera etapa.
+---
+
+--
+
+Los mínimos cuadrados en dos etapas son muy flexibles: podemos incluir otros controles, variables endógenas adicionales y disponer de múltiples instrumentos.
+
+Pero no te distraigas con esta **flexibilidad**!!, seguimos necesitando instrumentos .hi[válidos].
+---
+
+--
+
+### Estimación
+
+Volvamos a nuestro ejemplo de *retornos a la educación*.
+
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$`
+
+Imaginemos que la educación de la madre *y* del padre son instrumentos válidos.
+
+--
+
+Entonces nuestra .hi-slate[regresión en primera etapa] es
+$$
+`\begin{align}
+  \color{#6A5ACD}{\text{Educación}}_i = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \gamma_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i + v_i
+\end{align}`
+$$
+que podemos estimar mediante MCO.
+
+--
+
+**P:** Por qué?
+---
+
+$$
+`\begin{align}
+  \color{#6A5ACD}{\text{Educación}}_i = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \gamma_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i + v_i
+\end{align}`
+$$
+
+
+```r
+stage1 &lt;- lm(education ~ education_mom + education_dad, wage_df)
+```
+
+.hi-slate[Resultados primera etapa:]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 9.845 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 0.305 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 32.31 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; Educación de la madre &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.149 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.032 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 4.62 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; Educación del padre &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.216 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 0.028 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 7.84 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #e64173 !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+--
+
+Cada uno de nuestros instrumentos parece ser *relevante*.
+--
+&lt;br&gt;Formalmente, debemos hacer una prueba conjunta (_p.e._, `\(F\)` test).
+---
+
+--
+
+Usando nuestra .slate[estimación de primera etapa], agarramos el *fitted* .purple[variable endogena]
+$$
+`\begin{align}
+  \color{#6A5ACD}{\widehat{\text{Educación}}}_i = \widehat{\gamma}_0 + \widehat{\gamma}_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \widehat{\gamma}_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i
+\end{align}`
+$$
+
+--
+
+
+```r
+# Tenemos la primera etapa
+wage_df$education_hat &lt;- stage1$fitted.values
+```
+
+--
+
+Ahora usamos MCO otra vez para obtener .hi-green[regresión de segunda etapa]
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\text{Educación}}}_i + \varepsilon_i
+\end{align}$$`
+---
+
+`$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\text{Educación}}}_i + \varepsilon_i
+\end{align}$$`
+
+
+```r
+stage2 &lt;- lm(wage ~ education_hat, wage_df)
+```
+
+.hi-green[Resultados de segunda etapa:]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -454.683 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 198.149 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -2.29 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.022 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; Educación predicha &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 104.789 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 14.462 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 7.25 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+--
+
+.purple[MCO]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 176.504 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 89.152 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 1.98 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.0481 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; Educación &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 58.594 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 6.439 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 9.10 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;br&gt;.slate[Variables Instrumentales]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -501.474 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 226.476 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -2.21 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.0271 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: darkslategrey !important;"&gt; Educación &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: darkslategrey !important;"&gt; 108.214 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: darkslategrey !important;"&gt; 16.810 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: darkslategrey !important;"&gt; 6.44 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: darkslategrey !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;br&gt;.green[Mínimos cuadrados en dos etapas con dos instrumentos]
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -454.683 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 198.149 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -2.29 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.022 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #8bb174 !important;"&gt; Educación &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #8bb174 !important;"&gt; 104.789 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #8bb174 !important;"&gt; 14.462 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #8bb174 !important;"&gt; 7.25 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #8bb174 !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+--
+
+Como probablemente habrás adivinado, .mono[R] hará las dos etapas por ti.
+
+--
+
+`iv_robust(y ~ x1 + x2 + ⋯ | z1 + z2 + ⋯, data)`
+
+--
+
+En nuestro caso, tenemos
+- una variable explicativa (`x`) (.purple[educación])
+- dos instrumentos (`z`) (.pink[educación de los padres])
+
+
+```r
+iv_robust(wage ~ education | education_mom + education_dad, data = wage_df)
+```
+
+&lt;table class="table" style="font-size: 20px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; S.E. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; t stat. &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p-Value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; Intercepto &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -454.683 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; 199.946 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;"&gt; -2.27 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;"&gt; 0.0233 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; Educación, Estimado &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 104.789 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 14.852 &lt;/td&gt;
+   &lt;td style="text-align:right;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 7.06 &lt;/td&gt;
+   &lt;td style="text-align:left;background-color: white !important;font-weight: bold;color: #6A5ACD !important;"&gt; 
+  &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+--
+
+### Aún hay mas!!!
+
+Porque 2SLS .hi[aísla la variación exógena en una variable endógena], lo aplicamos en otros escenarios que están sesgados de relaciones *endógenas*.
+
+--
+
+.hi[Aplicaciones comunes]
+
+- **Inferencia causal general** para datos observacionales (como hemos visto).
+- **Experimentos:** Aleatorizar un tratamiento que afecte a una variable endógena.
+- **Error de medición:** Regresar `\(x_1\)` ruidosa sobre `\(x_2\)` ruidosa para capturar la señal.
+- **Relaciones simultáneas** (_p.e_, `\(p\)` y `\(q\)` de la oferta y la demanda). 
+
+Sin embargo, en cualquier entorno 2SLS/IV, debe tener en cuenta los requisitos de .hi[instrumentos válidos]-.pink[exogeneidad] y .pink[relevancia].
+---
+layout: false
+class: inverse
+# Bibliografía
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Angrist, J. D., &amp; Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., &amp; Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"/></svg> Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 384 512" style="height:1em;width:0.75em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M384 121.941V128H256V0h6.059c6.365 0 12.47 2.529 16.971 7.029l97.941 97.941A24.005 24.005 0 0 1 384 121.941zM248 160c-13.2 0-24-10.8-24-24V0H24C10.745 0 0 10.745 0 24v464c0 13.255 10.745 24 24 24h336c13.255 0 24-10.745 24-24V160H248zM123.206 400.505a5.4 5.4 0 0 1-7.633.246l-64.866-60.812a5.4 5.4 0 0 1 0-7.879l64.866-60.812a5.4 5.4 0 0 1 7.633.246l19.579 20.885a5.4 5.4 0 0 1-.372 7.747L101.65 336l40.763 35.874a5.4 5.4 0 0 1 .372 7.747l-19.579 20.884zm51.295 50.479l-27.453-7.97a5.402 5.402 0 0 1-3.681-6.692l61.44-211.626a5.402 5.402 0 0 1 6.692-3.681l27.452 7.97a5.4 5.4 0 0 1 3.68 6.692l-61.44 211.626a5.397 5.397 0 0 1-6.69 3.681zm160.792-111.045l-64.866 60.812a5.4 5.4 0 0 1-7.633-.246l-19.58-20.885a5.4 5.4 0 0 1 .372-7.747L284.35 336l-40.763-35.874a5.4 5.4 0 0 1-.372-7.747l19.58-20.885a5.4 5.4 0 0 1 7.633-.246l64.866 60.812a5.4 5.4 0 0 1-.001 7.879z"/></svg> Rubin, E. (2021) *Econometrics Lectures class*.
+
+---
+class: middle, center
+background-image: url(https://media.giphy.com/media/8VITX7wfegOSFWwnCH/giphy.gif)
+background-size: cover
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+&lt;br/&gt;
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+&lt;img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" /&gt;
+
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg> Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg> @keynes37](https://twitter.com/keynes37)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"/></svg> cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

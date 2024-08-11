@@ -1,0 +1,1729 @@
+---
+title: "Econometría"
+subtitle: "<br/> Variables Instrumentales"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte"
+date: "2023-I"
+output:
+  xaringan::moon_reader:
+    css: 
+       - xaringan-themer.css
+       - my-css.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1b9aaa",
+  secondary_color = "#ffc43d",
+  text_font_google = google_font("Ubuntu"),  #<< Prueba 1
+  header_font_google = google_font("Josefin Sans") #<< Prueba2
+)
+```
+
+```{r, setup, include = F}
+# devtools::install_github("dill/emoGG")
+library(pacman)
+p_load(
+  broom, tidyverse,
+  latex2exp, ggplot2, ggthemes, ggforce, viridis, extrafont, gridExtra, ggdag, dagitty,
+  ggthemes, ggridges, wooldridge,
+  kableExtra, snakecase, janitor,
+  data.table, dplyr, estimatr,
+  lubridate, knitr, parallel,
+  lfe, emoGG,
+  here, magrittr, fontawesome, shiny, babynames
+)
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#fb6107"
+blue <- "#2b59c3"
+green <- "#8bb174"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+slate <- "#314f4f"
+met_slate <- "#272822"
+# Dark slate grey: #314f4f
+# Opciones
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# A blank theme para ggplot
+theme_empty <- theme_bw() + theme(
+  line = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = structure(c(0, 0, -0.5, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_simple <- theme_bw() + theme(
+  line = element_blank(),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text.x = element_text(size = 18, family = "STIXGeneral"),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  # plot.margin = structure(c(0, 0, -1, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_math <- theme_void() + theme(
+  text = element_text(family = "MathJax_Math"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_serif <- theme_void() + theme(
+  text = element_text(family = "MathJax_Main"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes <- theme_void() + theme(
+  text = element_text(family = "Fira Sans Book"),
+  axis.title = element_text(size = 18),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = grey_light,
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_set(theme_gray(base_size = 20))
+
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+# Pendiente de ed
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# Column names for regression results
+reg_columns <- c("Term", "Est.", "S.E.", "t stat.", "p-Value")
+# Function for formatting p values
+format_pvi <- function(pv) {
+  return(ifelse(
+    pv < 0.0001,
+    "<0.0001",
+    round(pv, 4) %>% format(scientific = F)
+  ))
+}
+format_pv <- function(pvs) lapply(X = pvs, FUN = format_pvi) %>% unlist()
+# Tidy regression results table
+tidy_table <- function(x, terms, highlight_row = 1, highlight_color = "black", highlight_bold = T, digits = c(NA, 3, 3, 2, 5)) {
+  x %>%
+    tidy() %>%
+    select(1:5) %>%
+    mutate(
+      term = terms,
+      p.value = p.value %>% format_pv()
+    ) %>%
+    kable(
+      col.names = reg_columns,
+      escape = F,
+      digits = digits
+    ) %>%
+    kable_styling(font_size = 20) %>%
+    row_spec(1:nrow(tidy(x)), background = "white") %>%
+    row_spec(highlight_row, bold = highlight_bold, color = highlight_color)
+}
+# A few extras
+xaringanExtra::use_xaringan_extra(c("tile_view", "fit_screen"))
+```
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **`r rmarkdown::metadata$title`**
+----
+
+## **`r rmarkdown::metadata$subtitle`**
+
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+```{r xaringanExtra-share-again, echo=FALSE}
+xaringanExtra::use_share_again()
+```
+
+---
+class: inverse, middle
+
+# Preguntas... de la sesión de ayer? 
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+
+# Variables Instrumentales
+
+
+---
+
+--
+
+### Objetivo de la sesión
+
+En esta **sesión** se avanzará sobre el concepto de .hi[endogeneidad], su relación con la idea de causalidad, y el uso de los métodos de .ul[variables instrumentales] como medio para obtener estimadores consistentes cuando *falla* el estimador MCO
+
+--
+
+El estimador se dice .hi-purple[consistente] cuando
+
+$$\tag{1}
+plim(\hat{\beta})=\beta$$
+
+--
+
+En el caso del estimador MCO este resultado requiere que $E(X|u)=0$. Sin embargo, hay situaciones en las que esto no es así, entre ellas tenemos
+
+--
+
+`r fa("sketch", fill="red")` Variable omitida
+
+`r fa("sketch", fill="red")` Error de medición
+
+`r fa("sketch", fill="red")` Simultaneidad
+
+--
+
+Decimos que un **regresor** es .hi[endógeno] si está correlacionado con el error, lo cual ocurre por alguna de las tres situaciones mencionadas.
+
+---
+
+--
+
+En Colombia, las zonas de deforestación han coincidido con áreas de presencia de grupos armados, surge la pregunta: ¿La violencia causa la deforestación? [Ferguson, Romero, y Vargas (2014)](https://ageconsearch.umn.edu/record/209328/) intentan estimar el efecto de la expansión paramilitar sobre la deforestación.
+
+--
+
+- Considere la siguiente especificación
+
+$$forest_{m,t}=\beta_0+\beta_1\text{Paramilitares}_{m,t}+\epsilon_{m,t}$$
+
+
+Donde $forest_{m,t}$ es la proporción de la municipalidad $m$ cubierta de bosque en el año $t$, mientras que $\text{Paramilitares}_{m,t}$ son los ataques paramilitares hasta el año $t$
+
+--
+
+- Al estimar por **MCO** encuentran que $\hat{\beta_1}=0.045$ con $s.e=0.0117$
+
+--
+
+- ¿Podría decir que el estimador es .hi[insesgado]?
+
+--
+
+- ¿Qué pasa si la deforestación y la presencia del conflicto dependen de las características ecológicas y geológicas del terreno?
+
+---
+
+--
+
+### Simultaneidad
+
+--
+
+Usted quiere estimar el *efecto* de los aranceles sobre el volumen de comercio. Sugiere el siguiente modelo
+
+
+$$comercio_i=\beta_0+\beta_1arancel_i+\upsilon_i$$
+--
+
+Sin embargo, si los grupos de presión logran hacer que el gobierno suba los aranceles como respuesta a la creciente competencia con importaciones, entonces 
+
+--
+
+$$arancel_i=\gamma_0+\gamma_1comercio_i+\omega_i$$
+--
+
+En consecuencia
+
+--
+
+$$comercio=\beta_0+\beta_1(\gamma_0+\gamma_1comercio+\omega)+\upsilon$$
+--
+
+- Un choque al comercio, $\upsilon$, afecta también a los aranceles, luego $Cov(arancel_i,\upsilon_i)\neq0$
+
+---
+
+--
+
+### Error de Medición
+
+--
+
+Digamos que ahora quiere estimar el efecto del *ingreso familiar* sobre el desempeño académico. Tiene un modelo
+
+--
+
+$$Nota_i=\beta_0+\beta_1ing^*_i+u_i$$
+--
+
+Acá, $ing^*$ es la medida ideal del ingreso. Sin embargo, lo que tiene es lo que reporta el estudiante es $ing$
+
+$$ing_i=ing^*_i+e$$
+
+--
+
+luego
+
+$$\begin{aligned}
+nota_i&=\beta_0+\beta_1(ing_i-e_i)+u_i\\
+&=\beta_0+\beta_1ing_i+\upsilon_i
+\end{aligned}$$
+
+Con $\upsilon=u-\beta_1e$. 
+
+--
+
+- Note que $Cov(ing_i,\upsilon_i)\neq0$ porque $ing$ está correlacionado con $e_i$
+
+---
+layout: false
+class: inverse, middle
+
+# La idea del instrumento 😮
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+
+# El Instrumento
+
+---
+
+--
+
+Para resolver el problema de .hi[endogeneidad] necesitamos exogeneidad, obvio, pero ¿Cómo?
+
+--
+
+`r fa('wrench')` La idea básica es pensar que si $x_j$ tiene una parte que está *correlacionada* con el error, $e_i$, y otra que no lo está, entonces puede usarse la parte de $x_j$ que no está correlacionada con el error. Para ello necesitamos un instrumento
+
+--
+
+`r fa('globe')` **Ejemplo**
+
+[Feyrer (2009)](https://voxeu.org/article/1967-75-suez-canal-closure-lessons-trade) quiere estimar el efecto del comercio sobre el crecimiento económico. Propone el siguiente modelo
+
+--
+
+
+$$lny_{it}=\alpha+\gamma_i+\gamma_t+\beta\; ln\;(trade_{it})+\epsilon_{it}$$
+
+--
+
+La estimación .ul[consistente] de $\beta$ requiere que $corr(\epsilon_{it},ln\;(trade_{it}))=0$. Este supuesto no es plausible, al fin y al cabo entre mayor sea el *ingreso per cápita* de un país mayor tenderá a ser su volumen de importaciones y por lo tanto de comercio.
+
+---
+
+--
+
+Imagine que podemos descomponer la variabilidad de $ln\;trade$ en dos partes. Una correlacionada con $\epsilon$ y otra no correlacionada $\epsilon$. Acá es donde entra el *instrumento* `r fa('wrench')`, que no es más que otra variable, $z$ que debe cumplir con dos condiciones
+
+--
+
+**C1** No estar correlacionada con el error. Es decir, que sea exógena
+
+**C2** Debe estar correlacionada con la variable endógena. Esto se conoce como condición de relevancia
+
+---
+
+--
+
+### Definición
+
+--
+
+Sea un modelo
+
+$$\begin{align}
+  \text{Y}_{i} = \beta_0 + \beta_1 \text{D}_{i} + \varepsilon_i \tag{1}
+\end{align}$$
+
+--
+
+Un .attn[instrumento] valido es una variable $\color{#e64173}{\text{Z}_{i}}$ tal que
+
+1. $\mathop{\text{Cov}} \left( \color{#e64173}{\text{Z}_{i}},\, \text{D}_{i} \right) \neq 0$
+--
+<br>Nuestro .pink[instrumento] se correlaciona con el tratamiento
+--
+ (para que podamos conservar parte de $\text{D}_{i}$)
+
+--
+
+2. $\mathop{\text{Cov}} \left( \color{#e64173}{\text{Z}_{i}},\, \varepsilon_i \right) = 0$
+--
+<br>Nuestro .pink[instrumento] no esta correlacionado con $(\text{D}_{i})$, mas "otros" determinantes de $\text{Y}_{i}$
+--
+, _p.e._, $\color{#e64173}{\text{Z}_{i}}$ lo podemos excluir de la ecuación $(1)$.
+--
+ .attn[(restricción de exclusión)]
+
+---
+
+--
+
+```{r, dag-setup, include = F}
+# full
+library(dagitty)
+library(ggdag)
+library(ggplot2)
+dag = dagify(
+  Y ~ D,
+  Y ~ U,
+  D ~ U,
+  D ~ Z,
+  coords = tibble(
+    name = c("Y", "D", "U", "Z"),
+    x = c(1, 0, 1/2, -1),
+    y = c(0, 0, sqrt(3)/2,  0)
+  )
+)
+# tabla a construir
+dag %<>% fortify() %T>% setDT()
+# Segmentos
+mult = 0.2
+dag[, `:=`(
+  xa = x + (xend-x) * (mult),
+  ya = y + (yend-y) * (mult),
+  xb = x + (xend-x) * (1-mult),
+  yb = y + (yend-y) * (1-mult)
+)]
+# Add radio
+dag[, r := 1/7]
+```
+
+```{r, dag-plot, echo = F, fig.height = 4.5}
+# Plot the full DAG
+ggplot(
+  data = dag
+) +
+geom_circle(
+  aes(x0 = x, y0 = y, r = r, linetype = name == "U"),
+  fill = "white",
+  color = purple,
+) +
+geom_curve(
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = purple,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_text(
+  data = . %>% .[,.(name,x,y,xend=x,yend=y)] %>% unique(),
+  aes(x = x, y = y, label = name),
+  family = "Fira Sans Medium",
+  size = 10,
+  color = purple,
+  fontface = "bold"
+) +
+theme_void() +
+theme(
+  legend.position = "none",
+) +
+scale_linetype_manual(values = c("solid", "dashed")) +
+coord_cartesian(
+  xlim = dag[,range(x)] + dag[,range(x) %>% diff()] * c(-0.08, 0.08),
+  ylim = dag[,range(y)] + dag[,range(y) %>% diff()] * c(-0.08, 0.08)
+) +
+coord_equal()
+```
+
+--
+
+.qa[P] ¿Cómo ilustra esta DAG los requisitos y la identificación de IV? 
+
+---
+
+```{r, dag-plot-2, echo = F, fig.height = 4.5}
+# Plot the full DAG
+ggplot(
+  data = dag
+) +
+geom_circle(
+  aes(x0 = x, y0 = y, r = r, linetype = name == "U"),
+  fill = "white",
+  color = purple,
+) +
+geom_curve(
+  data = . %>% .[!(name == "Z" & to == "D")],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = purple,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_curve(
+  data = . %>% .[name == "Z" & to == "D"],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = red_pink,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_text(
+  data = . %>% .[,.(name,x,y,xend=x,yend=y)] %>% unique(),
+  aes(x = x, y = y, label = name),
+  family = "Fira Sans Medium",
+  size = 10,
+  color = purple,
+  fontface = "bold"
+) +
+theme_void() +
+theme(
+  legend.position = "none",
+) +
+scale_linetype_manual(values = c("solid", "dashed")) +
+coord_cartesian(
+  xlim = dag[,range(x)] + dag[,range(x) %>% diff()] * c(-0.08, 0.08),
+  ylim = dag[,range(y)] + dag[,range(y) %>% diff()] * c(-0.08, 0.08)
+) +
+coord_equal()
+```
+
+.qa[Relevancia:] .b.purple[Z] causa un efecto en .b.purple[D].
+
+---
+
+```{r, dag-plot-3, echo = F, fig.height = 4.5}
+# Plot the full DAG
+ggplot(
+  data = dag
+) +
+geom_circle(
+  aes(x0 = x, y0 = y, r = r, linetype = name == "U"),
+  fill = "white",
+  color = purple,
+) +
+geom_curve(
+  data = . %>% .[!((name == "Z" & to == "D") | (name == "U" & to == "D"))],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = purple,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_curve(
+  data = . %>% .[(name == "Z" & to == "D") | (name == "U" & to == "D")],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = red_pink,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_text(
+  data = . %>% .[,.(name,x,y,xend=x,yend=y)] %>% unique(),
+  aes(x = x, y = y, label = name),
+  family = "Fira Sans Medium",
+  size = 10,
+  color = purple,
+  fontface = "bold"
+) +
+theme_void() +
+theme(
+  legend.position = "none",
+) +
+scale_linetype_manual(values = c("solid", "dashed")) +
+coord_cartesian(
+  xlim = dag[,range(x)] + dag[,range(x) %>% diff()] * c(-0.08, 0.08),
+  ylim = dag[,range(y)] + dag[,range(y) %>% diff()] * c(-0.08, 0.08)
+) +
+coord_equal()
+```
+
+.qa[Restricción de exclusión:] 
+<br>  1\. .b.purple[Z] es .b.pink[exogena] (no se asocia con) .b.purple[U] porque la razón es que
+--
+ .b.purple[D] es una covariable (binaria).
+--
+<br>  .white[1\.] .it[P.e.], .b.purple[Z → D ← U → Y] es cerrado sin condicionar a lo (inobservable) .b.purple[U].  
+
+---
+
+```{r, dag-plot-4, echo = F, fig.height = 4.5}
+# Plot the full DAG
+ggplot(
+  data = dag
+) +
+geom_circle(
+  aes(x0 = x, y0 = y, r = r, linetype = name == "U"),
+  fill = "white",
+  color = purple,
+) +
+geom_curve(
+  data = . %>% .[!(name == "Z" & to == "D")],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = purple,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_curve(
+  data = . %>% .[name == "Z" & to == "D"],
+  aes(x = xa, y = ya, xend = xb, yend = yb),
+  curvature = 0,
+  arrow = arrow(length = unit(0.07, "npc")),
+  color = red_pink,
+  size = 1.2,
+  lineend = "round"
+) +
+geom_text(
+  data = . %>% .[,.(name,x,y,xend=x,yend=y)] %>% unique(),
+  aes(x = x, y = y, label = name),
+  family = "Fira Sans Medium",
+  size = 10,
+  color = purple,
+  fontface = "bold"
+) +
+theme_void() +
+theme(
+  legend.position = "none",
+) +
+scale_linetype_manual(values = c("solid", "dashed")) +
+coord_cartesian(
+  xlim = dag[,range(x)] + dag[,range(x) %>% diff()] * c(-0.08, 0.08),
+  ylim = dag[,range(y)] + dag[,range(y) %>% diff()] * c(-0.08, 0.08)
+) +
+coord_equal()
+```
+
+.qa[Restricción de exclusión:] 
+<br>  1\. .b.purple[Z] es .b.pink[exogena] (no se asocia con) .b.purple[U] porque .b.purple[D] is una covariable.
+<br>  2\. Ademas: .b.purple[Z] no afecta directamente a .b.purple[Y].
+
+---
+
+--
+
+### Diagrama causal
+
+--
+
+Lo anteriormente expuesto se conoce como el **diagrama causal**, donde se denota a $U$ como una variable no observada que afecta tanto a $D$ como $Y$. Note que si $Z$ varía, entonces $Y$ varía sin que lo haga $U$. Si en $D$ tenemos personas, y suponemos que una grupo de ellas cambia su comportamiento debido a $Z$, entonces el cambio inducido en $Y$ solo reflejará el efecto causal para el grupo particular que cambió su comportamiento. Por ello, este efecto causal suele llamarse *LATE* por lo de su significado de *Local Average Treatment Effect*
+
+---
+
+--
+
+### Mas ejemplos
+
+--
+
+Volvamos al estudio de Feyrer (2009).  Propuso usar el [cierre del canal del Suez entre 1967 y 1975](https://www.britannica.com/topic/Suez-Canal/History) como $z$. Si el cierre fue un evento motivado principalmente por razones políticas, pero que impactó los flujos comerciales, entonces podría funcionar.  En el estudio estimaron parámetros que arrojaron resultados como $\hat{\beta}_{OLS}=0.3(0.053)$ y $\hat{\beta}_{IV}=0.23(0.083)$
+
+Note que el **error estándar** del estimador de .hi[variables instrumentales] es mayor. Si calculamos los intervalos de confianza al 95% para cada estimación obtenemos 
+
+- $0.3\pm 1.96(0.053)=[0.196,0.404]$
+
+
+- $0.23\pm 1.96(0.083)=[0.07,0.39]$
+
+No es evidente que la diferencia sea *estadísticamente* significativa. El intervalo de IV contiene la estimación por MCO.
+
+---
+
+
+--
+
+### Mas del Estimador IV:
+
+--
+
+Considere el siguiente modelo de regresión lineal
+
+
+$$y_i=\beta_0+\beta_1x_1+\beta_2x_2+...+\beta_kx_k+e_i$$
+
+--
+
+- Si para todos los regresores $j=1,...,k-1$ tenemos que $Cov(x_j,e)=0$, pero sospechamos que $Cov(x_k,e)\neq0$ entonces para obtener *estimadores consistentes* de $\beta_k$ necesitamos información adicional. Esta la obtenemos de $z$. Esta es una variable observable que debe cumplir con las condiciones estipuladas
+
+--
+
+**C1**: Exogeneidad 
+
+$$Cov(z,e)=0$$
+
+--
+
+**C2**: Relevancia
+
+$\pi_1\neq0$ en la regresión
+
+$$x_k=\delta_0+\delta_1x_1+...+\delta_{k-1}x_{k-1}+\pi_1z+\upsilon$$
+
+Donde $E(\upsilon)=0$ y además no está correlacionado con $x_1,x_2,...,x_{k-1},z$
+
+
+---
+
+--
+
+De donde podemos obtener
+
+$$\hat{x_k}=\hat{\delta}_0+\hat{\delta}_1x_1+...+\hat{\delta}_{k-1}x_{k-1}+\hat{\pi}_1z$$
+
+--
+
+Es claro que $Cov(\hat{x_k},e)=0$. Luego lo usamos en
+
+$$y=\beta_0+\beta_1x+\beta_2x_2+...+\beta_k\hat{x}_k+e$$
+
+
+--
+
+En sintesis,
+
+--
+
+`r fa('exclamation')` **C1** No se puede probar estadísticamente
+`r fa('exclamation')` **C2** Se puede probar estadísticamente
+
+--
+
+Además,
+
+
+`r fa('exclamation')` Perdemos precisión en la estimación
+`r fa('exclamation')` Si $z$ no cumple las condiciones, entonces puede ser peor que usar MCO
+
+
+---
+
+--
+
+### En el modelo simple
+
+Si tenemos una única .hi[variable independiente], $x$
+
+--
+
+$$\tag{1}
+y=\beta_0+\beta_1x+e$$
+
+--
+
+$$\tag{C.1}
+Cov(z,e)=0$$
+
+--
+
+Ademas de 
+
+$$\tag{C.2}
+Cov(z,x)\neq0$$
+
+Usando la propiedad **distributiva** de la covarianza escribimos
+
+--
+
+
+$$\tag{2}
+Cov(z,y)=\beta_1Cov(z,x)+Cov(z,e)$$
+Note que bajo C.1 y C.2 podemos **identificar** $\beta_1$. Esto quiere decir que podemos escribir $\beta_1$ en términos de de los momentos poblacionales de variables observables
+
+---
+
+--
+
+Tenemos entonces
+
+--
+
+$$\tag{3}
+\beta_1=\dfrac{Cov(z,y)}{Cov(z,x)}$$
+
+Usando el estimador de la **covarianza**, obtenemos el .hi-purple[estimador IV]
+
+--
+
+$$\tag{4}
+\hat{\beta}_1=\dfrac{n^{-1}\sum_i^n(z_i-\bar{z})(y_i-\bar{y})}{n^{-1}\sum_i^n(z_i-\bar{z})(x_i-\bar{x})}$$
+
+--
+
+Usando la **ley de grandes números** podemos mostrar que el estimador es .hi[consistente]: $plim(\hat{\beta_1})=\beta_1$
+
+
+---
+
+--
+
+### De forma general: modelo justamente identificado
+
+--
+
+En el caso que hemos venido planteado tenemos una .hi[endógena] y un instrumento. A esto lo llamamos *justamente* identificado.
+
+--
+
+Escribiendo el modelo en forma **compacta**
+
+
+$$\tag{5}
+y=\mathbf{x}\boldsymbol{\beta}+e$$
+
+
+--
+
+Donde $\mathbf{x}=(1,x_2,...,x_k)$ y definimos $\mathbf{z}=(1,x_2,...,x_{k-1},z)$ como el vector de **variables exógenas**. Si tenemos que para todos los .hi[regresores] $j=1,...,k-1$ $Cov(x_j,e)=0$ y si se cumple la condición de .hi[exogeneidad], $Cov(z,e)=0$, entonces decimos que 
+
+$$E(\mathbf{z}'e)=\mathbf{0}$$
+--
+
+Si multiplicamos por ec.(5) por $\mathbf{z}'$, tomamos **valor esperado**, y si además se cumple que la matriz $E(\mathbf{z}'\mathbf{x})$ tiene rango completo, entonces
+
+--
+
+
+$$\tag{6}
+\boldsymbol{\beta}=[E(\mathbf{z'x})]^{-1}E(\mathbf{z'}y)$$
+
+---
+
+--
+
+Los **valores esperados** los estimamos una muestra aleatoria. En la ecuación (6) el vector de parámetros $\boldsymbol{\beta}$ queda identificado. Si reemplazamos por las contrapartes muestrales, obtenemos
+
+--
+
+
+$$\boldsymbol{\hat{\beta}}_{iv}=\Big(\dfrac{1}{n}\sum_{i}^n\mathbf{z'}_i\mathbf{x}_i\Big)^{-1}\Big(\dfrac{1}{n}\sum_i^n\mathbf{z'}_iy_i\Big)$$
+
+--
+
+Que, al escribirlo en términos de las matrices completas de datos tenemos
+
+
+$$\boldsymbol{\hat{\beta}}_{iv}=(\mathbf{Z'X})^{-1}\mathbf{Z'Y}$$
+
+--
+
+$\mathbf{Z}$ y $\mathbf{X}$ son $n\times K$ y $\mathbf{Y}$ es $n\times 1$. Por la ley de grandes números este estimador es .hi[consistente]
+
+---
+layout: false
+class: inverse, middle
+
+# Un punto más gráfico 😮
+<img src="images/lognig.png" width="280" />
+
+
+---
+class: middle
+
+# Instrumentos
+
+.qa[Vamos] a mirar la intuición de los instrumentos (con diagramas de Venn!).
+
+.note[Créditos a] [Glen Waddell](http://www.glenwaddell.com) la idea nació de él para el profesor Ed Rubin (Oregon's University) y mi persona.
+
+
+---
+layout: true
+
+# Gráficos
+
+---
+
+--
+
+```{r, venn_iv, echo = F, fig.height = 5}
+# Colors (order: x1, x2, x3, y, z)
+venn_colors = c(purple, red, "grey60", orange, red_pink)
+# Line types (order: x1, x2, x3, y, z)
+venn_lines = c("solid", "dotted", "dotted", "solid", "solid")
+# Locations of circles
+venn_df = tibble(
+  x  = c( 0.0,   -0.5,    1.5,   -1.0, -1.4),
+  y  = c( 0.0,   -2.5,   -1.8,    2.0, -2.6),
+  r  = c( 1.9,    1.5,    1.5,    1.3,  1.3),
+  l  = c( "Y", "X[1]", "X[2]", "X[3]",  "Z"),
+  xl = c( 0.0,    0.7,    1.6,   -1.0, -2.9),
+  yl = c( 0.0,   -3.8,   -1.9,    2.2, -2.6)
+)
+# Venn
+ggplot(data = venn_df, aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans Book", parse = T) +
+annotate(
+  x = -5.5, y = 3.3,
+  geom = "text", label = "Figura 1", size = 10, family = "Fira Sans Book", hjust = 0
+) +
+xlim(-5.5, 4.5) +
+ylim(-4.2, 3.4) +
+coord_equal()
+```
+---
+```{r, venn-endog, echo = F, fig.height = 5}
+# Change locations of circles
+venn_df %>%
+mutate(
+  x = x +   c(0, 0, 0, 0, 0),
+  xl = xl + c(0, 0, 0, 0, 0),
+  y = y +   c(0, 0, 0, 0, 1),
+  yl = yl + c(0, 0, 0, 0, 1)
+) %>%
+# Venn
+ggplot(data = ., aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans Book", parse = T) +
+annotate(
+  x = -5.5, y = 3.3,
+  geom = "text", label = "Figura 2", size = 10, family = "Fira Sans Book", hjust = 0
+) +
+xlim(-5.5, 4.5) +
+ylim(-4.2, 3.4) +
+coord_equal()
+```
+---
+```{r, venn-irrelevant, echo = F, fig.height = 5}
+# Change locations of circles
+venn_df %>%
+mutate(
+  x = x +   c(0, 0, 0, 0,-1),
+  xl = xl + c(0, 0, 0, 0,-1),
+  y = y +   c(0, 0, 0, 0, 2.3),
+  yl = yl + c(0, 0, 0, 0, 2.3)
+) %>%
+# Venn
+ggplot(data = ., aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans Book", parse = T) +
+annotate(
+  x = -5.5, y = 3.3,
+  geom = "text", label = "Figura 3", size = 10, family = "Fira Sans Book", hjust = 0
+) +
+xlim(-5.5, 4.5) +
+ylim(-4.2, 3.4) +
+coord_equal()
+```
+---
+```{r, venn-iv-endog2, echo = F, fig.height = 5}
+# Change locations of circles
+venn_df %>%
+mutate(
+  x = x +   c(0,    0,   0, 0,    2),
+  xl = xl + c(0, -2.4, 0.8, 0,  4.6),
+  y = y +   c(0,    0,   0, 0,    0),
+  yl = yl + c(0,    0,   0, 0, -1.1)
+) %>%
+# Venn
+ggplot(data = ., aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans Book", parse = T) +
+annotate(
+  x = -5.5, y = 3.3,
+  geom = "text", label = "Figura 4", size = 10, family = "Fira Sans Book", hjust = 0
+) +
+xlim(-5.5, 4.5) +
+ylim(-4.2, 3.4) +
+coord_equal()
+```
+---
+```{r, venn-iv-endog1, echo = F, fig.height = 5}
+# Venn
+ggplot(data = venn_df, aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans Book", parse = T) +
+annotate(
+  x = -5.5, y = 3.3,
+  geom = "text", label = "Figura 1", size = 10, family = "Fira Sans Book", hjust = 0
+) +
+xlim(-5.5, 4.5) +
+ylim(-4.2, 3.4) +
+coord_equal()
+```
+
+---
+
+--
+
+### Explicación de lo anterior
+
+--
+
+En los diagramas anteriores nos indican lo siguiente:
+
+- Cada **circulo** es una .black[variable].
+- La **sobreposición** de un circulo sobre otro es la .hi[correlación] entre ellas.
+- Las variables *omitidas* están como líneas intercontinuas.
+
+--
+
+Por tanto
+
+--
+
+- Figura 1: .hi-pink[Instrumento valido] (relevante; exógeno)
+- Figura 2: .hi-slate[Instrumento invalido] (relevante; no exógeno)
+- Figura 3: .hi-slate[Instrumento invalido] (no relevante; no exógenos)
+- Figura 4: .hi-slate[Instrumento invalido] (relevante; no exógenos)
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Múltiples instrumentos 🥱
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Múltiples instrumentos
+
+---
+
+--
+
+### Idea
+
+--
+
+Si tenemos una variable .hi[endógena] y más de un .hi-orange[instrumento] decimos que el modelo está .hi[sobre-identificado]. Veamos,
+
+--
+
+Suponga que tiene $M$ instrumentos, $z_1,z_2,...,z_M$, tales que no están correlacionados con el error
+
+--
+
+- **C1** 
+
+$$Cov(z_j,e)=0 \quad j=1,2,...,M$$
+
+--
+
+El vector de variables exógenas sería $\mathbf{z}\equiv (1,x_2,...,x_{k-1},z_1,...,z_M)$ de dimensión $1\times L$, con $L=K+M. Hacemos
+
+--
+
+- **C2** 
+
+
+$$x_k=\delta_0+\delta_1x_1+...+\delta_{k-1}x_{k-1}+\pi_1z_1+...+\pi_Mz_M+\upsilon$$
+---
+
+--
+
+En la ecuación anterior debe cumplirse que al menos **uno** de los **coeficientes** es .hi[diferente] de cero. Hacemos una *prueba F* donde $H_0:\pi_1=\pi_2=...=\pi_M=0$, y la .black[alternativa] es que al menos uno es diferente de cero. Siendo esto así, obtenemos
+
+--
+
+
+$$\hat{x}_k=\hat{\delta}_0+\hat{\delta}_1x_1+...+\hat{\delta}_{k-1}x_{k-1}+\hat{\pi}_1z_1+...+\hat{\pi}_Mz_M$$
+
+--
+
+Para cada $i$ definimos $\mathbf{x}_i=(1,x_{i1},...\hat{x}_{ik})$, $i=1,2,...,n$. Si usamos $\mathbf{x}_i$ como los instrumentos, entonces 
+
+--
+
+
+$$\hat{\boldsymbol{\beta}}=\Big(\dfrac{1}{n}\sum_{i}^n\mathbf{\hat{x}'}_i\mathbf{x}_i\Big)^{-1}\Big(\dfrac{1}{n}\sum_i^n\mathbf{\hat{x}'}_iy_i\Big)$$
+
+---
+
+--
+
+Usamos el hecho que $\mathbf{\hat{x}}=\mathbf{z(z'z)^{-1}z'x}$, luego el .hi[estimador IV] también puede escribirse como
+
+
+$$\boldsymbol{\hat{\beta}}=\Big[\Big(\sum_i^n\mathbf{x'_iz_i}\Big)\Big(\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(\sum_i^n\mathbf{z'_ix_i}\Big)\Big]^{-1}\Big(\sum_i^n\mathbf{x'_iz_i}\Big)\Big(\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(\sum_i^n\mathbf{x'_i}y_i\Big)$$
+
+--
+
+Bajo los siguientes supuestos se puede mostrar que el estimador es insesgado
+
+**S1**: $E(\mathbf{z}'u)=\mathbf{0}$
+
+**S2**: el rango $E(\mathbf{z'z})=L$ y $E(\mathbf{z'x})=K$. Está última es importante y se cumple bajo la condición **C2**
+
+---
+
+--
+
+Para ello, usamos $y=\mathbf{x\beta}+e$ y escribimos
+
+$$\boldsymbol{\hat{\beta}}=\boldsymbol{\beta}+\Big[\Big(n^{-1}\sum_i^n\mathbf{x'_iz_i}\Big)\Big(n^{-1}\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(n^{-1}\sum_i^n\mathbf{z'_ix_i}\Big)\Big]^{-1}\Big(n^{-1}\sum_i^n\mathbf{x'_iz_i}\Big)\Big(n^{-1}\sum_i^n\mathbf{z'_iz_i}\Big)^{-1}\Big(n^{-1}\sum_i^n\mathbf{z'_i}e_i\Big)$$
+--
+
+Al aplicar la .hi[ley de grandes números] y el teorema de mapeo continuo tenemos que
+
+
+$$plim\hat{\boldsymbol{\beta}}=\beta$$
+
+---
+
+--
+
+### Inferencia: necesitamos un error estándar
+
+--
+
+Para simplificar, suponemos
+
+*C.3* Homocedasticidad
+
+
+$$E(e^2\mathbf{z'z})=\sigma^2\mathbf{z'z} \quad \text{Donde}\quad \sigma^2=E(e^2)$$
+
+--
+
+Hacemos $\sqrt n(\boldsymbol{\hat{\beta}-\boldsymbol{\beta}})$. Por teorema central del límite tenemos que
+
+--
+
+$$n^{-1/2}\sum_i^n\mathbf{z'_i}u_i \underset{d}{\to} N(0,\sigma^2E(\mathbf{z'z}))$$
+
+--
+
+De donde $\sqrt n(\boldsymbol{\hat{\beta}-\boldsymbol{\beta}})$ se distribuye, asintóticamente, normal con media cero y varianza 
+
+--
+
+
+$$\sigma^2([E(\mathbf{x'z})][E(\mathbf{z'z})]^{-1}E(\mathbf{z'x})^{-1})$$
+
+---
+
+--
+
+Y para un coeficiente particular, la varianza asintótica es
+
+--
+
+$$\sqrt n (\hat{\beta}_k-\beta_k)=\dfrac{\sigma^2}{\hat{SSR}_K}$$
+
+Donde $\hat{SSR}_K$ es la suma de cuadrados de los residuales de la regresión de $\hat{x}_k$ sobre $x_1,x_2,...$ Que también puede escribirse como $\hat{SST}_k(1-\hat{R}^2_K)$
+
+--
+
+
+De lo anterior, podemos decir lo siguiente:
+
+--
+
+- Entre menor sea la correlación de la endógena con el .hi[instrumento], mayor es la varianza del estimador. 
+
+- Entre menor sea la variabilidad de $\hat{x}_k$ mayor es la varianza del estimador
+
+- La inclusión de muchos instrumentos tiende a incrementar la varianza
+
+---
+
+--
+
+### El problema de instrumentos débiles
+
+--
+
+En el caso de una variable endógena y un instrumento podemos escribir el estimador como está en la ecuación (4)
+
+--
+
+
+$$\hat{\beta}_1=\dfrac{n^{-1}\sum_i^n(z_i-\bar{z})(y_i-\bar{y})}{n^{-1}\sum_i^n(z_i-\bar{z})(x_i-\bar{x})}$$
+
+--
+
+De donde podemos escribir
+
+--
+
+
+$$\hat{\beta_1}=\beta_1+\dfrac{\sigma_u}{\sigma_x}\dfrac{Corr(z,u)}{Corr(z,x)}$$
+
+--
+
+De acá es claro que si se viola la condición de .hi[exogeneidad] y tenemos $Corr(z,u)\neq 0$, entonces en la medida que $Corr(z,x)$ tienda a cero la *inconsistencia* puede aumentar sustancialmente. De esta manera, si hay dudas sobre el estimador podríamos tener un grado de inconsistencia superior al que tendríamos con el estimador MCO. El remedio resulta peor que la enfermedad.
+
+---
+layout: false
+class: inverse, middle
+
+# El desarrollo en `r fa("r-project", fill = "steelblue")`
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Lo práctico en `r fa("r-project", fill = "steelblue")`
+
+---
+
+--
+
+Regresemos a una antigua batalla (retornos de educación).
+
+--
+
+```{r, wooldridge_data, echo = F}
+# Grab desired variables
+wage_df <- wage2 %>% transmute(wage, education = educ, education_dad = feduc, education_mom = meduc) %>% na.omit() %>% as_tibble()
+# miremos
+wage_df
+```
+---
+
+--
+
+MCO nos muestra que los retornos de la educación parecen (definitivamente) sesgados
+
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$
+
+.hi-slate[MCO (al parecer) sesgados]
+```{r, ols, echo = F}
+reg_ols <- lm(wage ~ education, wage_df)
+reg_ols %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación"),
+    highlight_row = 2,
+    highlight_color = purple
+  )
+```
+
+--
+
+Pero -*puede que*- la educación de la madre del individuo ser un .hi[instrumento valido]?
+
+---
+
+--
+
+Tratemos de checkear la *relevancia* de .hi-pink[educación de la madre] para .hi-purple[educación].
+
+--
+
+Esta regresión se le conoce como .hi-slate[*Primera etapa*:]
+<br> El efecto del .pink[instrumento]  en nuestra .purple[variable explicativa endogena].
+
+$$\begin{align}
+  \color{#6A5ACD}{\text{Educación}_i} = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)_i} + v_i
+\end{align}$$
+
+--
+
+.hi-slate[Resultados de la primera regresión:]
+```{r, first_stage, echo = F}
+reg_iv1 <- lm(education ~ education_mom, wage_df)
+reg_iv1 %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación de la madre"),
+    highlight_row = 2,
+    highlight_color = red_pink
+  )
+```
+--
+
+El *p*-valor sugiere una relación muy fuerte (bastante *relevante*).
+---
+
+--
+
+### Visualizando la primera etapa
+
+```{r, first_stage_plot, echo = F, fig.height = 4.5}
+ggplot(data = wage_df, aes(x = education_mom, y = education)) +
+geom_point(alpha = 0.15, size = 3.5) +
+labs(x = "Educación de la Madre (años)", y = "Educación (años)") +
+theme_pander(base_size = 20, base_family = "Fira Sans Book")
+```
+---
+count: false
+
+
+### Visualizando la primera etapa
+
+```{r, first_stage_plot2, echo = F, fig.height = 4.5}
+ggplot(data = wage_df, aes(x = education_mom, y = education)) +
+geom_point(alpha = 0.15, size = 3.5) +
+geom_smooth(method = lm, se = F, color = red_pink) +
+labs(x = "Educación de la Madre (años)", y = "Educación (años)") +
+theme_pander(base_size = 20, base_family = "Fira Sans Book")
+```
+---
+
+--
+
+### Exogeneidad
+
+**P:** Qué significa la .hi[exogeneidad] en ese caso?
+
+--
+<br>**R:** Necesitamos
+
+1. .pink[Educación de la madre (nuestro instrumento)] solo afecte a nuestra variable explicatiba que viene a ser .purple[la educación (nuestra variable endogena)].
+2. .pink[Educación de la madre] no debe estar correlacionada con otras variables que afecten o tengan efecto sobre los .orange[salarios (nuestra variable de resultado)].
+
+--
+
+Queremos poder comparar a dos personas (*A* y *B*) cuyas madres tienen distintos niveles educativos y decir que las únicas diferencias entre las dos personas (*A* y *B*) se deben a los niveles educativos de sus madres.
+
+--
+
+**P:** ¿Parece probable que la *educación de la madre* satisface la exogeneidad?
+---
+
+--
+
+Ahora vamos a estimar la .hi-turquoise[*forma reducida*]:
+<br> El efecto de nuestro .pink[instrumento] en nuestra .orange[variable de resultado].
+
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \pi_0 + \pi_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)_i} + w_i
+\end{align}$$
+
+--
+
+.hi-turquoise[Resultados de la forma reducida]
+```{r, reduced_form, echo = F}
+reg_rf <- lm(wage ~ education_mom, wage_df)
+reg_rf %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación de la madre"),
+    highlight_row = 2,
+    highlight_color = red_pink,
+    digits = c(NA, 2, 2, 2, 5)
+  )
+```
+
+--
+
+**P.sub[1]:** Cómo podemos interpretar el estimador  $\left( \hat{\pi}_1 \right)$?
+--
+<br>**P.sub[2]:** si nuestro instrumento es *valido*, podemos decir que esa estimación es .hi[causal]?
+---
+
+--
+
+Entonces, ¿cuál es nuestra estimación basada en el IV para los rendimientos de la educación?
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$
+
+--
+
+Sabemos que la estimación IV para $\beta_1$ es
+
+$$\begin{align}
+  \hat{\beta}_1^\text{IV} = \dfrac{\color{#20B2AA}{\hat{\pi}_1}}{\color{#314f4f}{\hat{\gamma}_1}}
+\end{align}$$
+
+--
+
+1. En la ecuación de .hi-turquoise[forma reducida], estimamos $\color{#20B2AA}{\hat{\pi}_1 \approx `r reg_rf$coef[2] %>% round(2)`}$.
+2. En la .hi-slate[Primera etapa], estimamos $\color{#314f4f}{\hat{\gamma}_1 \approx `r reg_iv1$coef[2] %>% round(3)`}$.
+
+--
+
+$$\begin{align}
+  \implies\hat{\beta}_1^\text{IV} = \dfrac{\color{#20B2AA}{\hat{\pi}_1}}{\color{#314f4f}{\hat{\gamma}_1}} = \dfrac{\color{#20B2AA}{`r reg_rf$coef[2] %>% round(2)`}}{\color{#314f4f}{`r reg_iv1$coef[2] %>% round(3)`}} \approx `r ((reg_rf$coef[2] %>% round(2))/(reg_iv1$coef[2] %>% round(3))) %>% round(1)`
+\end{align}$$
+
+---
+
+--
+
+**Alternativa:** usar la función `iv_robust()` del paquete `estimatr`.
+
+Esta nueva función `iv_robust` trabaja de forma similar que nuestro amigo `lm`:
+
+`iv_robust(y ~ x | z, data = dataset)`
+
+- `formula` La parte especifica del signo `|` de la regresión separa y dice quien es nuestro instrumento (`z`).
+- `data` la parte de como se llama su base de datos.
+
+--
+
+***Nota:*** Como puede adivinar por su nombre, `iv_robust` calcula por defecto errores estándar robustos de heteroscedasticidad.
+
+---
+
+--
+
+En practica...
+
+```{r, iv_reg}
+# Estimamos nuestra regresión
+iv_est <- iv_robust(wage ~ education | education_mom, data = wage_df)
+```
+
+```{r, iv_reg_results, echo = F}
+iv_est %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación"),
+    highlight_row = 2,
+    highlight_color = purple
+  )
+```
+---
+
+Así que ya "sabemos" como hacer regresiones de variables instrumentales
+--
+ *cuando tenemos una variable endogena y otra variable exogena.*
+
+--
+
+1. Estimamos de forma reducida la (regresión .orange[resultado] con el .pink[instrumento]).
+2. Estimamos la primera etapa (regresión .purple[explicativa] con el .pink[instrumento]).
+3. Calculamos el IV con las referencias de (1) y (2).
+
+Nuestro mágico .pink[instrumento] aisla la variación exogena de nuestra .purple[variable endogena].
+
+--
+
+**P:** Qué pasa si queremos más?
+--
+ (_p.e._, mas instrumentos o mas variables endogenas)
+--
+<br>**R:** Muy mal.
+---
+count: false
+
+Así que ya "sabemos" como hacer regresiones de variables instrumentales *cuando tenemos una variable endogena y otra variable exogena.*
+
+1. Estimamos de forma reducida la (regresión .orange[resultado] con el .pink[instrumento]).
+2. Estimamos la primera etapa (regresión .purple[explicativa] con el .pink[instrumento]).
+3. Calculamos el IV con las referencias de (1) y (2).
+
+Nuestro mágico .pink[instrumento] aisla la variación exogena de nuestra .purple[variable endogena].
+
+**P:** Qué pasa si queremos más?  (_p.e._, mas instrumentos o mas variables endogenas)
+<br>**R:** .st[Muy mal.] Extendemos lo de IV a .hi[two-stage least squares (2SLS)].
+
+---
+
+--
+
+### 2SLS (Mínimos cuadrados en dos etapas)
+
+--
+
+La intuición y las ideas del IV se trasladan a los mínimos cuadrados en dos etapas.
+
+--
+
+**Plus:** La *primera etapa* de la que hemos hablado es en realidad la *primera* de las *dos etapas* de los mínimos cuadrados en dos etapas.
+
+--
+
+$$\begin{align}
+  {\color{#c5c5c5}{\text{Modelo Endogeno}}}& &\color{#FFA500}{\text{Resultado}_i} &= \beta_0 + \beta_1 \color{#6A5ACD}{\left( \text{Endogena} \right)_i} + u_i\\[0.5em]
+  {\text{Primera etapa}}& &\color{#6A5ACD}{\left( \text{Endogena} \right)_i} &= \pi_0 + \pi_1 \color{#e64173}{\text{Instrumento}_i} + v_i\\[0.25em]
+  {\text{Segunda etapa}}& &\color{#FFA500}{\text{Resultado}_i} &= \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\left( \text{Endogena} \right)}_i} + \varepsilon_i\\[0.5em]
+  {\color{#c5c5c5}{\text{Forma reducida}}}& &\color{#FFA500}{\text{Resultado}_i} &= \pi_0 + \pi_1 \color{#e64173}{\text{Instrumento}_i} + w_i\\[0.25em]
+\end{align}$$
+
+Donde $\color{#6A5ACD}{\widehat{\left( \text{Variable endogena} \right)}_i}$ denota los valores predichos (*valores ajustados*) de la regresión de primera etapa.
+---
+
+--
+
+Los mínimos cuadrados en dos etapas son muy flexibles: podemos incluir otros controles, variables endógenas adicionales y disponer de múltiples instrumentos.
+
+Pero no te distraigas con esta **flexibilidad**!!, seguimos necesitando instrumentos .hi[válidos].
+---
+
+--
+
+### Estimación
+
+Volvamos a nuestro ejemplo de *retornos a la educación*.
+
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \beta_0 + \beta_1 \color{#6A5ACD}{\text{Educación}}_i + u_i
+\end{align}$$
+
+Imaginemos que la educación de la madre *y* del padre son instrumentos válidos.
+
+--
+
+Entonces nuestra .hi-slate[regresión en primera etapa] es
+$$
+\begin{align}
+  \color{#6A5ACD}{\text{Educación}}_i = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \gamma_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i + v_i
+\end{align}
+$$
+que podemos estimar mediante MCO.
+
+--
+
+**P:** Por qué?
+---
+
+$$
+\begin{align}
+  \color{#6A5ACD}{\text{Educación}}_i = \gamma_0 + \gamma_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \gamma_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i + v_i
+\end{align}
+$$
+
+```{r, stage1_code}
+stage1 <- lm(education ~ education_mom + education_dad, wage_df)
+```
+
+.hi-slate[Resultados primera etapa:]
+```{r, stage1_table, echo = F}
+stage1 %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación de la madre", "Educación del padre"),
+    highlight_row = 2:3,
+    highlight_color = red_pink
+  )
+```
+
+--
+
+Cada uno de nuestros instrumentos parece ser *relevante*.
+--
+<br>Formalmente, debemos hacer una prueba conjunta (_p.e._, $F$ test).
+---
+
+--
+
+Usando nuestra .slate[estimación de primera etapa], agarramos el *fitted* .purple[variable endogena]
+$$
+\begin{align}
+  \color{#6A5ACD}{\widehat{\text{Educación}}}_i = \widehat{\gamma}_0 + \widehat{\gamma}_1 \color{#e64173}{\left( \text{Educación de la Madre} \right)}_i + \widehat{\gamma}_2 \color{#e64173}{\left( \text{Educación del Padre} \right)}_i
+\end{align}
+$$
+
+--
+
+```{r, add_predications}
+# Tenemos la primera etapa
+wage_df$education_hat <- stage1$fitted.values
+```
+
+--
+
+Ahora usamos MCO otra vez para obtener .hi-green[regresión de segunda etapa]
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\text{Educación}}}_i + \varepsilon_i
+\end{align}$$
+---
+
+$$\begin{align}
+  \color{#FFA500}{\text{Salario}_i} = \delta_0 + \delta_1 \color{#6A5ACD}{\widehat{\text{Educación}}}_i + \varepsilon_i
+\end{align}$$
+
+```{r, stage2_code}
+stage2 <- lm(wage ~ education_hat, wage_df)
+```
+
+.hi-green[Resultados de segunda etapa:]
+```{r, stage2_table, echo = F}
+stage2 %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación predicha"),
+    highlight_row = 2,
+    highlight_color = purple
+  )
+```
+---
+
+--
+
+.purple[MCO]
+```{r, results_ols, echo = F}
+reg_ols %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación"),
+    highlight_row = 2,
+    highlight_color = purple
+  )
+```
+<br>.slate[Variables Instrumentales]
+```{r, results_iv, echo = F}
+iv_est %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación"),
+    highlight_row = 2,
+    highlight_color = "darkslategrey"
+  )
+```
+<br>.green[Mínimos cuadrados en dos etapas con dos instrumentos]
+```{r, results_2sls, echo = F}
+stage2 %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación"),
+    highlight_row = 2,
+    highlight_color = "#8bb174"
+  )
+```
+---
+
+--
+
+Como probablemente habrás adivinado, .mono[R] hará las dos etapas por ti.
+
+--
+
+`iv_robust(y ~ x1 + x2 + ⋯ | z1 + z2 + ⋯, data)`
+
+--
+
+En nuestro caso, tenemos
+- una variable explicativa (`x`) (.purple[educación])
+- dos instrumentos (`z`) (.pink[educación de los padres])
+
+```{r, iv_robust_2sls, eval = F}
+iv_robust(wage ~ education | education_mom + education_dad, data = wage_df)
+```
+
+```{r, iv_robus_2sls_table, echo = F}
+iv_robust(wage ~ education | education_mom + education_dad, data = wage_df) %>%
+  tidy_table(
+    terms = c("Intercepto", "Educación, Estimado"),
+    highlight_row = 2,
+    highlight_color = purple
+  )
+```
+---
+
+--
+
+### Aún hay mas!!!
+
+Porque 2SLS .hi[aísla la variación exógena en una variable endógena], lo aplicamos en otros escenarios que están sesgados de relaciones *endógenas*.
+
+--
+
+.hi[Aplicaciones comunes]
+
+- **Inferencia causal general** para datos observacionales (como hemos visto).
+- **Experimentos:** Aleatorizar un tratamiento que afecte a una variable endógena.
+- **Error de medición:** Regresar $x_1$ ruidosa sobre $x_2$ ruidosa para capturar la señal.
+- **Relaciones simultáneas** (_p.e_, $p$ y $q$ de la oferta y la demanda). 
+
+Sin embargo, en cualquier entorno 2SLS/IV, debe tener en cuenta los requisitos de .hi[instrumentos válidos]-.pink[exogeneidad] y .pink[relevancia].
+---
+layout: false
+class: inverse
+# Bibliografía
+
+`r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+`r fa('book')` Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., & Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+`r fa('file-code')` Rubin, E. (2021) *Econometrics Lectures class*.
+
+---
+class: middle, center
+background-image: url(https://media.giphy.com/media/8VITX7wfegOSFWwnCH/giphy.gif)
+background-size: cover
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+<br/>
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+<img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" />
+
+[`r fontawesome::fa("link")` Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)<br/>
+[`r fontawesome::fa("twitter")` @keynes37](https://twitter.com/keynes37)<br/>
+[`r fontawesome::fa("envelope")` cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+
+
+
+

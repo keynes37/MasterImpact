@@ -1,0 +1,1597 @@
+---
+title: "Econometría"
+subtitle: "<br/> Modelos Logísticos (II)"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte"
+date: "2023-I"
+output:
+  xaringan::moon_reader:
+    css: 
+       - xaringan-themer.css
+       - my-css.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1b9aaa",
+  secondary_color = "#ffc43d",
+  text_font_google = google_font("Ubuntu"),  #<< Prueba 1
+  header_font_google = google_font("Josefin Sans") #<< Prueba2
+)
+```
+
+```{r, setup, include = F}
+# devtools::install_github("dill/emoGG")
+library(pacman)
+p_load(
+  broom, tidyverse,
+  latex2exp, ggplot2, ggthemes, ggforce, viridis, extrafont, gridExtra, ggdag, dagitty,
+  ggthemes, ggridges, wooldridge,
+  kableExtra, snakecase, janitor,
+  data.table, dplyr, estimatr,
+  lubridate, knitr, parallel,
+  lfe, emoGG,
+  here, magrittr, fontawesome, shiny, babynames,
+  sjmisc, descr, scales, xtable, ggmosaic, stargazer, summarytools, sjPlot,
+  ISLR, cowplot, scales,
+  latex2exp, viridis, extrafont, gridExtra, plotly, ggformula,
+  kableExtra, DT, future, furrr,
+  MASS, estimatr, caret, tidymodels, glmnet
+)
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#fb6107"
+blue <- "#2b59c3"
+green <- "#8bb174"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+slate <- "#314f4f"
+met_slate <- "#272822"
+# Dark slate grey: #314f4f
+# Opciones
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# A blank theme para ggplot
+theme_empty <- theme_bw() + theme(
+  line = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = structure(c(0, 0, -0.5, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_simple <- theme_bw() + theme(
+  line = element_blank(),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text.x = element_text(size = 18, family = "STIXGeneral"),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  # plot.margin = structure(c(0, 0, -1, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_math <- theme_void() + theme(
+  text = element_text(family = "MathJax_Math"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_serif <- theme_void() + theme(
+  text = element_text(family = "MathJax_Main"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes <- theme_void() + theme(
+  text = element_text(family = "Fira Sans Book"),
+  axis.title = element_text(size = 18),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = grey_light,
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_set(theme_gray(base_size = 20))
+
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+# Pendiente de ed
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# Column names for regression results
+reg_columns <- c("Term", "Est.", "S.E.", "t stat.", "p-Value")
+# Function for formatting p values
+format_pvi <- function(pv) {
+  return(ifelse(
+    pv < 0.0001,
+    "<0.0001",
+    round(pv, 4) %>% format(scientific = F)
+  ))
+}
+format_pv <- function(pvs) lapply(X = pvs, FUN = format_pvi) %>% unlist()
+# Tidy regression results table
+tidy_table <- function(x, terms, highlight_row = 1, highlight_color = "black", highlight_bold = T, digits = c(NA, 3, 3, 2, 5)) {
+  x %>%
+    tidy() %>%
+    select(1:5) %>%
+    mutate(
+      term = terms,
+      p.value = p.value %>% format_pv()
+    ) %>%
+    kable(
+      col.names = reg_columns,
+      escape = F,
+      digits = digits
+    ) %>%
+    kable_styling(font_size = 20) %>%
+    row_spec(1:nrow(tidy(x)), background = "white") %>%
+    row_spec(highlight_row, bold = highlight_bold, color = highlight_color)
+}
+# A few extras
+xaringanExtra::use_xaringan_extra(c("tile_view", "fit_screen"))
+```
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **`r rmarkdown::metadata$title`**
+----
+
+## **`r rmarkdown::metadata$subtitle`**
+
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+```{r xaringanExtra-share-again, echo=FALSE}
+xaringanExtra::use_share_again()
+```
+
+---
+class: inverse, middle
+
+# Preguntas... de la sesión anterior? 
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Modelo Logit
+
+---
+
+--
+
+#### Qué pasa con todo ese cuento de la regresión?
+
+--
+
+Los métodos de .hi-slayer[regresión] no son buenos cuando se tienen múltiples categorías.
+
+--
+
+Considere que tenemos tres elecciones para ir de un sitio a otro $(A\rightarrow B)$ y estos son *Avíon*, *Carro*, *Bus-intermunicipal*. Cómo podríamos entonces manejar eso en una .hi-slayer[regresión] que trabaja con variables numéricas?
+
+--
+
+.left-third[
+.center.note[Opción 1]
+$$Y=\begin{cases}
+  \displaystyle 1 & \text{si }\color{#e64173}{\text{ Avión}} \\
+  \displaystyle 2 & \text{si }\color{#6A5ACD}{\text{ Carro}} \\
+  \displaystyle 3 & \text{si }\color{#FFA500}{\text{ Bus}} \\
+\end{cases}$$
+]
+
+--
+
+.left-third[
+.center.note[Opción 2]
+$$Y=\begin{cases}
+  \displaystyle 1 & \text{si }\color{#6A5ACD}{\text{ Carro}} \\
+  \displaystyle 2 & \text{si }\color{#e64173}{\text{ Avión}} \\
+  \displaystyle 3 & \text{si }\color{#FFA500}{\text{ Bus}} \\
+\end{cases}$$
+]
+
+--
+
+.left-third[
+.center.note[Opción 3]
+$$Y=\begin{cases}
+  \displaystyle 1 & \text{si }\color{#FFA500}{\text{ Bus}} \\
+  \displaystyle 2 & \text{si }\color{#e64173}{\text{ Avión}} \\
+  \displaystyle 3 & \text{si }\color{#6A5ACD}{\text{ Carro}} \\
+\end{cases}$$
+]
+
+--
+
+.hi-pink[Houston!!] we have a problem 🚀. La predicción será muy sensible debido a que no es clara el input de datos y el .hi[orden] de estas puede afectar los .ul[resultados].
+
+---
+
+--
+
+Ahora bien... .hi-purple[resultados binarios] son mas sencillos para la regresión.
+
+--
+
+Si por un momento solo tuvieramos que elegir solo entre las opciones de .pink[Avión] y .purple[Carro]
+
+.left-third[
+.center.note[Opción 1]
+$$Y=\begin{cases}
+  \displaystyle 0 & \text{si}\color{#e64173}{\text{ Avión}} \\
+  \displaystyle 1 & \text{si}\color{#6A5ACD}{\text{ Carro}} \\
+\end{cases}$$
+]
+
+.left-thin.center[<br><br>.center[y]]
+
+.left-third[
+.center.note[Opción 2]
+$$Y=\begin{cases}
+  \displaystyle 0 & \text{si }\color{#6A5ACD}{\text{ Carro}} \\
+  \displaystyle 1 & \text{si }\color{#e64173}{\text{ Avión}} \\
+\end{cases}$$
+]
+
+<br/>
+.left-full[De alguna manera tenemos el mismo resultado. No termina siendo en realidad un problema.]
+
+---
+
+--
+
+Para los casos de .hi[respuesta binaria], aún se puede hacer un .hi-red[modelo de regresión].
+
+--
+
+Recurde que los estamos definiendo como .attn[Modelos de probabilidad lineal] (MPL).
+
+--
+
+Los resultados/predicciones de él pueden darse como:
+
+1. Estimar la probabilidad condicional $y_i = 1$, _p.e._, $\mathop{\text{Pr}}\left(y_o = 1 \mid x_o\right)$
+
+1. Un límite es que pueden salirse del intervalo de $[0,1]$
+
+1. Sin embargo, es bastante útil y fáciles de interpretar.
+
+---
+
+Vamos a usar la base de datos que viene por `Default` del paquete `ISLR`. $Y:\text{Variable impago}$ y para $X: \text{Cupo tarjeta crédito}$
+
+```{r, datatable-default, fig.height=4, echo = F, cache = T}
+set.seed(1)
+ISLR::Default %>% sample_n(100) %>% datatable(
+  rownames = F,
+  options = list(dom = 't')
+) %>% formatRound(columns = 3:4, digits = c(2, 0))
+```
+
+---
+exclude: true
+
+```{r, clean-default-data, include = F}
+# Limpiar datos
+default_df = ISLR::Default %>% dplyr::mutate(i_default = 1 * (default == "Yes"))
+```
+
+---
+
+.hi-purple[Los datos]: La variable resultado, **default**, toma tan solo dos valores (esto es `r default_df$i_default %>% mean() %>% scales::percent(accuracy = 0.1)` impago).
+
+```{r, boxplot-default-balance, fig.height=4, echo = F, cache = T}
+ggplot(data = default_df, aes(x = default, y = balance)) +
+geom_boxplot(outlier.shape = NA, fill = "grey90") +
+geom_jitter(width = 0.2, alpha = 0.1, color = purple) +
+xlab("Default") +
+scale_y_continuous("Balance", labels = scales::comma) +
+theme_minimal(base_size = 20, base_family = "Fira Sans Book") +
+coord_flip()
+```
+
+---
+
+.hi-purple[Los datos]: La variable resultado, **default**, toma tan solo dos valores (esto es `r default_df$i_default %>% mean() %>% scales::percent(accuracy = 0.1)` impago).
+
+
+```{r, plot-default-points, fig.height=4, echo = F, cache = T}
+# Plot points
+ggplot(data = default_df, aes(x = balance, y = i_default)) +
+geom_point(alpha = 0.05, size = 3.5, color = purple) +
+geom_line(stat = "smooth", color = NA, method = lm, size = 1.5) +
+scale_y_continuous("Default") +
+scale_x_continuous("Balance", labels = scales::comma) +
+theme_minimal(base_size = 20, base_family = "Fira Sans Book")
+```
+---
+
+.hi-pink[Modelo de probabilidad lineal] con predicción (la busca el algoritmo)
+
+```{r, plot-default-lpm, fig.height=4, echo = F, cache = T}
+ggplot(data = default_df, aes(x = balance, y = i_default)) +
+geom_point(alpha = 0.05, size = 3.5, color = purple) +
+geom_line(stat = "smooth", color = red_pink, method = lm, size = 1.5) +
+scale_y_continuous("Default") +
+scale_x_continuous("Balance", labels = scales::comma) +
+theme_minimal(base_size = 20, base_family = "Fira Sans Book")
+```
+
+---
+
+.hi-orange[Regresión Logística] mejora la estimación.
+
+```{r, plot-default-logistic, fig.height=4, echo = F, cache = T}
+ggplot(data = default_df, aes(x = balance, y = i_default)) +
+geom_point(alpha = 0.05, size = 3.5, color = purple) +
+geom_line(stat = "smooth", color = red_pink, method = lm, size = 1.5, alpha = 0.2) +
+geom_line(stat = "smooth", color = orange, method = "glm", method.args = list(family = "binomial"), size = 1.5) +
+scale_y_continuous("Default") +
+scale_x_continuous("Balance", labels = scales::comma) +
+theme_minimal(base_size = 20, base_family = "Fira Sans Book")
+```
+
+---
+layout: false
+class: inverse, middle
+
+## Entonces... qué es eso de la regresión logística?
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Regresión Logística
+
+---
+name: logistic-intro
+### Intro
+
+--
+
+.attn[Regresión logística] Modelo de .hi-pink[probabilidad] que permite que los resultados de $Y$ sean estimados (de acuerdo a su característica) y este sea `verdadero(a)`.
+
+--
+
+Por ejemplo:
+$$
+\begin{align}
+  \mathop{\text{Pr}}\left(\text{Default} = \text{Si} | \text{Balance}\right) = p(\text{Balance})
+\end{align}
+$$
+
+--
+
+Modelamos la probabilidad de caer en `default` (impago) como función de la variable `balance` (viene a ser la relación ingresos-gastos). La idea en realidad viene a ser: *Si un estudiante tiene balance 0, es porque tiene un buen manejo de sus finanzas*. Si en cambio su balance es alto o toma cifras grandes, es porque Gasta mas que lo que tiene de ingresos.  
+
+--
+
+Usamos la probabilidad estimada para hacer **predicciones**
+ _p.e._,
+- Si $p(\text{Balance})\geq 0.5$, decimos que ese es el nivel de probabilidad ("si") para NO pagar o ser un individuo irresponsable.
+- Siendo conservadores, podríamos decir que la probabilidad de tener un desbalance (gran diferencia entre ingreso y gastos) es de $p(\text{Balance})\geq0.1$.
+
+---
+
+--
+
+### Que es eso de logístico (Logit)?
+
+--
+
+Deseamos modelar la probabilidad en función de sus predictores $\left(\beta_0 + \beta_1 X\right)$.
+
+.col-centered[
+.hi-pink[Modelo de Probabilidad lineal]
+<br>
+Predictor .pink[lineal] 
+
+$$
+\begin{align}
+  p(X) = \beta_0 + \beta_1 X
+\end{align}
+$$
+]
+
+.col-centered[
+.hi-orange[Modelo Logístico]
+<br>
+Transformación de predictores del .orange[logit] 
+
+$$
+\begin{align}
+  p(X) = \dfrac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}}
+\end{align}
+$$
+]
+
+---
+
+--
+
+Que es eso de ***función logit*** $\left(\frac{e^x}{1+e^x}\right)$?
+
+1. Asegura que estemos en el intervalo 0 $(x\rightarrow-\infty)$ hasta 1 $(x\rightarrow\infty)$
+
+1. Nos permite tener la curva (s) de nuestra variable no lineal que se ajusta a los datos.
+
+---
+
+--
+
+### Que es eso de logístico?
+
+--
+
+Un poco de matemáticas es:
+$$\begin{align}
+  p(X) = \dfrac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}} \implies \color{#e64173}{\log \left( \dfrac{p(X)}{1-p(X)}\right)} = \color{#6A5ACD}{\beta_0 + \beta_1 X}
+\end{align}$$
+
+Recuerde que la .note[definición] de los .hi-pink[log odds]: son conocidos como los verdaderos .hi[logit]. Si este valor es mayor a (1), nos indica que su relación es mas fuerte con respeto a la variable resultado.
+
+--
+
+1. Tenemos $\beta_j$ como la razón de probabilidad de .pink[log odds]
+
+--
+
+1. .hi-pink[Cambios en probabilidad] debido a $X$ dependen del nivel de $X$.
+
+
+---
+
+--
+
+### Estimación
+
+--
+
+Antes de empezar a predecir necesitamos de los $\beta_j$s.
+$$\begin{align}
+  p(X) = \dfrac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}} \implies \color{#e64173}{\log \left( \dfrac{p(X)}{1-p(X)}\right)} = \color{#6A5ACD}{\beta_0 + \beta_1 X}
+\end{align}$$
+
+--
+
+Estimamos la regresión usando el método de .attn[máxima verosimilitud].
+
+--
+
+.attn[Maximum likelihood estimation] (MLE) busca que los $\beta_j$s obtenidos sean los "mejores" dada la estimación propuesta.
+
+---
+
+--
+
+### Maximum likelihood
+
+--
+
+.attn[MLE] busca que los $\beta_j$s obtenidos sean los "mejores" dada la estimación propuesta.
+
+--
+
+$$\begin{align}
+  \color{#e64173}{\log \left( \dfrac{p(X)}{1-p(X)}\right)} = \color{#6A5ACD}{\beta_0 + \beta_1 X}
+\end{align}$$
+
+--
+
+1. $\color{#6A5ACD}{\beta_j}$ nos dice como $x_j$ afecta a los .pink[log odds]
+
+--
+
+1. odds $= \dfrac{p(X)}{1-p(X)}$.
+--
+ si $p(X) > 0.5$, entonces el ratio es $>1$ y .pink[log odds] $> 0$.
+
+--
+
+Queremos escoger $\color{#6A5ACD}{\beta_j}$ tal que
+- .pink[log odds] son superiores a cero para las observaciones en las que $y_i=1$
+- .pink[log odds] serán aún mayores para las zonas de $x_j$ donde la observación $i$s nos brinda $y_i=1$
+
+---
+
+--
+
+### Un poco más de la formalidad
+
+La regresión logística o .attn[the likelihood function] nos permite manejar el comportamiento categórico. De alguna manera todo lo hace mejor con los estimadores.
+
+
+$$\begin{align}
+  \mathop{\ell}(\beta_0,\beta_1) = \prod_{i:y_i=1} \mathop{p}(x_i) \prod_{i:y_i=0} (1-\mathop{p}(x_i))
+\end{align}$$
+
+La función de probabilidad se maximiza 
+- Haciendo la $p(x_i)$ mas grande para individuos con $y_i = 1$
+- Haciendo la $p(x_i)$ mas pequeña para individuos con $y_i = 0$
+
+*Mas simple*: La máxima verosimilitud, maximiza un rendimiento predictivo, condicionado al modelo que hemos establecido.
+
+---
+
+--
+
+### Con el modelo PROBIT
+
+--
+
+Es un algoritmo "hermano" del .hi[logit]. No varian ni siquiera mucho sus resultados, solo que se asume que el residuo $e\sim N(0, \sigma^2)$.
+
+--
+
+El modelo .hi-purple[Probit] usa la **función acumulada de distribución** de la distribución normal $\Phi$ para especificar la probabilidad y usar la parte de $0\leq \Phi \leq 1$.
+
+--
+
+$$\tag{1}
+\begin{align}
+  p(X) = \Phi(\beta_0 + \beta_1 x_1) \implies \color{#e64173}{\int_{-\infty}^{\beta_0+\beta_1x_1}} \; \frac{1}{\sqrt{2\pi}}e^{-\frac{z^2}{2}}dz 
+\end{align}$$
+
+--
+
+Ahora .hi[ML] busca encontrar los estimadores $\beta's$ 
+
+--
+
+$$\tag{2}
+\begin{align}
+\widehat{\beta}= \text{argmax}\; \text{log} \left(\prod_i^n f_i\right)= \sum_i^n\; \text{log}(f_i)
+\end{align}$$
+
+---
+
+--
+
+### Con el modelo PROBIT
+
+--
+
+Tomamos la ecuación (2) y proponemos la aplicación de la propiedad de logaritmo y entonces tenemos:
+
+--
+
+$$\tag{3}
+\begin{align}
+\sum_i^n\; \text{log} \left( p_i^{y_i}(1-p_i)^{1-y_i} \right)
+\end{align}$$
+
+--
+
+Solo nos queda bajar los exponentes 😅
+
+--
+
+$$\tag{4}
+\begin{align}
+\sum_i^n\; \text{log} \left[ \color{#ffa500}{y_i} log(p_i)+\color{#ffa500}{1-y_i}log(1-p_i) \right]
+\end{align}$$
+
+---
+
+--
+
+### Derivación del Probit
+
+--
+
+.ex[Ejemplo:] Votante 🫣
+
+--
+
+`r fa("feather", fill="red")` Suponga que una persona que vota le da cierto "score" o puntaje a cierto candidato presidencial. Este depende del género del votante, edad, educación, etc. El puntaje (score) no se observa, por ende le denominamos **variable latente**. Una persona vota por Petro, $y=1$, si y solo si el score esta por *encima* de cierto umbral.
+
+--
+.pad-left[
+$(\text{y}_{i}=1) = P(Score>0)  \tag{5}$
+]
+
+--
+.pad-left[
+$= P(x\beta+u>0)$
+]
+
+--
+.pad-left[
+$= P(u>-x\beta)$
+]
+
+--
+.pad-left[
+$= P(u<x\beta)$
+]
+
+--
+.pad-left[
+$=\Phi(x\beta)$ .pink[✔]
+]
+
+---
+
+--
+
+### Por ende el modelo Probit
+
+--
+
+$$\begin{align}
+  \mathop{\text{Pr}}(Y=1|X_1,X_2)= \Phi(\beta_0+\beta_1X_1+\beta_2X_2)
+\end{align}$$
+
+--
+
+Suponga que los betas fueron obtenidos y la variable $X_1=0.4$ y la variable $X_2=1$, entonces la probabilidad de que ocurra lo anterior es:
+
+--
+
+$$\begin{align}
+  \mathop{\text{Pr}}(Y=1|X_1,X_2)= \Phi(-1.6+2\color{#e64173}{(0.4)}+0.5\color{#6A5ACD}{(1)})
+\end{align}$$
+
+--
+
+$$\begin{align}
+\text{valor z}=-1.6+2\color{#e64173}{(0.4)}+0.5\color{#6A5ACD}{(1)}=-0.3
+\end{align}$$
+
+--
+
+.attn[Busca ese valor en la tabla de la normal y encontrará que la probabilidad es de 38%]
+
+---
+
+--
+
+#### En `r fa("r-project", fill = "steelblue")`
+
+Lo hacemos con la función `glm()`.
+
+Ademas: `logistic_reg()` en el paquete `tidymodels` galaxy (tiene el motor `"glm"`).
+
+--
+
+.note[Un punto:] lo de `lm` a `glm` hace referencia al método *generalizado* de momentos o (modelo lineal).
+
+--
+
+"Generalizado" significa esencialmente que estamos aplicando alguna transformación a $\beta_0 + \beta_1 X$ como la regresión logística aplica la función logística.
+
+Algo como: $$\color{#FFA500}{\mathbf{y}} = \color{#20B2AA}{g}^{-1} \left( \color{#6A5ACD}{\mathbf{X}} \color{#e64173}{\beta} \right) \iff \color{#20B2AA}{g}(\color{#FFA500}{\mathbf{y}}) = \color{#6A5ACD}{\mathbf{X}} \color{#e64173}{\beta}$$
+
+---
+
+--
+
+Los argumentos de `glm()` son muy similares
+
+.blue[Clave usar] (`lm()`)
+
+- Se especifica la `formula`,.super[.pink[♠︎]] _p.e._, `y ~ .` o `y ~ x + I(x^2)`
+
+- Se define `family = "binomial"` (Ya el mismo R lo identifica)
+
+- Dado el grupo de `datos`
+
+.footnote[
+.pink[♠] Siempre estamos en la parte de selección de un modelo
+]
+
+---
+
+--
+
+## En `r fa("r-project", fill = "steelblue")` el modelo debe establecerse como:
+
+--
+
+Tomemos a consideración el desarrollo del modelo
+
+```{r, ex-glm}
+est_logistic = glm(
+  i_default ~ balance,
+  family = "binomial", #<<
+  data = default_df
+)
+```
+
+--
+
+Adicional para esto es:
+
+```r
+probit <- glm(y ~ x, 
+                    data = base_datos, 
+                    family = binomial(link = "probit"))
+
+logit <- glm(y ~ x, 
+                    data = ba_datos, 
+                    family = binomial(link = "logit"))
+```
+
+
+---
+layout: false
+class: clear
+
+```{r, summary-glm, highlight.output = 10:12}
+est_logistic %>% summary()
+```
+
+---
+layout: true
+# Regresión logística
+
+---
+
+```{r, beta-hats, include = F}
+# Unrounded
+b0 = est_logistic$coefficients[1]
+b1 = est_logistic$coefficients[2]
+# Rounded
+br0 = est_logistic$coefficients[1] %>% round(2)
+br1 = est_logistic$coefficients[2] %>% round(4)
+```
+
+Es así que tenemos $\hat{\beta}_0 \approx `r br0`$ ademas $\hat{\beta}_1 \approx `r br1`$.
+
+.note[Recuerde:] Esos coeficientes son los .b[log odds] no se interpretan.
+
+--
+
+Si deseamos .hi[tener predicciones] para $y_i$ (donde puede o no caer $i$ en (impago) defaults),
+<br> debemos primero .hi[estimar dicha probabilidad] $\mathop{p}(\text{Balance})$
+$$
+\begin{align}
+  \hat{p}(\text{Balance}) = \dfrac{e^{\hat{\beta}_0 + \hat{\beta}_1 \text{Balance}}}{1 + e^{\hat{\beta}_0 + \hat{\beta}_1 \text{Balance}}}
+  \approx
+  \dfrac{e^{`r br0` + `r br1` \cdot \text{Balance}}}{1 + e^{`r br0` + `r br1` \cdot \text{Balance}}}
+\end{align}
+$$
+
+--
+
+- Si $\text{Balance} = 0$, La estimación $\mathop{\hat{p}} \approx `r (exp(b0)/(1+exp(b0))) %>% round(6) %>% format(scientific = F)`$
+- Si $\text{Balance} = 2,000$, La estimación es $\mathop{\hat{p}} \approx `r (exp(b0 + b1 * 2e3)/(1+exp(b0 + b1 * 2e3))) %>% round(3)`$
+- Si $\text{Balance} = 3,000$, La estimación es $\mathop{\hat{p}} \approx `r (exp(b0 + b1 * 3e3)/(1+exp(b0 + b1 * 3e3))) %>% round(3)`$ 
+
+
+---
+layout: false
+class: clear, middle
+
+Predicciones para .hi-orange[Regresión logística] $\mathop{p}(\text{Balance})$
+
+```{r, plot-default-logistic-2, echo = F, cache = T}
+ggplot(data = default_df, aes(x = balance, y = i_default)) +
+geom_point(alpha = 0.05, size = 3.5, color = purple) +
+geom_line(stat = "smooth", color = red_pink, method = lm, size = 1.5, alpha = 0.2) +
+geom_line(stat = "smooth", color = orange, method = "glm", method.args = list(family = "binomial"), size = 1.5) +
+scale_y_continuous("Default") +
+scale_x_continuous("Balance", labels = scales::comma) +
+theme_minimal(base_size = 20, base_family = "Fira Sans Book")
+```
+
+---
+layout: true
+# Regresión logistica
+### Predicción
+
+---
+
+--
+
+Recuerde que debemos usar a  `predict()` para obtener las predicciones de los objetos de la función `glm`.
+
+Ahora, `predict()` produces múltiples tipos de predicciones con `type`
+
+1. `type = "response"` Muestra .pink[dada la escala de la dependiente]
+<br>Para la regresión logística eso significa **probabilidad del evento** va en escala de (0 a 1)
+
+1. `type = "link"` muestra en linea .it[dada la escala de los predictores/controles]
+<br>para regresión logística, esto significa .hi-pink[predichos los log odds] estos están entre (-∞ a ∞)
+
+.attn[Cuidado:] el objeto de **default** es el `type = "link"`
+
+---
+
+Coloquemos todo junto, podemos entonces (estimar) varias probabilidades $\hat{p}(X)$
+
+```{r, ex-p-hat}
+# Con respecto a la variable resultado
+p_hat = predict(est_logistic, type = "response")
+```
+
+Estas las usamos para los valores predichos de $y$
+
+```{r, ex-y-hat}
+# Una dummy para mirar si se es mayor a 0.5
+y_hat = as.numeric(p_hat >= 0.5)
+```
+
+---
+
+--
+
+.pull-left[
+```{r, showmoney, echo=FALSE}
+tab<-cbind(p_hat, y_hat)
+head(tab,10)
+```
+]
+
+--
+
+.pull-right[
+```{r, showmon02, echo=FALSE}
+tab<-cbind(p_hat, y_hat)
+tail(tab,10)
+```
+]
+
+---
+layout: false
+class: inverse, middle
+
+# De vuelta al Titanic
+<img src="images/lognig.png" width="280" />
+
+---
+layout: true
+# Ejemplo `r fa("r-project", fill = "steelblue")`
+
+
+---
+
+--
+
+### Limitaciones modelo de regresión lineal para dependientes dicotómicas (= modelo de probabilidad lineal) 
+
+--
+
+```{r echo=FALSE}
+load("dattitan.Rdata")
+```
+
+.pull-left[
+```{r echo=FALSE, results='hide'}
+str(tt$survived)
+tt <- tt %>% mutate(survived_n=recode(survived,
+"No sobrevive"=0, "Sobrevive"=1))
+str(tt$survived_n)
+```
+
+```{r echo=FALSE,fig.height=5}
+ggplot(data = tt, aes(x = as.numeric(sex), y = survived_n)) +
+  geom_point(aes(color = as.factor(survived_n)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal por MCO",
+       y = "Sobrevive") +
+  theme(legend.position = "none", text = element_text(size = 20))
+```
+]
+
+.pull-right[
+
+```{r echo=FALSE}
+tt$survived_n2 <-tt$survived_n
+tt$survived_n2[tt$age>40]<-0
+tt$survived_n2[tt$age<20]<-1
+```
+
+
+```{r echo=FALSE, fig.height=5}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal por mínimos cuadrados",
+       y = "Sobrevive") +
+theme(legend.position = "none", text = element_text(size = 20))
+```
+]
+
+---
+
+--
+
+### Curvando la recta ...
+
+.pull-left[
+```{r echo=FALSE}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  geom_smooth(method = "lm", color = "gray20", se = FALSE) +
+  theme_bw()  +
+  labs(title = "Regresión lineal por MCO",
+       y = "Sobrevive") +
+  theme(legend.position = "none", text = element_text(size = 20))
+```
+]
+
+.pull-right[
+
+```{r, echo=FALSE}
+modelo_logistico2 <- glm(survived_n2 ~ age, data = tt, family = "binomial")
+```
+
+```{r echo=FALSE}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  stat_function(fun = function(x){predict(modelo_logistico2,
+                                          newdata = data.frame(age = x),
+                                          type = "response")}) +
+  theme_bw() +
+  labs(title = "Regresión logística",
+       y = "Probabilidad sobrevivir") +
+  theme(legend.position = "none", text = element_text(size = 20))
+
+```
+]
+
+---
+
+--
+
+### De vuelta a los Odds
+
+--
+
+- Los **odds** (chances): probabilidad de que algo ocurra dividido por la probabilidad de que no ocurra
+
+$$Odds=\frac{p}{1-p}$$
+
+--
+
+.medium[
+Ej. Titanic:
+  - 427 sobrevivientes (41%), 619 muertos (59%)
+$$Odds_{sobrevivir}=427/619=0.41/0.59=0.69$$
+
+**Es decir, las chances de sobrevivir son de 0.69**]
+
+---
+
+--
+
+### Ahora los Odds ratio (OR)
+
+--
+
+.pull-left[
+- los odds-ratio (o razón de chances) permiten reflejar la asociación entre las chances de dos variables dicotómicas
+
+
+**¿Tienen las mujeres más chances de sobrevivir que los hombres?**
+]
+
+--
+.pull-right[
+.medium[
+```{r}
+sjt.xtab(tt$survived, tt$sex,
+        show.col.prc=TRUE,
+        show.summary=FALSE
+)
+```
+]
+]
+
+---
+
+--
+
+### Ahora los Odds ratio (OR
+
+--
+ 
+**¿Cuantos más chances de sobrevivir tienen las mujeres respecto de los hombres?**
+
+--
+
+- OR supervivencia mujeres / OR supervivencia hombres
+
+.medium[
+$$OR=\frac{p_{m}/(1-p_{m})}{p_{h}/(1-p_{h})}=\frac{0.753/(1-0.753)}{0.205/(1-0.205)}=\frac{3.032}{0.257}=11.78$$
+]
+
+--
+
+### Las chances de sobrevivir de las mujeres son **11.78** veces más que las de los hombres.
+
+
+---
+
+--
+
+### Estimación de la Regresión logística y odds
+
+
+.pull-left[
+```{r echo=FALSE}
+ggplot(data = tt, aes(x = age, y = survived_n2)) +
+  geom_point(aes(color = as.factor(survived_n2)), shape = 1) +
+  stat_function(fun = function(x){predict(modelo_logistico2,
+                                          newdata = data.frame(age = x),
+                                          type = "response")}) +
+  theme_bw() +
+  labs(title = "Regresión logística",
+       y = "Probabilidad sobrevivir") +
+  theme(legend.position = "none", text = element_text(size = 20))
+
+```
+]
+
+
+.pull-right[
+Una de las transformaciones que permite realizar una estimación de regresión con variables dependientes dicotómicas como lo mencionamos es el **logit**, que es logaritmo de los odds.
+]
+
+---
+
+--
+
+$$Logit=ln(Odd)=ln(\frac{p}{1-p})$$
+
+--
+
+.pull-left[
+### Probabilidades, los odds y ademas el resultado logit
+
+]
+
+.pull-right[
+```{r, echo=FALSE}
+df <- data.frame(matrix(ncol = 1, nrow = 19)) 
+x <- c("prob") 
+colnames(df) <- x
+df[is.na(df)] = " "
+df$prob <- seq(0.001,0.999, length.out = 19)
+print(df, digits = 3,row.names = FALSE)
+```
+]
+---
+
+$$Logit=ln(Odd)=ln(\frac{p}{1-p})$$
+
+.pull-left[
+### Probabilidades, los odds y ademas el resultado logit
+```{r eval=FALSE, echo=TRUE}
+
+df$odds <- df$prob/(1-df$prob)
+
+df$logit <- log(df$odds)
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+df <- data.frame(matrix(ncol = 3, nrow = 19)) 
+x <- c("prob", "odds", "logit") 
+colnames(df) <- x
+df[is.na(df)] = " "
+df$prob <- seq(0.001,0.999, length.out = 19)
+df$odds <- df$prob/(1-df$prob)
+df$logit <- log(df$odds)
+print(df, digits = 3,row.names = FALSE)
+```
+]
+
+---
+
+--
+
+.pull-left[
+```{r echo=TRUE}
+modelo_titanic <-
+glm(survived ~ sex,
+data = tt,
+family = "binomial")
+```
+]
+
+.pull-right[
+```{r results='asis', echo=FALSE}
+
+# Para crear un modelo con OR y agregar a la tabla // luego no funciona (?)
+or <- texreg::extract(modelo_titanic)
+or@coef <- exp(or@coef)
+or@se <- numeric()
+
+texreg::htmlreg(list(modelo_titanic,or ), doctype = FALSE, caption=" ", custom.coef.names = c("Intercepto", "Mujer (Ref=Hombre)"), custom.model.names = c("Logit", "OR"), digits = 3)
+```
+]
+
+
+
+---
+
+--
+
+### Interpretación
+
+--
+
+- Coeficiente .hi[logit] asociado a sexo (mujer) = +2.467 
+
+- El log-odds de sobrevivencia aumenta para las mujeres en 2.467 en comparación con los hombres. 
+
+--
+
+### Contraste de hipótesis
+
+- La diferencia de las probabilidades de sobrevivir entre hombres y mujeres son estadísticamente significativas, por lo que se rechaza la hipótesis nula (de ausencia de diferencias entre hombres y mujeres) con un nivel de probabilidad $p<0.001$.
+
+
+---
+
+--
+
+### Adiciones a la interpretación de los coeficientes logit
+
+--
+
+- Sustantivamente no nos dice mucho, ya que el **logit** es una .ul[transformación] de la escala original.
+
+- Por lo tanto, para poder interpretar el sentido del coeficiente se requiere volver a la métrica de odds mediante una transformación inversa o **exponenciación**
+
+---
+
+--
+
+### De logits a odds
+
+--
+
+.pull-left[
+$$logit_x=log(Odds)$$
+$$e^{logit}=Odds_X$$
+$$e^{2.467}=11.78$$
+]
+
+.pull-right[
+```{r echo=TRUE}
+exp(2.467)
+```
+### Las chances (odds) de sobrevivir siendo mujer son **11.78** veces más que las de un hombre. 
+]
+
+---
+
+--
+
+### De logits a odds
+
+$$Odds_X=e^{\beta_0 + \beta_jX_j}$$
+
+--
+
+- Predicción para **mujeres**= -1.354 + (2.467 * Sexo=1) = 1.113
+
+- Predicción para **hombres**= -1.354 + (2.467 * Sexo=0) = -1.354
+
+--
+
+<br>
+
+$$Odds_{mujer}=e^{1.113}=3.032$$
+$$Odds_{hombre}=e^{-1.354}=0.257$$
+
+---
+
+--
+
+### Transformación a probabilidades predichas
+
+$$p_{mujeres}=\frac{e^{1.113}}{1+e^{1.113}}=\frac{3.04}{4.04}=0.752$$
+$$p_{hombres}=\frac{e^{-1.354}}{1+e^{-1.354}}=\frac{0.258}{1.258}=0.205$$
+
+---
+
+--
+
+### Regresión logística simple para independientes continuas
+
+--
+
+.pull-left[
+```{r echo=TRUE}
+modelo_titanic_age <-
+glm(survived ~ age,
+data = tt,
+family = "binomial")
+```
+]
+
+.pull-right[
+```{r results='asis', echo=FALSE}
+
+# Para crear un modelo con OR y agregar a la tabla // luego no funciona (?)
+or <- texreg::extract(modelo_titanic_age)
+or@coef <- exp(or@coef)
+or@se <- numeric()
+
+texreg::htmlreg(list(modelo_titanic_age,or ), doctype = FALSE, caption=" ", custom.coef.names = c("Intercepto", "Edad"), custom.model.names = c("Logit", "OR"), digits = 3)
+```
+]
+
+---
+
+--
+
+### Un gráfico para probabilidades predichas
+
+```{r, fig.height=5, echo=FALSE}
+ggplot(tt, aes(x=age, y=survived_n2)) + 
+  geom_point(alpha=.5) +
+  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial))
+```
+
+
+---
+
+--
+
+### Regresión logística multiple
+
+--
+
+.pull-left[
+```{r echo=TRUE}
+modelo_titanic2 <-
+glm(survived ~ sex + age,
+data = tt,
+family = "binomial")
+```
+]
+
+.pull-right[
+```{r results='asis', echo=FALSE}
+or2 <- texreg::extract(modelo_titanic2)
+or2@coef <- exp(or2@coef)
+or2@se <- numeric()
+
+texreg::htmlreg(list(modelo_titanic2,or2 ), doctype = FALSE, caption=" ", custom.coef.names = c("Intercepto", "Mujer (Ref=Hombre)", "Edad"),        custom.model.names = c("Logit", "OR"))
+```
+]
+
+---
+layout: false
+class: inverse, middle
+
+# Test de ajustes
+<img src="images/lognig.png" width="280" />
+---
+layout: true
+
+# Test
+
+---
+
+--
+
+### ¿Qué tan bueno es nuestro modelo?
+
+- **Diferente a regresión MCO** (no hay varianza en dependiente dicotomica)
+
+--
+
+- Para evaluar ajuste se utiliza la **log-verosimilitud** (log-likelihood), que se asocia a la idea de **residuos** del modelo
+
+--
+
+- La log verosimilitud del modelo se obtiene del proceso de estimación por .hi-red[máxima verosimilitud] 
+
+---
+
+### ¿Qué tan bueno es nuestro modelo?
+
+--
+
+```{r echo=TRUE}
+logLik(modelo_titanic) # sexo
+logLik(modelo_titanic2) # sexo + edad
+```
+
+La inclusión de un predictor adicional (edad) hace que cambie la log-verosimilitud del modelo
+
+---
+
+--
+
+### ¿Qué tan bueno es nuestro modelo?
+
+- No existe una **única forma** de estimar el ajuste en regresión logística
+
+--
+
+- El ajuste de los modelos logísticos se evalúa en general en términos **.hi-blue[comparativos]** con otros modelos 
+
+--
+
+- Estas medidas de comparación se basan en distintas fórmulas que consideran la **.hi[log verosimilitud (o  LL)]** y la **devianza**
+
+---
+### ¿Qué tan bueno es nuestro modelo?
+
+--
+
+- Entre las medidas/indicadores de ajuste usualmente se consideran:
+
+  - Devianza
+
+  - Test de razón de verosimilitud (likelihood ratio test)
+  
+  - R2s
+  
+  - Criterio de información de Akaike
+
+---
+
+--
+
+### Devianza
+
+- Concepto: el modelo saturado es básicamente residuos, y la devianza nos indica cuánto se han reducido los residuos a medida que se introducen parámetros al modelo. Por eso también se conoce como devianza residual.
+
+
+--
+
+- Formula: **.red[Devianza =-2*log likelihood]**
+
+
+---
+
+--
+
+### Test de razón de verosimilitud (LRT) (...o de diferencia de devianzas)
+
+.pull-left[
+- Se comparan las devianzas de distintos modelos: si la devianza es significativamente menor, el modelo es mejor
+]
+
+.pull-right[
+Obtención de devianzas
+```{r echo=TRUE}
+-2*logLik(modelo_titanic)
+-2*logLik(modelo_titanic2)
+```
+O directamente:
+```{r echo=TRUE}
+modelo_titanic$deviance
+```
+]
+
+---
+
+--
+
+.pull-left[
+### Test de razón de verosimilitud 
+Comando .red[`anova`] en .red[`R`]
+]
+
+
+.pull-right[
+```{r echo=TRUE}
+anova(modelo_titanic, modelo_titanic2, test ="Chisq")
+```
+
+.purple[La diferencia entre los modelos no es estadísticamente significativa con una probabilidad. Por lo tanto el modelo con dos predictores (sexo + edad) no ofrece un mejor ajuste a los datos que un modelo con solo un predictor (sexo).
+]
+]
+
+---
+
+--
+
+.pull-left[
+### Test de razón de verosimilitud 
+Probemos ahora con otro modelo con la variable clase `pclass`:
+- alta (ref)
+- intermedia
+- baja
+```{r echo=TRUE}
+modelo_titanic3 <- glm(survived ~ 
+sex + pclass, 
+data = tt, 
+family = "binomial")
+```
+]
+
+.pull-right[
+```{r results='asis', echo=FALSE}
+or2 <- texreg::extract(modelo_titanic3)
+or2@coef <- exp(or2@coef)
+or2@se <- numeric()
+
+texreg::htmlreg(list(modelo_titanic3,or2 ), doctype = FALSE, caption=" ", custom.coef.names = c("Intercepto", "Mujer (Ref=Hombre)", "Clase Intermedia", "Clase Baja"),custom.model.names = c("Logit", "OR"))
+```
+]
+
+
+---
+
+--
+
+### Test de razón de verosimilitud 
+
+```{r echo=TRUE}
+anova(modelo_titanic, modelo_titanic3, test ="Chisq")
+```
+
+.purple[La diferencia entre los modelos es estadísticamente significativa con una probabilidad p < 0.001. Por lo tanto el modelo con dos predictores (sexo + pclass) ofrece un mejor ajuste a los datos que un modelo con solo un predictor (sexo).]
+
+
+---
+
+--
+
+### Test de razón de verosimilitud 
+
+- También se puede realizar la comparación con el modelo nulo (sin predictores), que es equivalente al promedio en el caso de variables continuas
+  
+```{r echo=TRUE}
+modelo_titanic_null <- glm(survived ~ 1, data = tt, family = "binomial")
+anova(modelo_titanic_null, modelo_titanic3, test ="Chisq")
+```
+
+---
+
+--
+
+###  McFadden (pseudo) R2
+
+--
+
+Se define como: $1−[LL(LM)/LL(L0)]$, donde
+- LL es el log likelihood del modelo
+- LM es el modelo posterior (con más predictores)
+- L0 es el modelo nulo
+
+```{r echo=TRUE}
+logLik(modelo_titanic); logLik(modelo_titanic_null)
+1-(-551/-707)
+```
+
+
+---
+
+--
+
+###  McFadden (pseudo) R2
+
+También se puede obtener con la función `PseudoR2` de la librería `DescTools`, junto a otras versiones de pseudo R2s, como "Nagelkerke", "CoxSnell" y "Effron".
+
+
+---
+
+--
+
+### Akaike (AIC)
+
+--
+
+**AIC - Akaike information criteria**, evalua la calidad del modelo a través de la comparación con otros modelos penalizando por la inclusión de predictores (análogo al R2 ajustado):
+
+$$AIC=-2(log-likelihood)+2K$$
+
+Donde K= número de parámetros del modelo (regresores + intercepto)
+
+A menor AIC, mejor ajuste
+---
+
+--
+
+### Akaike (AIC)
+
+```{r echo=TRUE}
+logLik(modelo_titanic)
+2*551
+```
+$$AIC=-2(-551)+2(2)=1102+4=1106$$
+
+---
+layout: false
+class: inverse
+# Bibliografía
+
+`r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+`r fa('book')` Álvarez, R. A. R., Calvo, J. A. P., Torrado, C. A. M., & Mondragón, J. A. U. (2013). *Fundamentos de econometría intermedia: teoría y aplicaciones*. Universidad de los Andes.
+
+`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+`r fa('file-code')` Rubin, E. (2021) *Econometrics Lectures class*.
+
+`r fa('file-code')` Castillo, J.C (2022) *Estadística Multivariada*.
+
+`r fa('book')` Oswald, F., Viers, V., Robin, J. Villedieu, P., & Kenedi, G. (2020). *Introduction to Econometrics with R*. Bookdown.
+
+
+---
+class: middle, center
+background-image: url(https://media.giphy.com/media/8VITX7wfegOSFWwnCH/giphy.gif)
+background-size: cover
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+<br/>
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+<img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" />
+
+[`r fontawesome::fa("link")` Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)<br/>
+[`r fontawesome::fa("twitter")` @keynes37](https://twitter.com/keynes37)<br/>
+[`r fontawesome::fa("envelope")` cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+
+

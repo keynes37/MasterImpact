@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Econometría</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Carlos A. Yanes Guerra" />
+    <script src="libs/header-attrs-2.26/header-attrs.js"></script>
+    <link href="libs/tile-view-0.2.6/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view-0.2.6/tile-view.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <script src="libs/clipboard-2.0.6/clipboard.min.js"></script>
+    <link href="libs/shareon-1.4.1/shareon.min.css" rel="stylesheet" />
+    <script src="libs/shareon-1.4.1/shareon.min.js"></script>
+    <link href="libs/xaringanExtra-shareagain-0.2.6/shareagain.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-shareagain-0.2.6/shareagain.js"></script>
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="my-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **Econometría**
+----
+
+## **&lt;br/&gt; Introducción**
+
+### Carlos A. Yanes Guerra
+### 2024-I
+
+
+
+---
+name: admin
+# Recursos
+
+.hi-slate[Para la clase]
+
+- .note[Course website:] [Carlos Yanes](https://carlosyanes.netlify.app)
+- [Syllabus](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf) (on the website)
+- En Persona?
+.hi-slate[.mono[Departamento Economía Oficina D-215]]
+
+- .note[Hoy:] Investigación y algunas cosas en <svg aria-hidden="true" role="img" viewBox="0 0 581 512" style="height:1em;width:1.13em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:steelblue;overflow:visible;position:relative;"><path d="M581 226.6C581 119.1 450.9 32 290.5 32S0 119.1 0 226.6C0 322.4 103.3 402 239.4 418.1V480h99.1v-61.5c24.3-2.7 47.6-7.4 69.4-13.9L448 480h112l-67.4-113.7c54.5-35.4 88.4-84.9 88.4-139.7zm-466.8 14.5c0-73.5 98.9-133 220.8-133s211.9 40.7 211.9 133c0 50.1-26.5 85-70.3 106.4-2.4-1.6-4.7-2.9-6.4-3.7-10.2-5.2-27.8-10.5-27.8-10.5s86.6-6.4 86.6-92.7-90.6-87.9-90.6-87.9h-199V361c-74.1-21.5-125.2-67.1-125.2-119.9zm225.1 38.3v-55.6c57.8 0 87.8-6.8 87.8 27.3 0 36.5-38.2 28.3-87.8 28.3zm-.9 72.5H365c10.8 0 18.9 11.7 24 19.2-16.1 1.9-33 2.8-50.6 2.9v-22.1z"/></svg>
+- Lecturas:
+  - [Lect. 1: Métodos de evaluación](https://www.hbs.edu/ris/Supplemental%20Files/Metodos-de-Evaluacion-de-Impacto_50067.pdf) by Pomeranz (2011)
+- .note[Tareas:] De acuerdo al práctico por desarrollar
+- .note[Ayudas:] [La biblia del programador](https://stackoverflow.com/)
+
+---
+class: inverse, middle
+
+# Preliminar
+&lt;img src="images/lognig.png" width="280" /&gt;
+---
+name: espacio
+# Por qué estamos aquí?
+--
+
++ .hi-orange[Investigación en economía] Intentamos siempre participar en .hi-pink[consultorias] para responder y entender el comportamiento humano, social y económico de las sociedades.
+
+--
+
++ .hi-orange[Nosotros] aprendemos métodos, herramientas, habilidades y buscamos la intuición correcta para hacer .b[investigación]
+
+--
+
++ .hi-orange[Econometría (aplicada)] Entender los métodos empiricos que .ul[combinan] la información, datos y los elementos estadísticos para testear/medir *teorías* y *políticas públicas*.
+
+--
+
+#### Requerimientos adicionales
+
+--
+
++ Vamos a tratar de ser los mas curioso/as que podamos. Buscaremos hacer preguntas todo el tiempo (no solo en la clase) e intentaremos superar los retos .ul[propuestos] a lo largo de la sesión.
+
+--
+
+.pink[P] Cuál es la diferencia entre la *econometría* y el *data science*?
+
+--
+
+.blue[R] Causalidad&lt;sup&gt;.smallest[🎯]&lt;/sup&gt;
+
+---
+name: research
+# Por qué estamos aquí?
+
+--
+
+### Fundamentos de la investigación
+
+--
+
+El libro de Angrist y Pischke (2009) nos brinda ciertas preguntas que debemos plantearnos:
+
+--
+
+1. Cuál es la .hi-orange[relación causal de interés]?
+
+--
+
+2. Cuanto de la idea .hi-orange[experimental] logra capturar el **efecto** deseado?
+
+--
+
+3. Qué estrategia de .hi-orange[identificación] hay que seguir?
+
+--
+
+4. Cuál es el modo (test) de .hi-orange[inferencia] a utilizar?
+
+---
+# Por qué estamos aquí?
+
+--
+
+### Motivación
+
+--
+
+&gt;<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:blue;overflow:visible;position:relative;"><path d="M27.5 162.2L9 187.1h90.5l6.9-130.7-78.9 105.8zM396.3 45.7L267.7 32l135.7 147.2-7.1-133.5zM112.2 218.3l-11.2-22H9.9L234.8 458zm2-31.2h284l-81.5-88.5L256.3 33zm297.3 9.1L277.6 458l224.8-261.7h-90.9zM415.4 69L406 56.4l.9 17.3 6.1 113.4h90.3zM113.5 93.5l-4.6 85.6L244.7 32 116.1 45.7zm287.7 102.7h-290l42.4 82.9L256.3 480l144.9-283.8z"/></svg> .hi[Investigación] la única forma o manera de responder algún **cuestionamiento** es definitivamente investigando, indagando, curioseando. Cuando hablamos de experimentos en las *ciencias duras* nos referencia un laboratorio (entre esos animales como ratones o monos) y probamos (testeamos) un .hi-slate[tratamiento] a un grupo de ellos a los demás simplemente lo dejamos o miramos que ocurre cuando no le aplicamos ese tratamiento y son los reconocidos controles.
+
+&gt;En las ciencias sociales los experimientos son un poco mas complejos. Ya que no podemos *controlar* por un solo factor y desde luego no podemos testear sobre humanos y menos cuando no existen clones.
+
+&gt;La **estrategia** para ello, va en el efecto de la aleatorización.
+
+---
+# Por qué estamos aquí?
+
+--
+
+Combinamos .ul[teoría] con .b[datos] y podemos incluso hacer uso de un programa como &lt;span style="color:lightblue"&gt; **R** &lt;/span&gt;
+
+--
+
+
+```r
+install.packages("dplyr") # Para instalar el paquete a usar
+library(dplyr) # Activación del paquete a usar
+
+# Creamos una tabla de datos
+datos&lt;-data.frame(nombres=c("Cecilia Lopez", "Ignacio Mantilla","Astrid Zuniga", "José Lopez", "Pablo Alboran"), 
+edad&lt;-c(46,72,64,53,51), sueldo=c(2150,1570,1890,3600,4800))
+arrange(datos, edad) # Este es un comando de dplyr y ordena segun el criterio de la variable edad
+sorteo_1&lt;-runif(5,0,1) # Generamos el sorteo de aleatorio con 5 decimales
+datos&lt;-cbind(datos,sorteo_1) # Adicionamos la nueva variable a la base
+
+# Construimos nuestra variable de tratamiento
+tratamiento&lt;-ifelse(sorteo_1&gt;0.7,1,0) # Condicional para crear una nueva variable
+datos&lt;-cbind(datos,tratamiento)
+datos
+```
+
+---
+# Por qué estamos aquí?
+
+Combinamos .ul[teoría] con .b[datos] y podemos incluso hacer uso de un programa como &lt;span style="color:lightblue"&gt; **R** &lt;/span&gt;
+
+
+
+```
+#&gt;            nombres edad sueldo
+#&gt; 1    Cecilia Lopez   46   2150
+#&gt; 2    Pablo Alboran   51   4800
+#&gt; 3       José Lopez   53   3600
+#&gt; 4    Astrid Zuniga   64   1890
+#&gt; 5 Ignacio Mantilla   72   1570
+```
+
+```
+#&gt;            nombres edad sueldo  sorteo_1 tratamiento
+#&gt; 1    Cecilia Lopez   46   2150 0.8372308           1
+#&gt; 2 Ignacio Mantilla   72   1570 0.9998910           1
+#&gt; 3    Astrid Zuniga   64   1890 0.2362041           0
+#&gt; 4       José Lopez   53   3600 0.1986514           0
+#&gt; 5    Pablo Alboran   51   4800 0.3077794           0
+```
+---
+class: inverse, middle
+
+# Por donde empezar?
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+# Por donde empezar?
+
+--
+
+Hay que ser .hi[cautelosos] y mirar que posiblemente vamos a encontrarnos con:
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto placebo] Donde se puede recibir una sustancia química inerte pero esta tiene efectos positivos debido a las expectativas de los sujetos o individuos. 
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto reactivo o (Hawthorne)] Cuando los participantes se comportan de forma distinta simplemente por el hecho de sentirse observados y estudiados, esto puede generar resultados poco deseables.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto John Henry] Cuando los sujetos ***no-tratados*** trabajan duro para compensar el evento de no haber sido seleccionados en el sorteo del tratamiento.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto de la novedad] Muchos participantes pueden afectar su comportamiento porque el tratamiento les da una novedad y se sienten mejor.
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto de características] Esto se da cuando los sujetos tienden a ser "buenos muchachos".
+
+--
+
+<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto Pigmaleon] (Rosenthal &amp; Jacobson, 1968) Las expectativas de los investigadores frente al comportamiento de los sujetos llevaba a cumplir profecías "autocumplidas".
+---
+class: inverse, middle
+
+# Identificación Causal
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+# Identificación Causal
+
+--
+
+## El objetivo de todo
+
+Identificar el efecto del .hi[Tratamiento] en un .hi[Resultado].
+
+--
+
+### La idea
+
+Debemos (idealmente), identificar y calcular el efecto del **Tratamiento** en cada uno de los *individuos*. Esto es,
+
+--
+
+`$$Y_{1,i} - Y_{0,i}$$`
+
+--
+
+Donde,
+
+--
+
+- `\(Y_{1,i}\)` Es el resultado de un individuo `\(i\)` cuando `\(i\)` recibe el tratamiento
+- `\(Y_{0,i}\)` Es el resultado de un individuo `\(i\)` cuando `\(i\)` .hi-pink[NO] recibe el tratamiento.
+- Conocidos como **Resultados Potenciales**
+
+---
+# Identificación Causal
+
+--
+
+Los **datos ideales** para 10 personas
+
+.pull-left[
+
+```
+#&gt;     i Tratados Y_1i Y_0i
+#&gt; 1   1        1 7.51 5.77
+#&gt; 2   2        1 4.05 3.43
+#&gt; 3   3        1 5.76 2.50
+#&gt; 4   4        1 5.66 6.77
+#&gt; 5   5        1 8.88 4.08
+#&gt; 6   6        0 5.56 2.28
+#&gt; 7   7        0 8.35 4.86
+#&gt; 8   8        0 9.44 2.92
+#&gt; 9   9        0 9.69 4.81
+#&gt; 10 10        0 4.44 3.81
+```
+]
+
+--
+
+.pull-right[
+Recuerde que .hi-orange[debemos] calcular el efecto para cada `\(i\)`,
+$$
+`\begin{align}
+  \tau_i = Y_{1,i} -  Y_{0,i}~,
+\end{align}`
+$$
+Debemos pensar que ese es el efecto **causal** que tiene el individuo después de haber sido intervenido.
+]
+---
+# Identificación Causal
+
+
+
+Los **datos ideales** para 10 personas
+
+.pull-left[
+
+```
+#&gt;     i Tratados Y_1i Y_0i efecto_i
+#&gt; 1   1        1 7.51 5.77     1.74
+#&gt; 2   2        1 4.05 3.43     0.62
+#&gt; 3   3        1 5.76 2.50     3.26
+#&gt; 4   4        1 5.66 6.77    -1.11
+#&gt; 5   5        1 8.88 4.08     4.80
+#&gt; 6   6        0 5.56 2.28     3.28
+#&gt; 7   7        0 8.35 4.86     3.49
+#&gt; 8   8        0 9.44 2.92     6.52
+#&gt; 9   9        0 9.69 4.81     4.88
+#&gt; 10 10        0 4.44 3.81     0.63
+```
+]
+
+
+
+.pull-right[
+Recuerde que .hi-orange[debemos] calcular el efecto para cada `\(i\)`,
+$$
+`\begin{align}
+  \tau_i = Y_{1,i} -  Y_{0,i}~,
+\end{align}`
+$$
+Debemos pensar que ese es el efecto **causal** que tiene el individuo después de haber sido intervenido.
+]
+---
+# Identificación Causal
+
+
+
+Los **datos ideales** para 10 personas
+
+.pull-left[
+
+```
+#&gt;     i Tratados Y_1i Y_0i efecto_i
+#&gt; 1   1        1 7.51 5.77     1.74
+#&gt; 2   2        1 4.05 3.43     0.62
+#&gt; 3   3        1 5.76 2.50     3.26
+#&gt; 4   4        1 5.66 6.77    -1.11
+#&gt; 5   5        1 8.88 4.08     4.80
+#&gt; 6   6        0 5.56 2.28     3.28
+#&gt; 7   7        0 8.35 4.86     3.49
+#&gt; 8   8        0 9.44 2.92     6.52
+#&gt; 9   9        0 9.69 4.81     4.88
+#&gt; 10 10        0 4.44 3.81     0.63
+```
+]
+
+
+
+.pull-right[
+Recuerde que .hi-orange[debemos] calcular el efecto para cada `\(i\)`,
+$$
+`\begin{align}
+  \tau_i = Y_{1,i} -  Y_{0,i}~,
+\end{align}`
+$$
+Debemos pensar que ese es el efecto **causal** que tiene el individuo después de haber sido intervenido.
+]
+
+La media de los efectos del tratamiento vienen a ser .mono[=] 2.81
+
+Esto se denomina .hi-green[Efecto promedio del tratamiento ] (ATE) o Average Treatment Effect
+---
+# Identificación Causal
+
+--
+
+## El problema real de la inferencia causal
+
+--
+
+La idea principal es:
+
+--
+
+$$
+`\begin{align}
+  \tau_i = \color{#e64173}{Y_{1,i}} &amp;- \color{#9370DB}{Y_{0,i}}~,
+\end{align}`
+$$
+Esto de verdad genera un reto!!
+
+--
+
+- Podemos observar `\(\color{#e64173}{Y_{1}}\)` para `\(i\)`, pero no podemos observar el estado `\(\color{#9370DB}{Y_{0}}\)` para `\(i\)`
+- Podemos observar `\(\color{#9370DB}{Y_{0}}\)` para `\(i\)`, pero no podemos observar la parte de `\(\color{#e64173}{Y_{1}}\)` para `\(i\)`
+- Solo podemos mirar lo que *en realidad* sucede; .hi-pink[NO] podemos tener su **contrafactual**
+
+--
+
+**Implicaciones?** Todo lo que se .hi-slate[haga] con .hi-orange[inferencia causal] debe ser con .ul[hipótesis]
+
+
+---
+# Identificación Causal
+
+Los **datos que realmente** observamos para 10 personas
+.pull-left[
+
+```
+#&gt;     i Tratados Y_1i Y_0i
+#&gt; 1   1        1 7.51   NA
+#&gt; 2   2        1 4.05   NA
+#&gt; 3   3        1 5.76   NA
+#&gt; 4   4        1 5.66   NA
+#&gt; 5   5        1 8.88   NA
+#&gt; 6   6        0   NA 2.28
+#&gt; 7   7        0   NA 4.86
+#&gt; 8   8        0   NA 2.92
+#&gt; 9   9        0   NA 4.81
+#&gt; 10 10        0   NA 3.81
+```
+]
+
+--
+
+.pull-right[
+Solo observamos `\(\color{#e64173}{Y_{1}}\)` para `\(i \in \{1, ..., 5\}\)`
+
+Tambien podemos `\(\color{#9370DB}{Y_{0}}\)` para `\(i \in \{6, ..., 10\}\)`
+ 
+Recuerde que .hi[no] podemos observar ambos a la vez, ni `\(\color{#e64173}{Y_{1,i}}\)`, ni tampoco `\(\color{#9370DB}{Y_{0,i}}\)` para cualquier individuo (*no tenemos clones*)
+
+]
+
+--
+
+**P:** ¿Cómo podemos estimar el .hi-green[efecto medio del tratamiento] cuando .hi-pink[no] podemos observar los efectos del tratamiento individual?
+---
+# Identificación Causal
+
+--
+
+Podemos entonces, **comparar los resultados medios** de cada grupo?
+
+--
+
+- Tomamos el promedio de `\(\color{#e64173}{Y_{1}}\)` para aquello(a)s que han recibido el .hi-slate[tratamiento] (*p.e.,* la .pink[media del grupo de tratados])
+- Tambien calculamos el promedio `\(\color{#9370DB}{Y_{0}}\)` para aquello(a)s que .hi[no] han recibido el tratamiento (*p.e.,* la .purple[media del grupo de control])
+
+--
+
+**P:** Se puede con la .pink[media del grupo de tratados] .mono[-] .purple[la media del grupo de control] aislar el efecto causal del .hi-slate[tratamiento/intervención]?
+
+---
+# Identificación Causal
+
+.pull-left[
+
+```
+#&gt;     i Tratados Y_1i Y_0i
+#&gt; 1   1        1 7.51   NA
+#&gt; 2   2        1 4.05   NA
+#&gt; 3   3        1 5.76   NA
+#&gt; 4   4        1 5.66   NA
+#&gt; 5   5        1 8.88   NA
+#&gt; 6   6        0   NA 2.28
+#&gt; 7   7        0   NA 4.86
+#&gt; 8   8        0   NA 2.92
+#&gt; 9   9        0   NA 4.81
+#&gt; 10 10        0   NA 3.81
+```
+]
+
+.pull-right[
+.pink[Media del grupo de tratados] .mono[=] 6.37
+
+.purple[Media del grupo de control] .mono[=] 3.74
+
+Diferencia de medias .mono[=] 2.64
+]
+
+--
+
+Diferencia de medias .mono[=] .hi-green[Efecto promedio del tratamiento] .mono[+] .hi-orange[sesgo de selección]
+--
+&lt;br&gt; `\(\quad\)` .mono[=] .green[2.81] .mono[+] .orange[(2.64 .mono[-] 2.81)]
+--
+ .mono[=] .green[2.81] .mono[+] .orange[-0.17]
+
+--
+
+.orange[Sesgo de selección] .mono[≠] 0 .mono[==&gt;] las personas que "entran" en tratamiento son diferentes
+
+---
+class: inverse, middle
+
+# Experimentos aleatorios
+&lt;img src="images/lognig.png" width="280" /&gt;
+
+---
+# Experimentos aleatorios
+
+--
+
+.hi[Cuidado!!] el .orange[sesgo de selección] .hi[NO] me deja pasar de largo las *características* no observables y que no me permiten realizar .b[correctas] comparaciones.
+
+--
+
+.ex[Ejemplo:] Características como la motivación, el interés, la disciplina, etc. 
+
+--
+
+La .hi[asignación aleatoria] me permite reducir ese .orange[sesgo de selección].
+
+--
+
+Esta técnica (RTC), nos conduce -si se hace bien- a tener la garantía de la ley de los grandes números.super[1] y por ende mantener el supuesto del *ceteribus paribus*.
+
+--
+
+Los RTC muchas veces son complejos de realizar, por sus costos y porque en realidad se debe siempre tratar de mirar si la muestra de .hi[Tratados] y .h-purple[Controles] están por lo menos en características socio-demográficas balanceadas o se *parecen en promedio* en cuanto a lo que mencionamos anteriormente.
+
+--
+
+La condición en definitiva es tener .hi[grupos balanceados] por lo menos en características observables.
+
+
+.footnote[.super[1] *Los matemáticos y estadísticos* han demostrado que en muestras muy grandes los individuos son iguales en promedio.]
+
+---
+# Experimentos aleatorios
+
+--
+
+### Ejemplo: Efectos de la desparacitación en niños
+
+--
+
+**Motivación:** Las lombrices intestinales son comunes entre los niños de los países mas vulnerables. Los .ul[síntomas] de estos parásitos pueden mantener a los niños en edad escolar en casa, lo que .hi[tiene efectos] en la acumulación de capital humano.
+
+**Pregunta de política:** ¿Son las intervenciones de desparasitación en las escuelas una manera rentable de aumentar la asistencia escolar?
+
+---
+# Experimentos aleatorios
+
+--
+
+### Ejemplo: Efectos de la desparacitación en niños
+
+--
+
+**Pregunta de investigación:** ¿En qué medida aumentan la asistencia escolar las intervenciones antiparasitarias?
+
+**P:** **¿Podríamos simplemente comparar el promedio de la asistencia a. a la escuela** entre niños con y sin acceso a medicación antiparasitaria?
+
+--
+
+- **R/:** Si buscamos el efecto causal, probablemente no. (¿Por qué no?)
+
+
+--
+
+**Sesgo de selección:** Las familias con acceso a medicación antiparasitaria probablemente tengan hijos más sanos también por otras razones (riqueza, acceso a agua potable, *etc.*).
+
+- **No podemos hacer una comparación *"todo lo demás es igual"**. .mono[--&gt;] es de esperar que las diferencias observadas se desvíen *sistemáticamente* del ATE (Efecto promedio del tratamiento).
+
+---
+# Experimentos aleatorios
+
+--
+
+### Ejemplo: Efectos de la desparacitación en niños
+
+--
+
+**Solución:** Corramos un experimento.
+
+--
+
+Imagine un RTC donde tenemos dos grupos:
+
+- .hi[Tratados:] Aldeas donde los niños reciben medicación antiparasitaria en la escuela.
+- .hi-purple[Control:] Aldeas donde los niños no reciben medicación antiparasitaria en la escuela (statu quo).
+
+--
+
+Al aleatorizar las aldeas en .hi[tratados] o .hi-purple[control], incluiremos, por término medio, todo tipo de aldeas (pobres _vs._ menos pobres, acceso a agua limpia _vs._ agua contaminada, hospital _vs._ sin hospital, *etc.*) en ambos grupos.
+
+--
+
+*Todo lo demás igual*!
+
+---
+class: clear-slide
+
+.hi-slate[72 aldeas] 
+&lt;img src="Classintro_files/figure-html/plot1-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo]
+&lt;img src="Classintro_files/figure-html/plot2-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_1-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_2-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_3-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_4-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_5-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_6-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_7-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_8-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_9-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_10-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_11-1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: clear-slide
+count: false
+
+.hi-slate[72 aldeas] .hi[Con varios niveles de desarrollo] .mono[+] .hi-orange[asignación aleatoria del tratamiento]
+&lt;img src="Classintro_files/figure-html/plot3_12-1.svg" style="display: block; margin: auto;" /&gt;
+---
+# Experimentos aleatorios
+
+--
+
+### Ejemplo: Efectos de la desparacitación en niños
+
+--
+
+Podemos estimar el **efecto causal** de la desparasitación sobre la asistencia a la escuela **comparando las tasas medias de asistencia** en el .hi[grupo de tratamiento] (💊) con las del .hi-purple[grupo de control] (sin 💊):
+
+.center[.hi-pink[Tasa de asistencia al grupo de tratamiento] .mono[-] .hi-purple[Tasa de asistencia al grupo de control]]
+
+
+--
+
+**Resultados:** Esto se hizo en Kenia, donde [la asistencia aumentó](https://www.povertyactionlab.org/case-study/deworming-schools-improves-attendance-and-benefits-communities-over-long-term) con la asignación aleatoria del tratamiento.
+
+- Disminución del absentismo en un 25% a un costo de 0,60 dólares por niño
+- Rentabilidad a largo plazo: 11,91 años adicionales de escolarización por cada 100 dólares gastados en desparasitación.
+
+.footnote[*Fuente:* [Deworming to increase school attendance](https://www.povertyactionlab.org/case-study/deworming-increase-school-attendance), *Abdul Latif Jameel Poverty Action Lab*.]
+
+---
+# Experimentos aleatorios
+
+### Ejemplo: Efectos de la desparacitación en niños
+
+Podemos estimar el **efecto causal** de la desparasitación sobre la asistencia a la escuela **comparando las tasas medias de asistencia** en el .hi[grupo de tratamiento] (💊) con las del .hi-purple[grupo de control] (sin 💊):
+
+.center[.hi-pink[Tasa de asistencia al grupo de tratamiento] .mono[-] .hi-purple[Tasa de asistencia al grupo de control]]
+
+--
+
+**P:** ¿Debemos fiarnos de los resultados de la comparación? 
+
+--
+
+**R./:** Incluso con un sano escepticismo, probablemente deberíamos... En término medio, la .b[asignación aleatoria] del tratamiento equilibra los grupos de tratamiento y control en .ul[otras dimensiones] que podrían explicar la asistencia a la escuela.
+
+---
+class: clear-slide
+
+Balance ***En promedio*** .mono[≠] Balance ***a cada momento***
+&lt;img src="Classintro_files/figure-html/fertilizer_plot3_bad-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+# Interpretando resultados
+
+--
+
+### Validez interna
+
+--
+
+De vuelta a la pregunta, ***debemos creer en los resultados del estudio?***
+
+--
+
+Un estudio tiene una alta **validez interna**, si dentro del contexto del estudio, estamos seguros de que una variable tiene una influencia **causal** en el resultado de interés (*por ejemplo,* no hay **sesgo de selección**).
+
+--
+
+### Validez externa
+
+--
+
+Vuelve y juega, ***hasta qué punto podemos generalizar los resultados del estudio?***
+
+--
+
+Un estudio tiene **validez externa** alta, en la medida en que los resultados **se aplican a otros contextos** (no sólo al entorno local que generó los resultados).
+
+---
+class: clear-slide, middle, center
+
+# Experimento en West Point
+----
+
+--
+
+---
+# Experimento en West Point
+
+--
+
+**Pregunta de investigación:** ¿Cuál es el efecto causal de los aparatos electrónicos en el rendimiento de la clase a partir de las calificaciones obtenidas por los cadetes?
+
+--
+
+**P:** Qué se hizo en el estudio?
+
+--
+
+**R./** &lt;br/&gt;
+
+- Asignación aleatoria a los estudiantes de economía en la academia militar.
+
+- Se hace un **check of balance**
+
+- Se miran las calificaciones de cada uno de los grupos
+
+- Se interpretan los resultados
+
+--
+
+.footnote[*Fuente:* Susan Payne Carter et al. (2017), [The impact of computer usage on academic performance: Evidence
+from a randomized trial at the United States Military Academy](https://www.sciencedirect.com/science/article/abs/pii/S0272775716303454?casa_token=HFkHc25faCYAAAAA:aVmwnSfV6va5AsubnFjq79AIG76A132iYFVyBZd2ytzsShHaE6IM15Xgly0ro0HQ2gdxD2mIZxk), *Science Direct*.]
+
+---
+class: clear-slide
+
+.center[***The impact of computer usage on academic performance***]
+&lt;table class="table table-hover" style="font-size: 20.5px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Característica &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Media Control &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Media Tratados &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt; Female &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.17 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt; White &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.64 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.67 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;     Black &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.11 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;     Hispanic &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.13 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 0.13 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;     Age &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 20.12 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 20.15 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; [1.06] &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; [1.00] &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;     GPA &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 2.87 &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; 2.82 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;color: rgba(39, 40, 34, 255) !important;line-height: 110%;font-style: italic;color: black !important;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; [0.52] &lt;/td&gt;
+   &lt;td style="text-align:center;color: rgba(39, 40, 34, 255) !important;line-height: 110%;"&gt; [0.54] &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+.footnote[*Nota:* 270 controles y 248 tratados]
+
+---
+class: clear-slide
+
+.center[***The impact of computer usage on academic performance***]
+
+&lt;center&gt;
+&lt;img src="images/resultwest.png" width="580" /&gt;
+&lt;center/&gt;
+
+--
+
+### En definitiva les va mejor sin dispositivos
+
+.footnote[Los resultados son en desviaciones estándar (en educación, los científicos deciden medir así)]
+
+---
+class: inverse
+# Bibliografía
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg> Angrist, J. D., &amp; Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 384 512" style="height:1em;width:0.75em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M64 464c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16H224v80c0 17.7 14.3 32 32 32h80V448c0 8.8-7.2 16-16 16H64zM64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V154.5c0-17-6.7-33.3-18.7-45.3L274.7 18.7C262.7 6.7 246.5 0 229.5 0H64zm97 289c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L79 303c-9.4 9.4-9.4 24.6 0 33.9l48 48c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-31-31 31-31zM257 255c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l48-48c9.4-9.4 9.4-24.6 0-33.9l-48-48z"/></svg> Rubin, E. (2021) *Econometrics Lectures class*.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 384 512" style="height:1em;width:0.75em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M64 464c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16H224v80c0 17.7 14.3 32 32 32h80V448c0 8.8-7.2 16-16 16H64zM64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V154.5c0-17-6.7-33.3-18.7-45.3L274.7 18.7C262.7 6.7 246.5 0 229.5 0H64zm97 289c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L79 303c-9.4 9.4-9.4 24.6 0 33.9l48 48c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-31-31 31-31zM257 255c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l48-48c9.4-9.4 9.4-24.6 0-33.9l-48-48z"/></svg> Raze, K. (2022) *Labor Economics Lectures class*.
+
+<svg aria-hidden="true" role="img" viewBox="0 0 576 512" style="height:1em;width:1.12em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"/></svg> Angrist, J. (2022) *Mastering Econometrics* [Con Acceso abril 2022](https://mru.org/mastering-econometrics-joshua-angrist).
+
+<svg aria-hidden="true" role="img" viewBox="0 0 448 512" style="height:1em;width:0.88em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg> Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+&lt;br/&gt;
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+&lt;img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" /&gt;
+
+[<svg aria-hidden="true" role="img" viewBox="0 0 640 512" style="height:1em;width:1.25em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M579.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L422.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C206.5 251.2 213 330 263 380c56.5 56.5 148 56.5 204.5 0L579.8 267.7zM60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5L217.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C433.5 260.8 427 182 377 132c-56.5-56.5-148-56.5-204.5 0L60.2 244.3z"/></svg> Syllabus/ Curso](https://carlosyanes.netlify.app/contenidoc/SyllabusEconometriaME.pdf)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg> @keynes37](https://twitter.com/keynes37)&lt;br/&gt;
+[<svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M64 112c-8.8 0-16 7.2-16 16v22.1L220.5 291.7c20.7 17 50.4 17 71.1 0L464 150.1V128c0-8.8-7.2-16-16-16H64zM48 212.2V384c0 8.8 7.2 16 16 16H448c8.8 0 16-7.2 16-16V212.2L322 328.8c-38.4 31.5-93.7 31.5-132 0L48 212.2zM0 128C0 92.7 28.7 64 64 64H448c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128z"/></svg> cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,1756 @@
+---
+title: "Econometría"
+subtitle: "<br/> El asunto de Regresión"
+author: "Carlos A. Yanes Guerra"
+institute: "Universidad del Norte"
+date: "2023-I"
+output:
+  xaringan::moon_reader:
+    css: 
+       - xaringan-themer.css
+       - my-css.css
+    lib_dir: libs
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1b9aaa",
+  secondary_color = "#ffc43d",
+  text_font_google = google_font("Ubuntu"),  #<< Prueba 1
+  header_font_google = google_font("Josefin Sans") #<< Prueba2
+)
+```
+
+```{r, setup, include = F}
+# devtools::install_github("dill/emoGG")
+library(pacman)
+p_load(ggthemes, readxl, viridis, broom, emoGG, ggdag, gganimate, knitr, dslabs, gapminder, extrafont, Ecdat, wooldridge, tidyverse, magrittr, janitor, kableExtra, gridExtra, ggforce, fontawesome, shiny, babynames, broom, ggplot2, ggridges)
+# Define colors
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#fb6107"
+blue <- "#2b59c3"
+green <- "#8bb174"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+slate <- "#314f4f"
+met_slate <- "#272822"
+# Dark slate grey: #314f4f
+# Opciones
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F
+)
+opts_chunk$set(dev = "svg")
+options(device = function(file, width, height) {
+  svg(tempfile(), width = width, height = height)
+})
+options(crayon.enabled = F)
+options(knitr.table.format = "html")
+# A blank theme para ggplot
+theme_empty <- theme_bw() + theme(
+  line = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = structure(c(0, 0, -0.5, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_simple <- theme_bw() + theme(
+  line = element_blank(),
+  panel.grid = element_blank(),
+  rect = element_blank(),
+  strip.text = element_blank(),
+  axis.text.x = element_text(size = 18, family = "STIXGeneral"),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  plot.title = element_blank(),
+  axis.title = element_blank(),
+  # plot.margin = structure(c(0, 0, -1, -1), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_math <- theme_void() + theme(
+  text = element_text(family = "MathJax_Math"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes_serif <- theme_void() + theme(
+  text = element_text(family = "MathJax_Main"),
+  axis.title = element_text(size = 22),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = "grey70",
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_axes <- theme_void() + theme(
+  text = element_text(family = "Fira Sans Book"),
+  axis.title = element_text(size = 18),
+  axis.title.x = element_text(hjust = .95, margin = margin(0.15, 0, 0, 0, unit = "lines")),
+  axis.title.y = element_text(vjust = .95, margin = margin(0, 0.15, 0, 0, unit = "lines")),
+  axis.line = element_line(
+    color = grey_light,
+    size = 0.25,
+    arrow = arrow(angle = 30, length = unit(0.15, "inches")
+  )),
+  plot.margin = structure(c(1, 0, 1, 0), unit = "lines", valid.unit = 3L, class = "unit"),
+  legend.position = "none"
+)
+theme_set(theme_gray(base_size = 20))
+# Nombres de las columnas para la regresión
+reg_columns <- c("Term", "Est.", "S.E.", "t stat.", "p-Value")
+# Formato de p valores
+format_pvi <- function(pv) {
+  return(ifelse(
+    pv < 0.0001,
+    "<0.0001",
+    round(pv, 4) %>% format(scientific = F)
+  ))
+}
+format_pv <- function(pvs) lapply(X = pvs, FUN = format_pvi) %>% unlist()
+# Tidy regression results table
+tidy_table <- function(x, terms, highlight_row = 1, highlight_color = "black", highlight_bold = T, digits = c(NA, 3, 3, 2, 5), title = NULL) {
+  x %>%
+    tidy() %>%
+    select(1:5) %>%
+    mutate(
+      term = terms,
+      p.value = p.value %>% format_pv()
+    ) %>%
+    kable(
+      col.names = reg_columns,
+      escape = F,
+      digits = digits,
+      caption = title
+    ) %>%
+    kable_styling(font_size = 20) %>%
+    row_spec(1:nrow(tidy(x)), background = "white") %>%
+    row_spec(highlight_row, bold = highlight_bold, color = highlight_color)
+}
+# A few extras
+xaringanExtra::use_xaringan_extra(c("tile_view", "fit_screen"))
+```
+
+name: xaringan-title
+class: inverse, left, bottom
+background-image: url(images/beach1.jpg)
+background-size: cover
+
+# **`r rmarkdown::metadata$title`**
+----
+
+## **`r rmarkdown::metadata$subtitle`**
+
+### `r rmarkdown::metadata$author`
+### `r rmarkdown::metadata$date`
+
+```{r xaringanExtra-share-again, echo=FALSE}
+xaringanExtra::use_share_again()
+```
+
+```{r, include=FALSE}
+# experimental job training from lalonde (1986): use this as an example
+# Evaluating the Econometric Evaluations of Training Programs with Experimental Data
+# adding controls doesn't affect the point estimate
+df <- get('jtrain2')
+lm(unem78 ~ train, df) %>% tidy()
+lm(unem78 ~ train + black + hisp + re74 + unem74 + married + educ, df) %>% tidy()
+lm(re78 ~ train + black, df) %>% tidy()
+df <- get('wage2')
+lm(wage ~ educ + IQ, df) %>% tidy()
+```
+---
+# Todo sobre regresión
+
+--
+
+### *Econometría*
+
+**El objetivo?** Identificar el efecto de la variable de tratamiento $D$ en una variable resultado $Y$..super[.hi-pink[<span>&#8224;</span>]]
+
+--
+
+- **Cómo?** Eliminando/minimizando de alguna manera el .hi-pink[sesgo de selección].
+
+.footnote[.super[.hi-pink[<span>&#8224;</span>]] Los otros objetivos? Pronosticar valores futuros de variables de resultados clave, como el desempleo, el PIB, la retención de clientes, *etc.*]
+
+--
+
+### **Análisis de regresión**
+
+> Conjunto de procesos estadísticos para cuantificar la relación entre una variable dependiente (por ejemplo, un resultado) y una o varias variables independientes (por ejemplo, un tratamiento o una variable de control).
+
+---
+# Todo sobre regresión
+
+--
+
+### **Análisis de regresión**
+
+--
+
+Los economistas recurren a menudo al análisis de regresión para realizar diversas comparaciones estadísticas.
+
+- Puede facilitar las comparaciones "a igualdad de condiciones" 
+- Puede eliminar el .hi-pink[sesgo de selección] **controlando explícitamente** .hi-pink[variables de control] 
+- Si no se controlan las variables de control .mono[-->] .hi-pink[sesgo de variables omitidas].
+
+--
+
+**Nuestro objetivo?** Aprender a interpretar los resultados de un análisis de regresión.
+
+1. **Interpretación literal**
+    - Interpretar el tamaño y la significación estadística de las estimaciones de los coeficientes de regresión..
+    - Saber como usar una tabla de regresión.
+
+2. **Interpretación a gran escala** 
+    - ¿Qué implican las estimaciones sobre los efectos de un tratamiento?     
+    - ¿Debemos fiarnos de las estimaciones? ¿Reflejan una relación causal? 
+
+---
+class: inverse, middle
+
+# Regresión lineal simple
+<img src="images/lognig.png" width="280" />
+
+---
+# Regresión lineal simple
+
+```{r simple, dev = "svg", echo = F, fig.height=4.5}
+df <- tibble(X = rnorm(200, 0, 3)) %>%
+  mutate(Y = 0.75 * X - 2 + rnorm(200, 0, 2))
+reg <- lm(Y ~ X, data = df) %>% tidy()
+intercept <- reg %>% filter(term == "(Intercept)") %>% pull(estimate) %>% round(2)
+intercept_se <- reg %>% filter(term == "(Intercept)") %>% pull(std.error) %>% round(2) %>% as.character()
+intercept_se <- paste0("(", intercept_se, ")")
+slope <- reg %>% filter(term == "X") %>% pull(estimate) %>% round(2)
+slope_se <- reg %>% filter(term == "X") %>% pull(std.error) %>% round(2) %>% as.character()
+slope_se <- paste0("(", slope_se, ")")
+plot <- ggplot(data = df, aes(y = Y, x = X)) + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8, color = met_slate, size = 2) + 
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  scale_y_continuous(breaks = scales::pretty_breaks()) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (D)") + 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_axes +
+  theme(legend.position = c(0.2, 0.1))
+plot
+```
+
+---
+count: false
+# Regresión lineal simple
+
+```{r simple_reg, dev = "svg", echo = F, fig.height = 4.5}
+plot + geom_smooth(method = lm, se = F, color = purple, size = 1)
+```
+
+---
+# Regresión lineal simple
+
+### **Modelo**
+
+--
+
+Podemos expresar la relación entre .hi-purple[variable de resultado] y .hi-green[variable de tratamiento] como una función lineal:
+
+$$
+ \color{#9370DB}{Y_i} = \beta_0 + \beta_1~\color{#007935}{D_i} + \varepsilon_i
+$$
+
+- La parte $i$ corresponde a los individuos (corte transversal).
+- $\beta_0$ .mono[=] término de __intercepto__ o constante.
+- $\beta_1$ .mono[=] la __pendiente__.
+    - Pensemos por ahora que $D_i$ puede tomar distintos valores mas allá que los binarios (*p.e.,* 0 o 1).
+- $\varepsilon_i$ .mono[=] término del __error__ (residuo).
+
+.footnote[
+_Simple_ .mono[=] solo una variable independiente.
+]
+
+---
+# Regresión lineal simple
+
+### **Modelo**
+
+--
+
+El término del .hi[intercepto] nos dice el valor esperado de $Y_i$ cuando la explicativa es $D_i = 0$. 
+
+$$
+ Y_i = \color{#e64173}{\beta_0} + \beta_1 ~ D_i + \varepsilon_i
+$$
+
+Parte de la recta de regresión, pero casi nunca es objeto de **análisis**.
+
+- En la práctica, omitir el intercepto sesgaría las estimaciones del coeficiente de la pendiente&mdash;el objeto que realmente nos importa.
+
+---
+# Regresión lineal simple
+
+### **Modelo**
+
+--
+
+El término de .hi[la pendiente] nos dice los cambios esperados en $Y_i$ cuando $D_i$ se incrementa en una unidad. 
+
+$$
+ Y_i = \beta_0 + \color{#e64173}{\beta_1} ~ D_i + \varepsilon_i
+$$
+
+"Un incremento en una unidad de $D_i$ *esta asociado con* un incremento de la unidad $\color{#e64173}{\beta_1}$ en $Y_i$."
+
+--
+
+Bajo ciertos supuestos de MCO (fuertes) (*p.e.,* no hay sesgo de selección) podemos decir que, $\color{#e64173}{\beta_1}$ representa el efecto causal de $D_i$ en $Y_i$.
+
+- "Un incremento de una unidad en $D_i$ *conduce* a un incremento de $\color{#e64173}{\beta_1}$ en $Y_i$."
+- De otra manera, solo seria la _asociación lineal_ de $D_i$ _con_ $Y_i$, representando una correlación no causal.
+
+---
+# Regresión lineal simple
+
+### **Modelo**
+
+--
+
+El .hi[termino del error] nos recuerda que $D_i$ no es la única variable que tiene efectos sobre $Y_i$. 
+
+$$
+ Y_i = \beta_0 + \beta_1 ~ D_i + \color{#e64173}{\varepsilon_i}
+$$
+
+--
+
+este término nos muestra que otros factores/variables tienen efecto en $Y_i$.
+
+- **Así que?** Si algunos de esos .hi-slate[factores] .ul[influyen] en $D_i$, entonces el .hi-orange[sesgo de variable omitida] contaminará las **estimaciones** del coeficiente de la pendiente.
+
+---
+# Regresión lineal simple
+
+### **Ejemplo**
+
+.pull-left[
+**P:** Como la .hi[atención] tiene efectos en el rendimiento académico?
+
+Tratando de dar respuesta a esto, vamos a estimar un modelo de **regresión** que nos va a capturar esto
+$$\text{Final}_i = \beta_0 + \beta_1~\text{Atención}_i + \varepsilon_i$$
+
+```{r attend_1, echo = F, escape = F}
+attend <- get("attend") %>% 
+  mutate(final = (final / 40) * 100)
+reg <- lm(final ~ attend, attend) %>% tidy()
+intercept <- reg %>% filter(term == "(Intercept)") %>% pull(estimate) %>% round(2)
+intercept_se <- reg %>% filter(term == "(Intercept)") %>% pull(std.error) %>% round(2) %>% as.character()
+intercept_se <- paste0("(", intercept_se, ")")
+slope <- reg %>% filter(term == "attend") %>% pull(estimate) %>% round(2)
+slope_se <- reg %>% filter(term == "attend") %>% pull(std.error) %>% round(2) %>% as.character()
+slope_se <- paste0("(", slope_se, ")")
+tab <- data.frame(
+  v1 = c("Intercepto", "", "Atención", ""),
+  v2 = rbind(
+    c(intercept, slope),
+    c(intercept_se, slope_se)
+  ) %>% as.vector()
+) %>% kable(
+  escape = F,
+  col.names = c("Parámetros", "(1)"),
+  align = c("l", rep("c", 2))
+) %>%
+row_spec(1:4, color = met_slate) %>%
+row_spec(seq(2,4,2), color = "#c2bebe") %>%
+row_spec(1:4, extra_css = "line-height: 110%;") %>%
+column_spec(1, color = "black", italic = T)
+tab %>% column_spec(2, bold = T)
+```
+.center[*Errores estándar en paréntesis.*]
+]
+.pull-right[
+```{r attend_1_plot, dev = "svg", echo = F, fig.height = 4.5, fig.width = 4.5}
+ggplot(data = attend, aes(y = final, x = attend)) + 
+  geom_point(alpha = 0.5, size = 2, color = met_slate, position = position_jitter()) + 
+  geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(expand = c(0, 0), breaks = seq(0, 32, 8), limits = c(0, 36)) +
+  scale_y_continuous(expand = c(0, 0), breaks = seq(0, 100, 20), limits = c(0, 110)) +
+  labs(y = "Puntaje", x = "Atención (fuera de 32)") +
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_axes +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+
+---
+# Regresión lineal simple
+
+### **Ejemplo**
+
+```{r campus_crime_1, include = F}
+campus <- get("campus") %>% 
+  mutate(crime = round(crime / enroll * 1000, 2),
+         police = round(police / enroll * 1000, 2)) %>% 
+  # remove outlier
+  filter(police < 10) %>% 
+  select(crime, police)
+lm0 <- lm(crime ~ police, data = campus)
+b0 <- lm0$coefficients[1]
+b1 <- lm0$coefficients[2]
+```
+
+.pull-left[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policías.sub[*i*]]]
+```{r campus_crime_1_plot, echo=FALSE, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot <- campus %>% 
+  ggplot() +
+  geom_point(aes(x = police, y = crime), color = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+plot
+```
+]
+.pull-right[
+**P:** El número de policias reducen el crimen en los campus universitarios?
+
+- Qué nos dice la pendiente?
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Ejemplo**
+
+.pull-left[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r campus_crime_2_plot, echo=FALSE, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot
+```
+]
+.pull-right[
+**P:** El número de policias reducen el crimen en los campus universitarios?
+
+- Qué nos dice la pendiente?
+
+
+**P:** Significa que los policias *causan* el crimen en el campus!?
+
+- Por qué o Por qué no?
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Ejemplo**
+
+.pull-left[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r campus_crime_3_plot, echo=FALSE, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot
+```
+]
+.pull-right[
+**P:** El número de policias reducen el crimen en los campus universitarios?
+
+- Qué nos dice la pendiente?
+
+
+**P:** Significa que los policias *causan* el crimen en el campus!?
+
+- Por qué o Por qué no?
+
+.footnote[Para mirar la discusión de los efectos causales puede  mirar un debate en el asunto del crimen y los arrestos&mdash;y como los efectos incluso varian por raza&mdash; se encuentra en [episode 55](https://www.probablecausation.com/podcasts/episode-55-morgan-williams-jr) Es un podcast de la página [*Posible causalidad*](https://www.probablecausation.com/)]
+]
+
+
+---
+# Regresión lineal simple
+
+### **Ejemplo**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión?
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot <- campus %>% 
+  ggplot() +
+  geom_point(aes(x = police, y = crime), color = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+plot
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+plot
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- Cada  "linea de ajuste" produce un .hi-pink[residuo].
+- Los residuos son .mono[=] Los valores reales .mono[-] .hi-purple[predichos]
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de  Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+y_hat <- function(x, b0, b1) {b0 + b1 * x}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0, b1)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- Algunas lineas de los ajustados generan mayores residuos que otros 
+
+```{r, include = F}
+b0_guess <- 58.2
+b1_guess <- -2.2
+```
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0_guess, 2)` .mono[+] `r round(b1_guess, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0_guess, b1_guess)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0_guess, slope = b1_guess, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[línea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- Algunas lineas de los ajustados generan mayores residuos que otros 
+
+```{r, include = F}
+b0_guess <- 20.5
+b1_guess <- 3.15
+```
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0_guess, 2)` .mono[+] `r round(b1_guess, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0_guess, b1_guess)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0_guess, slope = b1_guess, color = purple, size = 1) +
+  theme_simple + xlab("Policias por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[linea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- Algunas lineas de los ajustados generan mayores residuos que otros 
+
+```{r, include = F}
+b0_guess <- 1.3
+b1_guess <- 0.75
+```
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0_guess, 2)` .mono[+] `r round(b1_guess, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0_guess, b1_guess)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0_guess, slope = b1_guess, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[linea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- La "mejor línea de ajuste" es aquella que **minimiza** la **suma de los residuos al cuadrado**.
+- **P:** Por qué al cuadrado?
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0, b1)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[linea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+- La "mejor linea de ajuste" es aquella que **minimiza** la **suma de los residuos al cuadrado**.
+- **P:** Por qué al cuadrado?
+- Usando matemáticas y mirando algunos lineamientos del profesor.
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0, b1)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+
+---
+# Regresión lineal simple
+
+### **Estimación**
+
+.pull-left[
+**P:** De donde surge la .blue[linea] de regresión? <br>
+**R/:** Un algoritmo llamado  **Mínimos cuadrados ordinarios (MCO)**.
+
+**Como funciona el MCO?**
+
+
+- **"Mínimos?"** Minimize that sum.
+- **"Cuadrados?"** Suma al cuadrado de los residuos.
+- **"Ordinarios?"** La forma mas tradicional de resolver el algoritmo.
+
+]
+.pull-right[
+.center[.purple[Crimen.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Número de Policias.sub[*i*]]]
+```{r, echo = F, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+campus %>% 
+  ggplot() +
+  geom_segment(aes(x = police, xend = police, y = crime, yend = y_hat(police, b0, b1)), color = red_pink, size = 0.5, alpha = 0.8) +
+  geom_point(aes(x = police, y = crime), color = met_slate, fill = met_slate, size = 2, alpha = 0.8) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Policia por cada 1,000 estudiantes") + ylab("Crimen por cada 1,000 estudiantes")
+```
+]
+
+---
+class: inverse, middle
+
+# Retornos de la educación
+<img src="images/lognig.png" width="280" />
+
+---
+# Regresión lineal simple
+
+### **Ejemplo: Retornos de la educación**
+
+La inversión óptima en educación por parte de estudiantes, padres y legisladores depende en parte del *retorno monetario de la educación*.
+
+--
+
+.hi-purple[Pensemos en un experimento:]
+- Realizamos una asignacióna aleatoria.
+- Dado un año adicional de educación.
+- Cuanto aumenta el nivel de ingreso de una persona?
+
+El cambio en sus ingresos describe el .hi-slate[efecto causal] de la educación sobre los ingresos.
+
+---
+# Regresión lineal simple
+
+### **Ejemplo: Retornos de la educación**
+
+```{r, include = F}
+wage2 <- get("wage2")
+lm_wage <- lm(wage ~ educ, wage2)
+b0 <- lm_wage$coefficients[1]
+b1 <- lm_wage$coefficients[2]
+```
+
+.pull-left[
+.center[.purple[Ingresos.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Escolaridad.sub[*i*]]]
+```{r, echo=FALSE, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+set.seed(629)
+plot <- wage2 %>% 
+  ggplot() +
+  scale_y_continuous(labels = scales::comma) +
+  geom_point(aes(x = educ, y = wage), color = met_slate, size = 2, alpha = 0.8, position = position_jitter()) +
+  geom_abline(intercept = b0, slope = b1, color = purple, size = 1) +
+  theme_simple + xlab("Años de educación") + ylab("Ganancia semanal ($)")
+plot
+```
+]
+.pull-right[
+**P:** ¿Cuánto dinero extra puede esperar un trabajador de esta muestra dado un año adicional de educación?
+
+- Como saberlo?
+]
+
+---
+count: false
+# Regresión lineal simple
+
+### **Ejemplo: Retornos de la educación**
+
+.pull-left[
+.center[.purple[Ingresos.sub[*i*] .mono[=] `r round(b0, 2)` .mono[+] `r round(b1, 2)` Escolaridad.sub[*i*]]]
+```{r, echo=FALSE, dev = "svg", fig.height = 4.5, fig.width = 5.5}
+set.seed(629)
+plot
+```
+]
+.pull-right[
+**P:** ¿Cuánto dinero extra puede esperar un trabajador de esta muestra dado un año adicional de educación?
+
+- Como saberlo?
+
+**P:** ¿Representa esta cifra el rendimiento causal de un año adicional de educación?
+
+- ¿Qué otras variables podrían estar impulsando la relación?
+]
+
+---
+class: inverse, middle
+
+# Haciendo Ajustes
+<img src="images/lognig.png" width="280" />
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df <- data.frame(W = as.integer((1:200>100))) %>%
+  mutate(X = .5+2*W + rnorm(200)) %>%
+  mutate(Y = -.5*X + 4*W + 1 + rnorm(200),time="1") %>%
+  filter(Y <= 5 & Y >= -5, X <= 5 & X >= -5) %>% 
+  group_by(W) %>%
+  mutate(mean_X=mean(X),mean_Y=mean(Y)) %>%
+  ungroup()
+reg <- lm(Y ~ X, data = df) %>% tidy()
+intercept <- reg %>% filter(term == "(Intercept)") %>% pull(estimate) %>% round(2)
+intercept_se <- reg %>% filter(term == "(Intercept)") %>% pull(std.error) %>% round(2) %>% as.character()
+intercept_se <- paste0("(", intercept_se, ")")
+slope <- reg %>% filter(term == "X") %>% pull(estimate) %>% round(2)
+slope_se <- reg %>% filter(term == "X") %>% pull(std.error) %>% round(2) %>% as.character()
+slope_se <- paste0("(", slope_se, ")")
+reg_2 <- lm(Y ~ X + W, data = df) %>% tidy()
+intercept_2 <- reg_2 %>% filter(term == "(Intercept)") %>% pull(estimate) %>% round(2)
+intercept_se_2 <- reg_2 %>% filter(term == "(Intercept)") %>% pull(std.error) %>% round(2) %>% as.character()
+intercept_se_2 <- paste0("(", intercept_se_2, ")")
+slope_2 <- reg_2 %>% filter(term == "X") %>% pull(estimate) %>% round(2)
+slope_se_2 <- reg_2 %>% filter(term == "X") %>% pull(std.error) %>% round(2) %>% as.character()
+slope_se_2 <- paste0("(", slope_se_2, ")")
+w_slope_2 <- reg_2 %>% filter(term == "W") %>% pull(estimate) %>% round(2)
+w_slope_se_2 <- reg_2 %>% filter(term == "W") %>% pull(std.error) %>% round(2) %>% as.character()
+w_slope_se_2 <- paste0("(", w_slope_se_2, ")")
+ggplot(data = df, aes(y = Y, x = X)) + # , color = as.factor(W)
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8, color = met_slate) + # 
+  geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (D)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+Podemos producir una línea ajustada estimando una regresión de un resultado sobre un tratamiento: $$Y_i = \beta_0 + \beta_1~D_i + \varepsilon_i$$
+
+$\beta$ describe cómo cambia el resultado, *en promedio*, cuando cambia el tratamiento.
+
+```{R, echo = F, escape = F}
+tab <- data.frame(
+  v1 = c("Intercepto", "", "Tratamiento", ""),
+  v2 = rbind(
+    c(intercept, slope),
+    c(intercept_se, slope_se)
+  ) %>% as.vector()
+) %>% kable(
+  escape = F,
+  col.names = c("Parámetro", "(1)"),
+  align = c("l", rep("c", 2))
+) %>%
+row_spec(1:4, color = met_slate) %>%
+row_spec(seq(2,4,2), color = "#c2bebe") %>%
+row_spec(1:4, extra_css = "line-height: 110%;") %>%
+column_spec(1, color = "black", italic = T)
+tab %>% column_spec(2, bold = T)
+```
+.center[*Errores estandar en parentesis.*]
+]
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+ggplot(data = df, aes(y = Y, x = X, color = as.factor(W))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Sin embargo, nos puede preocupar que una tercera variable $W_i$ confunda nuestra estimación del efecto del tratamiento sobre el resultado.
+]
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+ggplot(data = df, aes(y = Y, x = X, color = as.factor(W))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  # geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+]
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+---
+count: false
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df2 <- df %>% 
+  group_by(W) %>% 
+  summarize(
+    mean_X = mean(mean_X),
+    mean_Y = mean(mean_Y)
+  )
+ggplot(data = df, aes(y = Y, x = X, color = as.factor(W))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  geom_vline(data = df2, aes(xintercept = mean_X, color = as.factor(W)), show.legend = F, linetype = "solid", size = 1) +
+  # geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+- **Paso 1:** Averiguar qué diferencias en D se explican por W.
+]
+
+
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df %>% 
+  mutate(W = as.factor(W)) %>% 
+  group_by(W) %>%
+  mutate(X = X - mean_X) %>%
+  ggplot(aes(y = Y, x = X, color = as.factor(W))) +  
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  # geom_vline(data = df2, aes(xintercept = mean_X, color = as.factor(W)), show.legend = F, linetype = "solid", size = 1) +
+  # geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (ajustando D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+- **Paso 2:** Remover las diferencias de D explicadas por W.
+]
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df %>% 
+  mutate(W = as.factor(W)) %>% 
+  group_by(W) %>%
+  mutate(X = X - mean_X) %>%
+  ggplot(aes(y = Y, x = X, color = as.factor(W))) +  
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  geom_hline(data = df2, aes(yintercept = mean_Y, color = as.factor(W)), show.legend = F, linetype = "solid", size = 1) +
+  # geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (Y)", x = "Tratamiento (ajustado D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+- **Paso 3:** Miramos que diferencias de Y son explicadas por W
+]
+
+
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df %>% 
+  mutate(W = as.factor(W)) %>% 
+  group_by(W) %>%
+  mutate(X = X - mean_X, Y = Y - mean_Y) %>%
+  ggplot(aes(y = Y, x = X, color = as.factor(W))) +  
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  # geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (ajustado Y)", x = "Tratamiento (ajustado D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+- **Paso 4:** Removemos las diferencias de Y que son explicadas por W
+]
+
+
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df %>% 
+  mutate(W = as.factor(W)) %>% 
+  group_by(W) %>%
+  mutate(X = X - mean_X, Y = Y - mean_Y) %>%
+  ggplot(aes(y = Y, x = X, color = as.factor(W))) +  
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (ajustado Y)", x = "Tratamiento (ajustado D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si existen datos sobre la variable de control adicional, pueden añadirse al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+**P:** ¿Cómo "ajusta" MCO la inclusión de esa variable?
+
+- **Paso 5:** Establecemos una regresión que se ajusta a los datos con que contamos
+
+]
+
+---
+# Haciendo Ajustes
+
+.pull-left[
+```{r, dev = "svg", echo = F, fig.height=5.5, fig.width = 5.5}
+df %>% 
+  mutate(W = as.factor(W)) %>% 
+  group_by(W) %>%
+  mutate(X = X - mean_X,
+         Y = Y - mean_Y) %>%
+  ggplot(aes(y = Y, x = X, color = as.factor(W))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = met_slate) +
+  geom_point(alpha = 0.8) + # 
+  geom_smooth(method = lm, se = F, color = purple, size = 1) +
+  scale_x_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
+  labs(y = "Resultado (ajustado Y)", x = "Tratamiento (ajustado D)", color = "Covariable (W)") + # 
+  scale_color_manual(values = c("darkslategrey", red_pink)) +
+  theme_simple +
+  theme(legend.position = c(0.2, 0.1))
+```
+]
+.pull-right[
+
+Si la co-variable existe y se puede vincular, podemos entonces adherirla al modelo de regresión: $$Y_i = \beta_0 + \beta_1~D_i + \gamma_i~W_i + \varepsilon_i$$
+
+```{R, echo = F, escape = F}
+tab <- data.frame(
+  v1 = c("Intercepto", "", "Tratamiento", "", "Covariable", ""),
+  v2 = rbind(
+    c(intercept, slope, ""),
+    c(intercept_se, slope_se, "")
+  ) %>% as.vector(),
+  v3 = rbind(
+    c(intercept_2, slope_2, w_slope_2),
+    c(intercept_se_2, slope_se_2, w_slope_se_2)
+  ) %>% as.vector()
+) %>% kable(
+  escape = F,
+  col.names = c("Parameter", "(1)", "(2)"),
+  align = c("l", rep("c", 3))
+) %>%
+row_spec(1:6, color = met_slate) %>%
+row_spec(seq(2,6,2), color = "#c2bebe") %>%
+row_spec(1:6, extra_css = "line-height: 110%;") %>%
+column_spec(1, color = "black", italic = T)
+tab %>% column_spec(3, bold = T)
+```
+.center[*Errores estandar en parentesis.*]
+]
+
+---
+class: inverse, middle
+
+# Sesgo de variables omitidas
+<img src="images/lognig.png" width="280" />
+
+
+---
+# Sesgo de variables omitidas
+
+--
+
+### **Ejemplo: Retornos de la educación**
+
+.pull-left[
+<br>
+```{R, echo = F, escape = F}
+tab <- data.frame(
+  v1 = c("Intercepto", "", "Años de escolaridad", "", "Prueba IQ Score (Puntos)", ""),
+  v2 = rbind(
+    c(146.95, 60.21, ""),
+    c("(77.72)", "(5.70)", "")
+  ) %>% as.vector(),
+  v3 = rbind(
+    c(-128.89, 42.06, 5.14),
+    c("(92.18)", "(6.55)", "(0.96)")
+  ) %>% as.vector()
+) %>% kable(
+  escape = F,
+  col.names = c("Parámetro", "1", "2"),
+  align = c("l", rep("c", 3)),
+  caption = "Resultado: Ganancia Semanal"
+) %>%
+row_spec(1:6, color = met_slate) %>%
+row_spec(seq(2,6,2), color = "#c2bebe") %>%
+row_spec(1:6, extra_css = "line-height: 110%;") %>%
+column_spec(1, color = "black", italic = T)
+tab %>% column_spec(2, bold = T)
+```
+.center[*Errores estándar en paréntesis.*]
+]
+
+.pull-right[
+
+]
+
+---
+count: false
+# Sesgo de variables omitidas
+
+### **Ejemplo: Retornos de la educación**
+
+.pull-left[
+<br>
+```{R, echo = F, escape = F}
+tab %>% 
+  column_spec(3, bold = T)
+```
+.center[*Errores estándar en paréntesis.*]
+]
+
+--
+
+.pull-right[
+<br> <br>
+
+.orange[Sesgo] por omitir el score de IQ 
+<br> $\quad$ .mono[=] .pink["Corto"] .mono[-] .purple["largo"]
+<br> $\quad$ .mono[=] .pink[60.21] .mono[-] .purple[42.06]
+<br> $\quad$ .mono[=] .orange[18.15]
+
+La primera regresión atribuye erróneamente parte de la influencia de la inteligencia a la educación.
+]
+
+---
+# Sesgo de variables omitidas
+
+.more-left[
+```{R, venn2, dev = "svg", echo = F, fig.height = 5.5, fig.width = 5.5}
+# Colors (order: x1, x2, x3, y)
+venn_colors <- c(green, orange, purple)
+# Localización de los circulos
+venn_df <- tibble(
+  x  = c( 0.0,   -0.5, -1.0),
+  y  = c( 0.0,   -2.5, 2.0),
+  r  = c( 1.9,    1.5, 1.3),
+  l  = c( "Y", "D", "W"),
+  xl = c( 0.0,   -0.5, -1.0),
+  yl = c( 0.0,   -2.5, 2.2)
+)
+# Line types (order: x1, x2, x3, y)
+venn_lines <- c("solid", "dotted", "solid")
+# Venn
+ggplot(data = venn_df, aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans", parse = T) +
+annotate(
+  x = 1, y = 3,
+  geom = "text", label = "Sin Sesgo", color = met_slate, size = 9, family = "Fira Sans", hjust = 0
+) +
+xlim(-3, 3) +
+ylim(-4, 3.4) +
+coord_equal()
+```
+]
+
+.less-right[
+
+.hi-purple[Y] .mono[=] Resultado
+
+.hi-green[D] .mono[=] Tratamiento
+
+.hi-orange[W] .mono[=] Variable Omitida
+
+Si .hi-orange[W] esta correlacionada con ambas .hi-green[D] y la variable .hi-purple[Y] .mono[-->] el sesgo de variable omitida .mono[-->] el método de regresión falla en aislar el efecto causal de la variable de tratamiento .hi-green[D] en .hi-purple[Y].
+]
+
+---
+# Sesgo de variables omitidas
+
+.more-left[
+```{R, echo = F, dev = "svg", fig.height = 5.5, fig.width = 5.5}
+# Colors (order: x1, x2, x3, y)
+venn_lines <- c("solid", "dotted", "solid")
+# localización de los circulos
+venn_df <- tibble(
+  x  = c( 0.0,   -0.5, 1.5),
+  y  = c( 0.0,   -2.5, -1.8),
+  r  = c( 1.9,    1.5, 1.5),
+  l  = c( "Y", "D", "W"),
+  xl = c( 0.0,   -0.5, 1.6),
+  yl = c( 0.0,   -2.5, -1.9)
+)
+# Venn
+ggplot(data = venn_df, aes(x0 = x, y0 = y, r = r, fill = l, color = l)) +
+geom_circle(aes(linetype = l), alpha = 0.3, size = 0.75) +
+theme_void() +
+theme(legend.position = "none") +
+scale_fill_manual(values = venn_colors) +
+scale_color_manual(values = venn_colors) +
+scale_linetype_manual(values = venn_lines) +
+geom_text(aes(x = xl, y = yl, label = l), size = 9, family = "Fira Sans", parse = T) +
+annotate(
+  x = 1, y = 3,
+  geom = "text", label = "Sesgo", color = met_slate, size = 9, family = "Fira Sans", hjust = 0
+) +
+xlim(-3, 3) +
+ylim(-4, 3.4) +
+coord_equal()
+```
+]
+
+.less-right[
+
+.hi-purple[Y] .mono[=] Resultado
+
+.hi-green[D] .mono[=] Tratamiento
+
+.hi-orange[W] .mono[=] Variable Omitida
+
+Si .hi-orange[W] esta correlacionada con ambas .hi-green[D] y la variable .hi-purple[Y] .mono[-->] el sesgo de variable omitida .mono[-->] el método de regresión falla en aislar el efecto causal de la variable de tratamiento .hi-green[D] en .hi-purple[Y].
+
+]
+
+---
+class: inverse, middle
+
+# Elementos adicionales e inferencia
+<img src="images/lognig.png" width="280" />
+
+---
+# Estimador
+
+--
+
+El modelo de regresión simple, obtendremos los estimadores $\hat{\beta}_0$ y $\hat{\beta}_1$ que minimiza la suma de los residuos al cuadrado (SSE), _p.e._,
+
+--
+
+$$\min_{\hat{\beta}_0,\, \hat{\beta}_1} \text{SSE}$$
+
+--
+
+Vamos a conocer que:
+
+$$\text{SSE} = \sum_i e_i^2$$
+
+--
+
+La referencia es que los residuos $e_i$ salen del modelo estimado o valor predicho de la .hi[dependiente] $\hat{y}$ y de la variable resultado $y$.
+
+--
+
+$$
+\begin{aligned}
+  e_i^2 &= \left( y_i - \hat{y}_i \right)^2 = \left( y_i - \hat{\beta}_0 - \hat{\beta}_1 x_i \right)^2 \\
+  &= y_i^2 - 2 y_i \hat{\beta}_0 - 2 y_i \hat{\beta}_1 x_i + \hat{\beta}_0^2 + 2 \hat{\beta}_0 \hat{\beta}_1 x_i + \hat{\beta}_1^2 x_i^2
+\end{aligned}
+$$
+
+--
+
+**Recuerde:** Minimizar una función multivariada requiere 
+1. La primera derivada (La condición de *1.super[er]-orden*) y, 
+2. La condición de *2.super[do]-orden* o (concavidad).
+
+---
+# Estimador
+
+--
+
+Debemos **minimizar la SSE**
+
+$$\text{SSE} = \sum_{i=1}^{n} e_i^2 = \sum_{i=1}^n\left( y_i^2 - 2 y_i \hat{\beta}_0 - 2 y_i \hat{\beta}_1 x_i + \hat{\beta}_0^2 + 2 \hat{\beta}_0 \hat{\beta}_1 x_i + \hat{\beta}_1^2 x_i^2 \right)$$
+
+--
+
+Dadas las condiciones de primer orden de .hi[minimización], realizamos la primera derivada de SSE con respecto a $\hat{\beta}_0$ como de $\hat{\beta}_1$.
+
+--
+
+$$
+\begin{aligned}
+  \dfrac{\partial \text{SSE}}{\partial \hat{\beta}_0} &= \sum_i \left( 2 \hat{\beta}_0 + 2 \hat{\beta}_1 x_i - 2 y_i \right) = 2n \hat{\beta}_0 + 2 \hat{\beta}_1 \sum_i x_i - 2 \sum_i y_i \\
+  &= 2n \hat{\beta}_0 + 2n \hat{\beta}_1 \overline{x} - 2n \overline{y}
+\end{aligned}
+$$
+
+donde $\overline{x} = \frac{\sum x_i}{n}$ y $\overline{y} = \frac{\sum y_i}{n}$ son las medias muestrales de $x$ e $y$ (tamaño $n$).
+
+---
+# Estimador
+
+--
+
+Las condiciones de primer orden establecen que las derivadas son iguales a cero, por lo que:
+
+--
+
+$$\dfrac{\partial \text{SSE}}{\partial \hat{\beta}_0} = 2n \hat{\beta}_0 + 2n \hat{\beta}_1 \overline{x} - 2n \overline{y} = 0$$
+
+--
+
+$$\hat{\beta}_0 = \overline{y} - \hat{\beta}_1 \overline{x}$$
+
+--
+
+`r fa("arrow-alt-circle-right", fill="red")` Este .hi[estimador] viene a ser la diferencia entre los promedios de nuestras variables dependientes e independientes teniendo presente el efecto de $\hat{\beta}_1$.
+
+--
+
+Ahora solo nos falta por hallar $\hat{\beta}_1$.
+
+---
+# Estimador
+
+--
+
+Hay que tomar la derivada de SSE con respecto a $\hat{\beta}_1$
+
+--
+
+$$
+\begin{aligned}
+  \dfrac{\partial \text{SSE}}{\partial \hat{\beta}_1} &= \sum_i \left( 2 \hat{\beta}_0 x_i + 2 \hat{\beta}_1 x_i^2 - 2 y_i x_i \right) = 2 \hat{\beta}_0 \sum_i x_i + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i \\
+  &= 2n \hat{\beta}_0 \overline{x} + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i
+\end{aligned}
+$$
+
+todo igual a cero (condición de primer-orden, de nuevo)
+
+--
+
+$$\dfrac{\partial \text{SSE}}{\partial \hat{\beta}_1} = 2n \hat{\beta}_0 \overline{x} + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i = 0$$
+
+--
+
+y sustituimos $\hat{\beta}_0$, _p.e._, $\hat{\beta}_0 = \overline{y} - \hat{\beta}_1 \overline{x}$. Así,
+
+--
+
+$$
+ 2n \left(\overline{y} - \hat{\beta}_1 \overline{x}\right) \overline{x} + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i = 0
+$$
+
+---
+# Estimador
+
+--
+
+Ya después de jugar con tanta álgebra:
+
+--
+
+$$2n \left(\overline{y} - \hat{\beta}_1 \overline{x}\right) \overline{x} + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i = 0 $$
+
+--
+
+a multiplicar
+
+--
+
+$$2n \overline{y}\,\overline{x} - 2n \hat{\beta}_1 \overline{x}^2 + 2 \hat{\beta}_1 \sum_i x_i^2 - 2 \sum_i y_i x_i = 0$$
+
+--
+
+$$\implies 2 \hat{\beta}_1 \left( \sum_i x_i^2 - n \overline{x}^2 \right) = 2 \sum_i y_i x_i - 2n \overline{y}\,\overline{x}$$
+
+--
+
+$$ \implies \hat{\beta}_1 = \dfrac{\sum_i y_i x_i - 2n \overline{y}\,\overline{x}}{\sum_i x_i^2 - n \overline{x}^2} = \dfrac{\sum_i (x_i - \overline{x})(y_i - \overline{y})}{\sum_i (x_i - \overline{x})^2} $$
+
+---
+# Estimador
+
+--
+
+Hecho!!
+
+Ahora tenemos los estimadores MCO (encantadores) para la pendiente
+
+--
+
+$$\hat{\beta}_1 = \dfrac{\sum_i (x_i - \overline{x})(y_i - \overline{y})}{\sum_i (x_i - \overline{x})^2}$$
+--
+
+Para el intercepto o $\beta_{0}$
+
+$$\hat{\beta}_0 = \overline{y} - \hat{\beta}_1 \overline{x}$$
+
+--
+
+Ahora **ya saben de dónde** sale formalmente la parte de *mínimos cuadrados* de MCO.
+
+---
+class: inverse, middle
+
+# Función de esperanza condicional
+<img src="images/lognig.png" width="280" />
+
+---
+# Función de esperanza condicional
+
+--
+
+### La función de expectativa condicional
+
+--
+
+Decimos que $Y$ es una variable aleatoria y $X=(X_1,X_2,...,X_k)$ un vector de variables aleatorias explicativas. Si $E(|Y|)<\infty$ entonces hay una función $\mu:\mathbb{R}^k \to \mathbb{R}$ tal que
+
+--
+
+\begin{equation}
+\tag{1}
+E(Y|X_1,X_2,...,X_k)=\mu(X_1,X_2,...,X_k)
+\end{equation}
+
+A esto lo llamamos la función de expectativa condicional y nos determina como cambia el valor medio de $Y$ cuando cambian los elementos de $X$. 
+
+Definimos el error de la expectativa condicional como la diferencia entre $Y$ y el valor de la función de expectativa condicional evaluada en $X$
+
+\begin{equation}
+\tag{2}
+e=Y-\mu(X)
+\end{equation}
+
+---
+# Función de esperanza condicional
+
+--
+
+Luego por construcción
+
+\begin{equation}
+\tag{2}
+Y=\mu(X)+e
+\end{equation}
+
+--
+
+También, por construcción, tenemos que la expectativa condicional del error es cero
+
+\begin{align}
+E(e|X)&=E(Y-\mu(X)|X)\\
+&=E(Y|X)-E(\mu(X)|X)\\
+&=\mu(X)-\mu(X)\\
+&=0
+\end{align}
+
+--
+
+Y al usar la ley de expectativas iteradas, $E(E(Y|X))=E(Y)$ tenemos que 
+
+\begin{equation}
+E(e)=E(E(Y|X))=E(0)=0
+\end{equation}
+
+--
+
+Ahora, podemos especificar la función de expectativa condicional de la siguiente manera
+
+\begin{equation}
+\mu(X)=\beta_0+\beta_1X_1+\beta_2X_2+...+\beta_kX_k
+\end{equation}
+
+---
+# Función de esperanza condicional
+
+--
+
+De donde podemos como cambios marginales en los regresores $X$ impactan en la expectativa condicional de la variable de resultado $Y$. Si la variable $X_1$ es continua, entonces
+
+--
+
+\begin{equation}
+\dfrac{\partial E(Y|X)}{\partial{X_1}}=\beta_1
+\end{equation}
+
+Si la variable $X_1$ es discreta y toma los valores $0$ y $1$, entonces tenemos que
+
+--
+
+\begin{equation}
+E(Y|X_1=1)-E(Y|X_1=0)=\beta_1
+\end{equation}
+
+En otras palabras, los parámetros recogen el cambio en la expectativa condicional de $Y$ atribuible a $X$, dado que todo lo demás está constante. Todo lo demás significa todas las demás variables explícitamente incorporadas en el modelo. Ahora, si usamos la forma lineal en $(2)$ tenemos que
+
+--
+
+\begin{equation}
+Y=\beta_0+\beta_1X_1+\beta_2X_2+...+\beta_kX_k+u
+\end{equation}
+
+De donde podemos concluir que los parámetros capturan el cambio en el valor actual de $Y$ atribuible al cambio en la independiente, solo si el error $e$ no está afectado por el regresor que se modifica. Esto nos lleva a la discusión sobre efectos causales
+
+---
+```{r, data_cef, echo = F, cache = T}
+# Set seed
+set.seed(12345)
+# Sample size
+n <- 1e4
+# Generate extra disturbances
+u <- sample(-2:2, size = 22, replace = T) * 1e3
+# Generate data
+cef_df <- tibble(
+  x = sample(x = seq(8, 22, 1), size = n, replace = T),
+  y = 15000 + 3000 * x  + 1e3 * (x %% 3) + 500 * (x %% 2) + rnorm(n, sd = 1e4) + u[x]
+) %>% mutate(x = round(x)) %>%
+filter(y > 0)
+# Means
+means_df <- cef_df %>% group_by(x) %>% summarize(y = mean(y))
+# The CEF in ggplot
+gg_cef <- ggplot(data = cef_df, aes(x = y, y = x %>% as.factor())) +
+  geom_density_ridges_gradient(
+    aes(fill = ..x..),
+    rel_min_height = 0.003,
+    color = "white",
+    scale = 2.5,
+    size = 0.3
+  ) +
+  scale_x_continuous(
+    "Ingreso Anual",
+    labels = scales::dollar
+  ) +
+  ylab("Años de educación") +
+  scale_fill_viridis(option = "magma") +
+  theme_pander(base_family = "Fira Sans Book", base_size = 18) +
+  theme(
+    legend.position = "none"
+  ) +
+  coord_flip()
+```
+
+```{r, fig_cef_dist, dev = "svg", echo = F, cache = T}
+gg_cef
+```
+---
+```{r, fig_cef, dev = "svg", echo = F, cache = T}
+gg_cef +
+  geom_path(
+    data = means_df,
+    aes(x = y, y = x %>% as.factor(), group = 1),
+    color = "white",
+    alpha = 0.85
+  ) +
+  geom_point(
+    data = means_df,
+    aes(x = y, y = x %>% as.factor()),
+    color = "white",
+    shape = 16,
+    size = 3.5
+  )
+```
+---
+```{r, fig_cef_only, dev = "svg", echo = F, cache = T}
+ggplot(data = cef_df, aes(x = y, y = x %>% as.factor())) +
+  geom_density_ridges(
+    rel_min_height = 0.003,
+    color = "grey85",
+    fill = NA,
+    scale = 2.5,
+    size = 0.3
+  ) +
+  scale_x_continuous(
+    "Ingreso Anual",
+    labels = scales::dollar
+  ) +
+  ylab("Años de educación") +
+  scale_fill_viridis(option = "magma") +
+  theme_pander(base_family = "Fira Sans Book", base_size = 18) +
+  theme(
+    legend.position = "none"
+  ) +
+  geom_path(
+    data = means_df,
+    aes(x = y, y = x %>% as.factor(), group = 1),
+    color = "grey20",
+    alpha = 0.85
+  ) +
+  geom_point(
+    data = means_df,
+    aes(x = y, y = x %>% as.factor()),
+    color = "grey20",
+    shape = 16,
+    size = 3.5
+  ) +
+  coord_flip()
+```
+---
+class: inverse
+# Bibliografía
+
+`r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
+
+`r fa('file-code')` Rubin, E. (2021) *Econometrics Lectures class*.
+
+`r fa('file-code')` Raze, K. (2022) *Labor Economics Lectures class*.
+
+`r fa('youtube')` Angrist, J. (2022) *Mastering Econometrics* [Con Acceso abril 2022](https://mru.org/mastering-econometrics-joshua-angrist).
+
+`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+
+
+---
+name: adios
+class: middle, inverse
+
+.pull-left[
+# **¡Gracias!**
+<br/>
+## Econometría I
+
+### Seguimos aprendiendo
+]
+
+.pull-right[
+.right[
+<img style="border-radius: 50%;"
+src="https://avatars.githubusercontent.com/u/39503983?v=4"
+width="150px" />
+
+[`r fontawesome::fa("link")` Syllabus/ Curso](https://ignaciomsarmiento.github.io/teaching/UniNorte/Syllabus__Ciencia_de_Datos_TDE.pdf)<br/>
+[`r fontawesome::fa("twitter")` @keynes37](https://twitter.com/keynes37)<br/>
+[`r fontawesome::fa("envelope")` cayanes@uninorte.edu.co](mailto:cayanes@uninorte.edu.co)
+]
+]
+
