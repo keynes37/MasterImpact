@@ -4,7 +4,7 @@ A course in econometrics lectures focus on quantitative methods and impact evalu
 
 ## Material
 
-[Introducción](https://keynes37.github.io/MasterImpact/Class/Class00.html#1)
+[Introducción](https://keynes37.github.io/MasterImpact/Class/Class00.html)
 
 
 
