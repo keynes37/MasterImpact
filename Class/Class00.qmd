@@ -94,9 +94,9 @@ Un cuadro que requiere de [atención]{.fg style="--col: #FF0000"} 🧐
 
 | Requerimientos     | Fechas        | Ponderador     |
 |--------------------|---------------|----------------|
-| Actividades        | Referenciadas | 20% (cada una) |
+| Actividades (3)    | Referenciadas | 15% (cada una) |
 | Participación      | A solicitud   | 10%            |
-| Lectura dirigida   | Profesor Mola | 30%            |
+| Lectura dirigida   | Profesor Mola | 45%            |
 
 ♠ Las [notas]{.fg style="--col: #FF8000"} son totalmente individuales
 :::
