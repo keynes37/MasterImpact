@@ -311,7 +311,7 @@ Para tener en cuenta
 
 Slides de la clase:
 
-{{< fa link >}} [Curso virtual](https://cursos.uninorte.edu.co/d2l/home/106306)
+{{< fa link >}} [Brightspace](https://cursos.uninorte.edu.co/d2l/home)
 
 {{< fa brands github >}} [keynes37](https://github.com/keynes37)
 
