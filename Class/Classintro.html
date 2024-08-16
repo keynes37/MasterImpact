@@ -223,10 +223,480 @@ Hay que ser .hi[cautelosos] y mirar que posiblemente vamos a encontrarnos con:
 --
 
 <svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:red;overflow:visible;position:relative;"><path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z"/></svg> .hi[Efecto Pigmaleon] (Rosenthal &amp; Jacobson, 1968) Las expectativas de los investigadores frente al comportamiento de los sujetos llevaba a cumplir profecías "autocumplidas".
+
 ---
 class: inverse, middle
 
-# Identificación Causal
+# Resultados potenciales
+&lt;img src="images/lognig.png" width="280" /&gt;
+---
+# Resultados potenciales
+
+--
+
+### Ejemplo: ¿Los hospitales hacen a la gente más saludable?
+
+--
+
+- Positivo: Servicios de salud.
+- Negativo: Exposición a gente enferma.
+- .hi-red[Prueba tentativa]: Comparar el estado de salud de quienes han ido al hospital con aquellos que no lo han hecho.
+
+--
+
+.hi-pink[Problemas]: Sí, las personas que van al hospital probablemente sean las menos saludables, lo que introduce un **sesgo de selección**. Incluso después de la hospitalización, estas personas pueden ser menos saludables que aquellas que nunca han estado hospitalizadas (aunque pueden estar en mejor situación de lo que habrían estado de otra manera).
+
+---
+# Resultados potenciales
+
+--
+
+- La (intervención) para un individuo `\((i)\)` que usa el hospital es descrito mediante una variable .pink[aleatoria] binaria, denominada ***Tratamiento***.
+
+--
+
+`$$D_{i}= \left\{0,1\right\}$$`
+
+--
+
+.hi-turquoise[Nuestro resultado] de interés es una medida del estado de salud, es denotado por `\(Y_{i}\)`, donde 1 es el individuo `\(i\)` que *recibe* tratamiento.
+
+--
+
+- .hi-pink[El resultado potencial (o contrafactual)]: Nos muestra lo que pudo haber ocurrido, donde el escenario es si el individuo estuvo o no hospitalizado. El .ul[resultado potencial] puede darse como:
+
+`$$\text{Resultado potencial}= \left\{\begin{matrix}
+Y_{i}(1) &amp; si \; D_{i}=1 \; \text{Para tratado} \\ 
+\color{#6A5ACD}{Y_{i}(0)} &amp; \color{#6A5ACD}{si \; D_{i}=0} \; \text{Para No tratado}
+\end{matrix}\right.$$`
+
+--
+
+Donde `\(Y_{i}(1)\)` Es el .hi-slate[estado] de salud si el .it[individuo] fue al hospital y `\(Y_{i}(0)\)` el .pink[estado] de salud de aquel que no ha ido al hospital independientemente de si realmente fue.
+
+---
+## Resultados potenciales
+
+--
+
+-.hi-slate[Pregunta de investigación:] Afecta `\(\text{D}_i\)` en realidad a  `\(\text{Y}_i\)`?
+
+--
+
+Para cada individuo `\(i\)`, existen dos .b[resultados potenciales] (p.e/ binario  `\(\text{D}_i\)`)
+
+--
+
+1. `\(\color{#e64173}{\text{Y}_{1i}}\;\)` .pink[si] `\(\color{#e64173}{\text{D}_i = 1}\)`
+&lt;br&gt; `\(\color{#e64173}{i}\)` .pink[es el resultado si ha ido al hospital]
+
+--
+
+1. `\(\color{#6A5ACD}{\text{Y}_{0i}}\)` .purple[si] `\(\color{#6A5ACD}{\text{D}_i = 0}\)`
+&lt;br&gt; `\(\color{#6A5ACD}{i}\)` .purple[es el resultado si no ha ido al hospital]
+
+--
+
+La diferencia entre esos dos resultados esta dado por .hi-orange[el efecto causal del tratamiento (ir al hospital)], _p.e._,
+
+$$
+`\begin{align}
+  \tau_i = \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}}
+\end{align}`
+$$
+---
+# Resultados potenciales
+## Problemas
+
+--
+
+Esta simple ecuación
+
+--
+
+$$
+`\begin{align}
+\tau_i = \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}}
+\end{align}`
+$$
+Nos lleva a .hi-slate[*el problema fundamental de la inferencia causal*]
+
+--
+
+&gt; Nunca podremos observar simultaneamente a `\(\color{#e64173}{\text{Y}_{1i}}\)` y `\(\color{#6A5ACD}{\text{Y}_{0i}}\)`.
+
+--
+
+La mayor parte de la econometría aplicada se centra en resolver este sencillo problema.
+
+--
+
+En consecuencia, nuestros métodos tratan de responder a la siguiente pregunta:
+&gt; Para cada `\(\color{#e64173}{\text{Y}_{1i}}\)`, ¿cuál es un contrafactual (razonablemente) bueno?
+
+---
+# Resultados potenciales
+## Soluciones?
+
+--
+
+.hi-slate[El Problema] no podemos calcular directamente `\(\tau_i = \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}}\)`.
+
+--
+
+.hi-slate[Solución propuesta]
+&lt;br&gt;
+Comparar .pink[resultados de personas que han visitado el hospital] `\(\left( \color{#e64173}{\text{Y}_{1i}\mid \color{#e64173}{\text{D}_{i}=1}} \right)\)`
+&lt;br&gt;con .purple[los resultados que no han visitado el hospital] `\(\left( \color{#6A5ACD}{\text{Y}_{0j}\mid \color{#6A5ACD}{\text{D}_{j}=0}} \right)\)`.
+
+--
+
+$$
+`\begin{align}
+  \mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]
+\end{align}`
+$$
+Lo cual nos da *la diferencia observada en estado de salud*.
+
+--
+
+.hi-pink[P] Esto nos da *una* respuesta, pero es lo que "realmente" queremos/buscamos?
+
+---
+class: inverse, middle
+
+# Estimador
+&lt;img src="images/lognig.png" width="280" /&gt;
+---
+# Estimador
+
+.hi-pink[P] Esto `\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)` que nos quiere decir?
+
+--
+
+.hi-slate[R] La primera noticia es que podemos escribir el resultado de `\(i\)` como `\(\text{Y}_{i}\)`
+
+$$
+`\begin{align}
+  \text{Y}_{i}
+  &amp;= \color{#6A5ACD}{\text{Y}_{0i}} + \text{D}_{i} \underbrace{\left( \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}} \right)}_\color{#FFA500}{\tau_i}
+\end{align}`
+$$
+
+--
+
+Ahora!! nos toca marcar nuestra .ul[expectativa], aplicando la definición anterior y haciendo uso de las *matemáticas*
+
+`\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] + \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+---
+count: false
+# Estimador
+
+.hi-pink[P] Esto `\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)` que nos quiere decir?
+
+.hi-slate[R] La primera noticia es que podemos escribir el resultado de `\(i\)` como `\(\text{Y}_{i}\)`
+
+$$
+`\begin{align}
+  \text{Y}_{i}
+  &amp;= \color{#6A5ACD}{\text{Y}_{0i}} + \text{D}_{i} \underbrace{\left( \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}} \right)}_\color{#FFA500}{\tau_i}
+\end{align}`
+$$
+
+Ahora!! nos toca marcar nuestra .ul[expectativa], aplicando la definición anterior y haciendo uso de las *matemáticas*
+
+`\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+&lt;br&gt;  `\(= \underbrace{\mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right]}_\text{Average treatment effect en los tratados 😀} + \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+---
+count: false
+# Estimador
+
+.hi-pink[P] Esto `\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)` que nos quiere decir?
+
+.hi-slate[R] La primera noticia es que podemos escribir el resultado de `\(i\)` como `\(\text{Y}_{i}\)`
+
+$$
+`\begin{align}
+  \text{Y}_{i}
+  &amp;= \color{#6A5ACD}{\text{Y}_{0i}} + \text{D}_{i} \underbrace{\left( \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}} \right)}_\color{#FFA500}{\tau_i}
+\end{align}`
+$$
+
+Ahora!! nos toca marcar nuestra .ul[expectativa], aplicando la definición anterior y haciendo uso de las *matemáticas*
+
+`\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+&lt;br&gt;  `\(= \underbrace{\mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right]}_\text{Average treatment effect en los tratados 😀} + \underbrace{\mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]}_\text{Sesgo de selección 😞}\)`
+---
+# Estimador
+
+--
+
+El .b[primer término] es una *buena variación*—puede aproximarse a la respuesta que buscamos.
+&lt;br&gt;
+  `\(\mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+&lt;br&gt;   `\(=\mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}} \mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+&lt;br&gt;   `\(=\mathop{E}\left[ \color{#FFA500}{\tau_i} \mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+&lt;br&gt;El .hi-orange[efecto causal promedio] de la hospitalización *para individuos que fueron hospitalizados*.
+
+--
+
+El .b[segundo termino] es una mala variación que nos impide conocer la respuesta.
+&lt;br&gt;
+  `\(\mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+--
+&lt;br&gt; La .ul[diferencia] en el resultado promedio no tratado entre los grupos de tratamiento y control.
+
+--
+
+.hi-slate[*El sesgo de selección*] es la medida en que el «grupo de control» proporciona un mal contrafactual para los individuos tratados.
+---
+# Estimador
+
+--
+
+Angrist and Pischke (MHE, p. 15),
+&gt; El objetivo de la mayor parte de la investigación económica empírica es superar el sesgo de selección y, por tanto, decir algo sobre el efecto causal de una variable como `\(\text{D}_{i}\)`.
+
+--
+
+.hi-pink[P] Entonces, ¿cómo logran los experimentos -el patrón oro de la investigación económica (y científica) empírica- este objetivo y superan el .hi-orange[sesgo de selección]?
+
+---
+class: inverse, middle
+
+# Experimentos
+&lt;img src="images/lognig.png" width="280" /&gt;
+---
+# Experimentos
+
+--
+
+.hi-pink[P] Cómo los experimentos resuelven lo del .hi-orange[sesgo de selección]
+--
+&lt;br&gt;.hi-slate[R] Los experimentos rompen el vínculo entre los resultados potenciales y el tratamiento.
+
+*En otras palabras:* la asignación aleatoria `\(\text{D}_{i}\)` hace que `\(\text{D}_{i}\)` independientemente cual sea el resultado (lo que significa que `\(\color{#e64173}{\text{Y}_{1i}}\)` o `\(\color{#6A5ACD}{\text{Y}_{0i}}\)`).
+
+--
+
+.hi-slate[Diferencia de medias] con asignación aleatoria de `\(\text{D}_{i}\)`
+&lt;br&gt;
+`\(\mathop{E}\left[ \text{Y}_{i} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \text{Y}_{i}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}}\mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+  Asignación aleatoria de `\({\text{D}_{i}}\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#e64173}{\text{Y}_{1i}} - \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#FFA500}{\tau_i}\mid \color{#e64173}{\text{D}_{i}=1} \right]\)`
+--
+&lt;br&gt;  `\(= \mathop{E}\left[ \color{#FFA500}{\tau_i} \right]\)`
+--
+       la asignación aleatoria de `\(\text{D}_{i}\)` rompe el sesgo de selección.
+---
+# Experimentos
+
+La clave de evitar el sesgo de selección es mediante la .hi-slate[Asignación aleatoria del Tratamiento]
+--
+&lt;br&gt;(o es tan bueno la asignación aleatoria .slate[**RTC (Random Trials Controls**], _p.e._, experimentos naturales).
+
+--
+
+La asignación aleatoria de un experimento nos da:
+$$
+`\begin{align}
+   \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right] = \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}} \mid \color{#e64173}{\text{D}_{i}=1} \right]
+\end{align}`
+$$
+lo que significa que la media del grupo de control proporciona ahora .hi-pink[un buen contrafactual] para la media del grupo de .ul[tratamiento].
+
+--
+
+De otra manera, ya no tendríamos sesgo de selección _p.e._,
+&lt;br&gt;&lt;center&gt;Selection bias `\(=\mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}} \mid \color{#e64173}{\text{D}_{i}=1} \right] - \mathop{E}\left[ \color{#6A5ACD}{\text{Y}_{0i}}\mid \color{#6A5ACD}{\text{D}_{i}=0} \right] = 0\)`&lt;/center&gt;
+
+---
+class: inverse, middle
+
+# RTC (aplicaciones)
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+- La **aleatorización** resuelve el problema del sesgo de selección. Los RCTs también se denominan **Asignación aleatoria**, ensayo aleatorio controlado, **Evaluación Aleatoria**, **Experimentos sociales**.
+
+--
+
+&gt;Es un método fiable para sacar conclusiones **causales**, especialmente al estimar el **efecto** de un tratamiento, garantizando que los individuos comparados solo difieren en la exposición al tratamiento.
+
+--
+
+- Supuestos requeridos para su correcta implementación:
+  - No existen .hi-oranger[sesgos de aleatorización].
+  - El valor de tratamiento es estable.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+#### Concepto de la asignación aleatoria:
+
+--
+
+**Definición: Asignación Aleatoria (Shadish et al 2002)**
+
+--
+
+&lt;cy-blockquote&gt;Es cualquier procedimiento que asigne unidades al estado de .hi-pink[tratamiento/control] basado solo en una .b[oportunidad]. Cada unidad posee probabilidad .ul[no-cero] de ser asignada a ese estado de .hi-pink[tratamiento/control].&lt;/cy-blockquote&gt;
+
+--
+
+- Atención: La **asignación aleatoria** **NO** es lo mismo que el **muestreo aleatorio**.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Un típico experimento
+
+--
+
+Según J-PAL (Jameel Poverty Action Lab) y el MIT, un experimento incluye:
+
+--
+
+- Diseño del estudio.
+- Asignación Aleatoria de las unidades o individuos al **Tratamiento** y **Control**.
+- Recolección de los datos de la línea base (primera etapa).
+- Verificación de la Aleatorización.
+- Monitoreo para mantener el diseño original durante la implementación.
+- Recolección de los datos (post) o segunda etapa.
+- Estimación del impacto del tratamiento, mostrando la evidencia estadística y su significancia.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Un típico experimento
+
+--
+
+Algunas definiciones clásicas en el experimento aleatorizado son:
+
+--
+
+- Experimentos tipo Bernoulli.
+- Experimentos completamente aleatorios.
+- Experimentos estratificados.
+- Experimentos pareados aleatorios.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### ¿Qué puede ser aleatorizado?
+
+--
+
+- **Acceso**: Decidir a quién se le puede ofrecer el acceso al programa.
+- **Tiempo de acceso**: Decidir el momento para proveer el acceso al programa.
+- **Incentivos**: Decidir a quién se le pueden ofrecer estímulos por participar en el programa.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Métodos de aleatorización (Duflo et al 2008)
+
+--
+
+- Lotería básica (diseños clásicos aleatorizados).
+- Sobre suscripción.
+- Orden aleatorio por fase.
+- Aleatorización dentro del grupo.
+- Diseño de incentivos.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Lotería básica
+
+--
+
+- Estrategia simple para establecer **tratados**.
+- Involucra la inclusión de una estrategia de aleatorización al **inicio** de la intervención, donde la muestra se aleatoriza entre el grupo de tratados y controles.
+- Ejemplo: "Duflo, E., Kremer, M., &amp; Robinson, J. (2006). Understanding technology adoption: Fertilizer in Western Kenya. Evidence from field experiments."
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Sobre suscripción
+
+--
+
+- Ideal cuando los recursos son **limitados** y la demanda por el programa excede la oferta.
+- Método justo para asignar los recursos.
+- Ejemplo: Angrist et al (2002)
+  1. Programa de vouchers PACES (Programa de ampliación de cobertura de la Educación Secundaria) en los 90's.
+  2. Lotería de Bonos (apoyo del 50%) en matrículas para colegios privados.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Orden Aleatorio por fases
+
+--
+
+- Restricciones financieras **requieren** que el programa se aplique en el tiempo y no inmediatamente.
+- La .hi-pink[aleatorización] decide qué grupo será tratado primero.
+- Facilita la cooperación de los beneficiarios (reduce el problema de "attrition").
+- Ejemplo: Miguel &amp; Kremer (2004) Proceso de desparasitación (75 escuelas en 3 fases, 25 en cada una de estas, realizado entre 1998 y 2000).
+- .ul[Problemas]: Previene la estimación de efectos a largo plazo y las expectativas pueden afectar el tratamiento debido al comportamiento de los individuos.
+
+---
+# RCTs: (Randomised Control Trials)
+
+--
+
+### Aleatorización dentro del grupo
+
+--
+
+- A veces la cooperación compromete la aleatorización en los **diseños de fase** si el grupo de control no ha sido tratado de alguna manera.
+- Las características de la unidad experimental pueden ser explotadas para proveer beneficios a todos los participantes sin comprometer el diseño de la investigación.
+- Ejemplo: Banerjee et al (2002)
+  1. Programa de recuperación en educación usando tutores.
+  2. Cada escuela se le provee un instructor, pero son aleatorizados para ayudar en los grados de 3º y 4º.
+
+---
+class: inverse, middle
+
+# Ejemplo de Identificación Causal
 &lt;img src="images/lognig.png" width="280" /&gt;
 
 ---
@@ -293,6 +763,9 @@ $$
 $$
 Debemos pensar que ese es el efecto **causal** que tiene el individuo después de haber sido intervenido.
 ]
+
+
+
 ---
 # Identificación Causal
 
