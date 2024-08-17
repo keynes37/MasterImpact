@@ -3,7 +3,7 @@ title: "Econometría"
 subtitle: "<br/> El asunto de Regresión"
 author: "Carlos A. Yanes Guerra"
 institute: "Universidad del Norte"
-date: "2023-I"
+date: "2024-II"
 output:
   xaringan::moon_reader:
     css: 
@@ -1739,7 +1739,7 @@ class: middle, inverse
 .pull-left[
 # **¡Gracias!**
 <br/>
-## Econometría I
+## Econometría
 
 ### Seguimos aprendiendo
 ]
