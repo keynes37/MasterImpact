@@ -1,0 +1,324 @@
+---
+title: Econometría
+subtitle: Evaluación de impacto
+format:
+  clean-revealjs:
+    slide-number: false
+    logo: logome.PNG
+    self-contained: true
+author:
+  - name: Carlos Andrés Yanes
+    orcid: 0000-0003-0683-3727
+    email: cayanes@uninorte.edu.co
+    affiliations: Universidad del Norte
+from: markdown+emoji
+editor: visual
+date: last-modified
+bibliography: refs.bib
+---
+
+```{r, setup, include=FALSE}
+library(pacman)
+p_load(modelsummary, survey, foreign, haven, tidyverse, pdftools)
+```
+
+## Entorno de trabajo {{< fa brands r-project >}}
+
+. . .
+
+### Nuestro Lenguaje por "Default"
+
+Vamos a estar trabajando con el lenguaje de *R* y su IDE [Rstudio]{.fg style="--col: #0098DB"}
+
+::: incremental
+-   Es un programa excelente para los economistas
+-   Requerimos ser [pulcros]{.fg style="--col: #e64173"} en esto
+-   Existe un monton de recursos de apoyo porque es código abierto
+-   Nos diferencia de los demás que se dedican a la ciencia de datos
+:::
+
+## Antes de continuar...
+
+Vamos a instalar o cargar un par de [Paquetes]{.fg style="--col: #0098DB"} de {{< fa brands r-project >}}
+
+::: callout-note
+## R libraries
+
+Los paquetes para aleatorización  [son los siguientes]{.bg style="--col: #FFC7A2"}
+
+``` r
+install.packages(c("pacman", "survey" "haven", "tidyverse", "KableExtra", "huxtable"))
+```
+:::
+
+::: callout-note
+## Ejecución
+
+No olvide que debe desde luego tener presente en su documento de *R Markdown* cargar estos paquetes.
+
+``` r
+library(pacman)
+p_load(survey, foreign, haven, tidyverse, KableExtra, huxtable)
+```
+:::
+
+# Repaso en {{< fa brands r-project >}} {background-color="#40666e"}
+
+## Repaso
+
+::: incremental
+- Practiquemos un poco en una asignación normal en R.
+- Generaremos un sorteo nosotros mismos a partir de una semilla aleatoria y generar una variable dicotoma que nos diga que esa persona es candidato a ser [Tratado]{.alert}
+:::
+
+## Repaso
+
+::: panel-tabset
+## Código
+
+```r
+datos<-data.frame(nombres=c("Cecilia Lopez", "Ignacio Mantilla","Astrid Zuniga", "Jose Lopez", "Pablo Alboran"), 
+                         edad=c(46,72,64, 53,51), sueldo=c(2150,1570,1890,3600,4800))
+# Creamos un sorteo
+arrange(datos, edad) # Este es de dplyr y ordena según el criterio de edad
+set.seed(1234) # Semilla aleatorización
+sorteo_1=runif(5,0,1) # Generamos el sorteo 5 aleatorios min=0 y max=1
+datos<-cbind(datos,sorteo_1) # Añadimos la nueva variable a la base
+datos
+tratamiento=ifelse(sorteo_1>0.7,1,0)
+datos<-cbind(datos,tratamiento)
+datos
+```
+
+## Asignación
+```{r}
+datos<-data.frame(nombres=c("Cecilia Lopez", "Ignacio Mantilla","Astrid Zuniga", "Jose Lopez", "Pablo Alboran"), 
+                         edad=c(46,72,64, 53,51), sueldo=c(2150,1570,1890,3600,4800))
+arrange(datos, edad) #Este es de dplyr y ordena según el criterio de edad
+set.seed(1234) # Semilla aleatorización
+sorteo_1=runif(5,0,1) #Generamos el sorteo 5 aleatorios
+datos<-cbind(datos,sorteo_1) #Añadimos la nueva variable a la base
+datos
+```
+
+## Resultado
+```{r}
+# Creamos un sorteo
+tratamiento=ifelse(sorteo_1>0.7,1,0)
+datos<-cbind(datos,tratamiento)
+datos
+```
+:::
+
+# Caso de estudio {background-color="#40666e"}
+
+## Caso 1: Microcreditos en Bangladesh {.smaller}
+
+::: {.fragment .fade-up}
+
+- Miremos el ejemplo de @nessa2012 para el análisis del impacto **Programa de Microcréditos** realizado en Bangladesh para 1998.
+- Con variables que son: [Código hogar]{.blut} (nh); año (year); código de la villa (villid); Código zona (thanaid); Edad del jefe (agehead); Sexo(sexhead); Educación "en años" del jefe (educhead), tamaño de la familia (famsize); Tierra(hhland); Activos del jefe (hhasset); Gasto anual en comida (expfd); gasto anual en elementos distintos a la comida (expnfd); gasto total per capita al año (exptot); [Si el hombre tiene un microcredito (dmmfd)]{.alert}; [Si la mujer tiene un microcrédito (dfmfd)]{.alert}; Peso muestral (weight); Acceso del pueblo a una carretera (vaccess); proporcion de la tierra que ha sido regado (pcirr); [Precios de alimentos como aceite, arroz, trigo, leche, papa, huevos]{.blut}.
+:::
+
+## Caso 1: Microcreditos en Bangladesh
+
+
+::: panel-tabset
+## Código 
+
+```r
+hh_98 <- read_dta("hh_98.dta")
+write.csv(hh_98, file = "hh_98.csv")
+head(hh_98) # Encabezado
+```
+
+## Base
+```{r}
+hh_98 <- read_dta("hh_98.dta")
+write.csv(hh_98, file = "hh_98.csv")
+head(hh_98) # Encabezado
+```
+:::
+
+## Caso 1: Microcreditos en Bangladesh
+
+::: panel-tabset
+## Intuición
+
+- En esta primera parte si por algun motivo supieramos que tenemos datos de una población particular y quisieramos armar o crear un sorteo tendriamos que mirar como **Aleatorizar**
+
+## Código
+
+```r
+attach(hh_98) # Seleccionar base
+dim(hh_98) # Saber sus dimensiones
+hh_98$sorteo_2=runif(1129) # Generar aleatorios
+hh_98 <- hh_98[with(hh_98, order(hh_98$sorteo_2)), ] # ordenar
+### Si queremos el 30% de tratados
+1129*0.3
+hh_98$sorteo_2[339] # conocer valor medio de distribución
+hh_98$tratamiento=ifelse(hh_98$sorteo_2<0.31,1,0)
+head(hh_98)
+```
+
+## Ejecución
+
+```{r}
+attach(hh_98) # Seleccionar la base
+dim(hh_98)
+hh_98$sorteo_2=runif(1129)
+hh_98 <- hh_98[with(hh_98, order(hh_98$sorteo_2)), ]
+#Si queremos el 30% de tratados
+1129*0.3
+hh_98$sorteo_2[339]
+hh_98$tratamiento=ifelse(hh_98$sorteo_2<0.31,1,0)
+knitr::kable(hh_98, caption = "Como si hicieramos un sorteo")
+```
+:::
+
+## Caso 1: Microcreditos en Bangladesh
+
+::: panel-tabset
+## Código inicial
+
+```r
+# Generamos las variables lexptot y lnland y adicional una dummy por participación
+hh_98.df <- mutate(hh_98, lexptot = log(1 + exptot)) %>%
+  mutate(lnland = log((1 + hhland/100))) %>%
+  mutate(vill = thanaid * 10 + villid) %>%
+  group_by(vill) %>%
+  mutate(progvillm = max(dmmfd), progvillf = max(dfmfd))
+tibble(hh_98.df)
+```
+## Resultado
+
+```{r}
+# Generamos las variables lexptot y lnland y adicional una dummy por participación
+hh_98.df <- mutate(hh_98, lexptot = log(1 + exptot)) %>%
+  mutate(lnland = log((1 + hhland/100))) %>%
+  mutate(vill = thanaid * 10 + villid) %>%
+  group_by(vill) %>%
+  mutate(progvillm = max(dmmfd), progvillf = max(dfmfd))
+knitr::kable(hh_98.df, caption = "Encabezado")
+```
+
+## Apreciación
+- Estamos haciendo un poco de mineria de datos
+- La vista de variables nos permite hacer mas cosas
+:::
+
+## Caso 1: Microcreditos en Bangladesh
+
+::: panel-tabset
+## Test Inferencia
+```r
+attach(hh_98.df)
+t.test(lexptot ~ progvillf, var.equal = TRUE)
+t.test(lexptot ~ progvillm, var.equal = TRUE)
+detach(hh_98.df)
+```
+
+## Resultado
+
+```{r}
+attach(hh_98.df)
+t.test(lexptot ~ progvillf, var.equal = TRUE)
+t.test(lexptot ~ progvillm, var.equal = TRUE)
+detach(hh_98.df)
+```
+
+## Apreciación
+
+- Note que hay diferencia entre el grupo de [tratados]{.alert} y de [controles]{.blut} pero con respecto a las mujeres.
+
+- Los hombres al parecer **no tienen** una diferencia considerable entre ellos 
+
+- Los test estadísticos también tienen o poseen fuerza como un modelo de regresión solo que no nos permiten controlar con otros modelos
+
+:::
+
+# Estimación en regresión {background-color="#40666e"}
+
+## Regresión {.smaller}
+
+::: panel-tabset
+## Código
+
+```r
+# Manejamos por peso la regresión para heterocedasticidad (forma robusta)
+des1 <- svydesign(id = ~nh,  weights = ~weight, data = hh_98.df)
+
+# Primer modelo
+prog_place_1.lm <- lm(lexptot ~ progvillf, data = hh_98.df)
+summary(prog_place_1.lm)
+
+# Segundo modelo
+
+prog_place_2.lm <- lm(lexptot ~ progvillm, data = hh_98.df)
+summary(prog_place_2.lm)
+
+# Tercer modelo
+prog_place_3.svyglm <- svyglm(lexptot ~ progvillf + sexhead + agehead + educhead + lnland + vaccess + 
+                                pcirr + rice + wheat + milk + oil + egg, design = des1)
+summary(prog_place_3.svyglm)
+
+# Cuarto modelo
+progplace_1 <- filter(hh_98.df, dmmfd == 0)
+des4 <- svydesign(id = ~nh,  weights = ~weight, data = progplace_1)
+prog_place_4.svyglm <- svyglm(lexptot ~ progvillf + sexhead + agehead + educhead + lnland + vaccess + 
+                                pcirr + rice + wheat + milk + oil + egg, design = des4)
+summary(prog_place_4.svyglm)
+
+
+```
+
+## Resultado 
+
+```{r}
+# Manejamos por peso la regresión para heterocedasticidad (forma robusta)
+des1 <- svydesign(id = ~nh,  weights = ~weight, data = hh_98.df)
+
+# Primer modelo
+prog_place_1.lm <- lm(lexptot ~ progvillf, data = hh_98.df)
+
+# Segundo modelo
+prog_place_2.lm <- lm(lexptot ~ progvillm, data = hh_98.df)
+
+# Tercer modelo
+prog_place_3.svyglm <- svyglm(lexptot ~ progvillf + sexhead + agehead + educhead + lnland + vaccess + 
+                                pcirr + rice + wheat + milk + oil + egg, design = des1)
+
+# Cuarto modelo
+progplace_1 <- filter(hh_98.df, dmmfd == 0)
+des4 <- svydesign(id = ~nh,  weights = ~weight, data = progplace_1)
+prog_place_4.svyglm <- svyglm(lexptot ~ progvillf + sexhead + agehead + educhead + lnland + vaccess + 
+                                pcirr + rice + wheat + milk + oil + egg, design = des4)
+
+library(modelsummary)
+modelsummary(list(prog_place_1.lm, prog_place_2.lm, prog_place_3.svyglm, prog_place_4.svyglm), 
+             stars = TRUE,
+             coef_map = c(progvillm = "Prog. Villa M", progvillf = "Prog. Villa F"), output = "markdown")
+```
+
+## Huxreg
+
+```{r}
+library(huxtable)
+
+# Crear la tabla
+huxreg(prog_place_1.lm, prog_place_2.lm, prog_place_3.svyglm, prog_place_4.svyglm)
+```
+
+
+:::
+
+
+
+
+
+# Gracias por su atención!! {background-color="#cc0000"}
+
+## Referencias
+
+::: {#refs}
+:::
