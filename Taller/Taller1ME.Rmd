@@ -1,0 +1,171 @@
+---
+title: "Maestría en Economía: Econometría"
+subtitle: "Modelo RTC"
+author:
+  name: Carlos A. Yanes Guerra
+  affiliation: Universidad del Norte | Departamento de Economía
+# date: "`r format(Sys.time(), '%d %B %Y')`" ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    css: css/preamble.css ## For multi-col environments
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+    # fig_width: 7 ## Optional: Set default PDF figure width
+    # fig_height: 6 ## Optional: Set default PDF figure height
+    extra_dependencies: ['booktabs', 'threeparttable', 'float', 'longtable'] # 
+    includes:
+      in_header: tex/preamble.tex ## For multi-col environments
+    pandoc_args:
+        --template=tex/mytemplate.tex ## For affiliation field. See: https://bit.ly/2T191uZ
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, dpi=300, fig.align = "center")
+```
+
+## Descripción
+La idea es trabajar con la base de datos del programa Progresa del año 98 al 99 implementado en Mexico y que abordó varias variables de ingreso, nivel de pobreza y educación. Puede descargarla desde el enlace que se proporciona a continuación. Imagine que el interés del tratamiento son los beneficiarios del **programa** PROGRESA en 1998 y el resultado (esperado) es una medida del cambio en los ingresos. Para este caso, se debe considerar el año 1997 como línea de base. En este ejercicio se asignaría a los hogares el estado de tratamiento y control con diferentes técnicas de aleatorización\footnote{Esta parte puede variar entre grupos de trabajo.}.
+
+## Preguntas
+
+1. Realice una breve descripción del programa Progresa. Objetivo, a quien iba dirigido, etc. Luego piense que se va a tratar solo el 40 % de las observaciones para el año de 1998 bajo un diseño clásico aleatorio. Establezca un sorteo y plantee la distribución del tratamiento por individuo. ¿Difiere mucho de los individuos que en realidad fueron seleccionados? (*Muestre el encabezado del sorteo como resultado y explique concretamente en que se basó su sorteo*.) 
+
+2. Elabore un análisis estadístico de características entre tratados y no tratados ¿Considera que existe un balance de estas características?. (*Construya una tabla estadística por grupo, compare las variables Ingreso, tamaño de la familia, edad y el status de pobreza*). 
+ 
+3. Establezca un impacto usando primero la variable de tratados (D) y luego con los que fueron tratados en realidad $(D_{HH})$ sobre la variable ingresos (**IncomeLab**). (*Realice una prueba estadística de T-Student entre los distintos individuos*).
+
+4. Ahora haga uso del M.C.O y estime el modelo de regresión objetivo. Luego añada 2 o 3 controles y realice un segundo modelo. (*Realice las regresiones correspondientes y compare en una tabla de salida de modelo los resultados encontrados*)
+
+5. Realice una prueba de identificación de efectos spillovers para esta parte. ¿Qué encuentra, qué puede deducir?. (*Realice primero un T de student con los no tratados con una sola variable*). Luego establezca una regresión con un solo control y luego con sus controles respectivos \footnote{En esta parte cada grupo puede seleccionar los controles adecuados y justificar su uso.} y analice su respuesta.)
+
+\newpage
+
+## Anexo
+
+La descripción de las variables son las siguientes:
+
+### Información General
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `year`               | time |
+| `villid`             | Village ID |
+| `geopolid`           | Federal entity |
+| `hogid`              | Household ID |
+| `pov_HH`             | HH Poverty Status: 1= poor, 0= Non poor |
+| `indexpov_HH`        | HH Poverty score/Marginalization Index (CONAPO) |
+| `D`                  | Village-Level Treatment status |
+| `D_HH`               | Household-Level Treatment status |
+
+### Datos Individuales
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `iid`                | Individual ID |
+| `age`                | Age: Years |
+| `sex`                | Gender: 1= Male, 0= Female |
+| `edu`                | Education: Years |
+| `edu_child`          | Education (6-16): Years |
+| `enroll`             | enroll: 1= Y, 0= N |
+| `enroll_child`       | enroll child: 1= Y, 0= N |
+| `labor`              | labor condition: 1= occupied; 0= unoccupied |
+| `salaried`           | Worker: 1= Salaried; 0= unsalaried |
+| `IncomeLab`          | Primary Monthly Income: Pesos |
+| `Income_HH_per`      | Income per Household Member |
+| `Income_HH`          | Household Income |
+| `IncomeLab_HH`       | Labor Income of Household |
+| `IncomeOth_HH`       | Other Household Income |
+| `IncomeOth`          | Other Income |
+| `sick_child`         | Sick child (\<5): 1= Y, 0= N |
+| `sick`               | Sick (\>6): 1= Y, 0= N |
+| `Measure`            | 6 Months-measured child (\<2): 1= Y, 0= N |
+| `famsize`            | HH size |
+| `HH`                 | HH head |
+
+### Programas de Apoyo Familiar
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `HHProg1`            | HH: Despensa DIF |
+| `HHProg2`            | HH: Nino Solidaridad |
+| `HHProg3`            | HH: INI |
+| `HHProg4`            | HH: Beca PROBECAT o CIMO |
+| `HHProg5`            | HH: Programa de Empleo Temporal |
+| `HHProg6`            | HH: Desayuno Escolar |
+| `HHProg7`            | HH: Tortilla Solidaridad |
+| `HHProg8`            | HH: Leche de Liconsa o Conasupo |
+| `HHProg9`            | HH: Procampo |
+| `HHProg10`           | HH: Beca PROGRESA |
+| `HHProg11`           | HH: Papilla PROGRESA |
+| `HHProg12`           | HH: Apoyo Monetario PROGRESA |
+
+### Programas de Apoyo Individual
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `iiProg1`            | ii: Despensa DIF |
+| `iiProg2`            | ii: Nino Solidaridad |
+| `iiProg3`            | ii: INI |
+| `iiProg4`            | ii: Beca PROBECAT o CIMO |
+| `iiProg5`            | ii: Programa de Empleo Temporal |
+| `iiProg6`            | ii: Desayuno Escolar |
+| `iiProg7`            | ii: Tortilla Solidaridad |
+| `iiProg8`            | ii: Leche de Liconsa o Conasupo |
+| `iiProg9`            | ii: Procampo |
+| `iiProg10`           | ii: Beca PROGRESA |
+| `iiProg11`           | ii: Papilla PROGRESA |
+| `iiProg12`           | ii: Apoyo Monetario PROGRESA |
+
+### Montos Mensuales
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `AmountProg2`        | Montly Amount: Nino Solidaridad |
+| `AmountProg3`        | Montly Amount: INI |
+| `AmountProg4`        | Montly Amount: Beca PROBECAT o CIMO |
+| `AmountProg5`        | Montly Amount: Programa de Empleo Temporal |
+| `AmountProg9`        | Montly Amount: Procampo |
+
+### Características del Jefe de Hogar
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `langhead`           | Language of HH head: 1= Indigenous, 0= Non Indigenous |
+| `eduhead`            | Education of HH: Years |
+| `agehead`            | Age of HH head: years |
+| `sexhead`            | Gender of HH head: 1= M, 0= F |
+
+### Otras Variables
+
+| **Nombre variable**  | **Etiqueta** |
+|----------------------|--------------|
+| `halfyear`           | Medio año |
+| `p20`                | nivel de escolaridad |
+| `lang`               | Language: 1= Indigenous, 0= Non Indigenous |
+| `child`              | child (6-16): 1= Y, 0= N |
+| `indexpov97_HH`      | HH Poverty score 1997 |
+| `indexpov03_HH`      | HH Poverty score 2003 |
+| `pov03_HH`           | HH Poverty Status 2003: 1= poor, 0= Non poor |
+| `condition_ii`       | Condition of residence |
+| `iid2`               | Individual ID/2000-2007 |
