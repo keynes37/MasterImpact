@@ -330,16 +330,357 @@ Esto es : $D_i=1$ si es tratado y $D_i=0$, de lo contrario.
 
 --
 
-$$\text{Efecto del Tratamiento}= \overline{Y}\; \text{para tratados en}\;|\;t=0 - \overline{Y}\; \color{red}{\text{para tratados en}}\;|\;t=1$$
+$$\text{Efecto del Tratamiento}= (\overline{Y}\; \text{para tratados en}\;|\;t=2) - (\overline{Y}\; \color{red}{\text{para tratados en}}\;|\;t=1)$$
 
 --
 
-$$\tau=\overline{Y}_{1t=0}-\color{purple}{\overline{Y}_{1t=1}}$$
+$$\tau=\overline{Y}_{1t=2}-\color{purple}{\overline{Y}_{1t=1}}$$
 
 --
 
 `r fa("info-circle", fill="red")` Lo único que nos puede llevar hacer las cosas mal, es que en el tiempo (*todo evoluciona/cambia*) y es complejo separar eso así no mas!!
 
+---
+count: false
+# DID en dos periodos de tiempo
+
+
+
+> Consideremos un experimento que se hizo naturalmente, pero que iba interviniendo un grupo mas que otro.
+
+
+
+Vamos a decir que $\color{purple}{Y_i}$ es la variable .hi-purple[resultado] y $D_i$ es la de **tratamiento**.
+
+
+
+Esto es : $D_i=1$ si es tratado y $D_i=0$, de lo contrario.
+
+--
+
+### Método definitivo: Diferencias de diferencias
+
+--
+
+$$\tau_{DID}= \triangle\overline{Y}_{d=1}\; \text{para todos los tratados} - \overline{Y}_{d=0}\; \color{red}{\text{para todos los controles}}$$
+
+--
+
+algo así como:
+
+$$\tau_{DID}=(\overline{Y}_{1t=2}-\color{red}{\overline{Y}_{1t=1}})-(\overline{Y}_{0t=2}-\color{purple}{\overline{Y}_{0t=1}})$$
+
+--
+
+`r fa("palette", fill="blue")` de esta forma aproximamos mejor el hallazgo del cálculo deseado de esta parte controlando por tiempo y por grupo.
+
+---
+# DID en dos periodos de tiempo
+
+--
+
+## Resumiendo
+
+--
+
+```{r, echo = F}
+cont_interp <- tibble(
+  consi = c("Pre \\( (t = 1) \\)",
+             "Post \\( (t = 2) \\)",
+             "Cambio en <br> el tiempo"),
+  Treat =c("\\(\\beta_0 + \\beta_2\\)", "\\(\\beta_0+\\beta_1+\\beta_2 +\\beta_3\\)", "\\(\\beta_1 + \\beta_3\\)"),
+  Ntreat =c("\\(\\beta_0\\)", "\\(\\beta_0 + \\beta_1\\)", "\\(\\beta_1\\)"),
+  diffe = c("\\(\\beta_2\\)", "\\(\\beta_2 + \\beta_3\\)", "Dif en Dif = \\(\\beta_3 !\\)")
+) %>% 
+  kable(
+  escape = F,
+  col.names = c(" ", "Tratados <br> \\((D=1)\\)", "No Tratados <br> \\((D=0)\\)", "Diferencia <br> sobre el Tratamiento"),
+  align = c("l", "l", "l", "l")
+) %>% 
+  column_spec(1, color = "black", bold = T, italic = T, extra_css = "vertical-align:top;") %>% 
+  column_spec(2, color = "black", italic = T)%>% 
+  column_spec(3, color = "red", italic = T)%>% 
+  column_spec(4, color = "black", italic = F)
+
+cont_interp
+```
+
+
+
+
+
+---
+class: inverse, middle
+
+# Computo de regresión de DID
+<img src="images/lognig.png" width="280" />
+
+---
+layout:true
+# Regresión DID
+
+---
+
+--
+
+`r fa("long-arrow-alt-right", fill="red")` El estimador de .hi[diferencias en diferencias] (DID) puede ser obtenido como el **coeficiente** de $t \times d$ en una regresión de MCO
+
+--
+
+$$y_i=\beta_0+\beta_1t_i+\beta_2D_i+\beta_3t_i\times D_i+ u_i$$
+--
+
+- Vamos a tener tres (3) elementos claves que vienen a ser los datos .hi[binarios] tomando a $(t)$ como la dummy de `tiempo` cuando $t=1$ esta en el periodo posterior y si $t=0$ en el anterior.
+
+--
+
+- El siguiente elemento es su fué *tratado* o *no tratado*.
+
+--
+
+- La .ul[interacción] que hace referencia al parámetro $\beta_3$, viene a ser $\color{red}{t \times D_i=1}$ si el individuo fue tratado en el periodo posterior y $t \times D_i=0$ de lo contrario.
+---
+layout:false
+class: inverse, middle
+
+# Mas del contexto del DID
+<img src="images/lognig.png" width="280" />
+---
+layout: true
+# Contexto del DID
+
+---
+
+--
+
+## ¿Cuándo adicionalmente podemos usar el estimador DIF-en-DIF?
+
+--
+
+- El estimador **DID** es más .hi[eficiente] que el de diferencia cuando algunos determinantes *no observables* de la variable .hi[objetivo] son persistentes en el tiempo.
+
+- La eficiencia va en dirección de la fracción de la varianza de $Y$ que este explicada por factores no observados.
+
+- Cuando (.hi[no hay balance]) entre grupo de .hi-purple[control] y .hi[tratamiento] aún con asignación aleatoria se generan asignaciones parcialmente aleatorias.
+
+- Si el .hi[tratamiento] esta *correlacionado* con el nivel inicial de $Y$ antes de la intervención, ese estimador de diferencias será .ul[sesgado]. Pero el .hi-orange[Dif-en-Dif] no necesariamente.
+
+---
+
+--
+
+## Supuesto de tendencia paralela
+
+--
+
+La .hi[variable] de resultado $Y$ evoluciona de manera natural en el tiempo en la misma forma que para el grupo de control como el de tratamiento.
+
+--
+
+Lo que permite utilizar $[(\bar{Y}_{1}|D=1)-(\bar{Y}_{1}|D=0)]$ como control apropiado y suficiente para controlar diferencias pre-existentes entre los **tratados** y *controles*.
+
+$$
+\boxed{\tau_{DID} \Rightarrow \; \text{es insesgado}}
+$$
+---
+
+--
+
+## DID con modelo de panel
+
+--
+
+`r fa("fighter-jet", fill="blue")` Podemos entonces establecer:
+
+--
+
+$$Y_{it2}-Y_{it1}= \beta_{0}+\beta_{1}D_{i}+ (u_{it2}-u_{it1})$$  
+--
+
+Su analogo vendría a ser:
+
+--
+
+
+$$\triangle Y_{i}= \beta_{0}+\beta_{1}D_{i}+ \nu_{i}$$
+--
+
+`r fa("wrench", fill="red")` El parámetro $\beta_{1}$ es el .hi[impacto] del programa por método de .hi-orange[diferencias en diferencias].
+
+---
+
+--
+## Al hacer su esperanza condicional
+
+$$\begin{aligned}
+    \mathbb{E}(\triangle Y|D=1)=& \beta_{0}+\beta_{1}+\mathbb{E}(\nu|D=1) \\
+    =& \beta_{0}+\beta_{1}\\
+    \mathbb{E}(\triangle Y|D=0)=& \beta_{0}+\mathbb{E}(\nu|D=0) \\
+    =& \beta_{0}
+\end{aligned}$$
+
+--
+
+`r fa("wrench", fill="red")` Por independencia condicional $\Rightarrow$ $\mathbb{E}(u_{i}|D_{i})=0$, por ende $\beta_{1}$ es un estimador indicado.
+
+---
+
+--
+
+## Panel general con diferencias en diferencias
+
+--
+
+
+$$Y_{it} = \alpha + \beta_1 \text{Tratado}_i + \beta_2 \text{Post}_t + \beta_3 (\text{Tratado}_i \times \text{Post}_t) + \gamma X_{it} + \epsilon_{it}$$
+--
+
+donde:
+
+--
+
+- $Y_{it}$ es la .hi-purple[variable dependiente] para el individuo $i$ en el tiempo $t$.
+- $\text{Tratado}_i$ es una variable **dicotómica** que toma el valor de 1 si el individuo pertenece al .hi[grupo tratado] y 0 si pertenece al grupo control.
+- $\text{Post}_t$ es una variable **dicotómica** que toma el valor de 1 en el periodo posterior al tratamiento y 0 antes del tratamiento.
+- $\text{Tratado}_i \times \text{Post}_t$ es el .ul[término de interacción] entre el tratamiento y el tiempo, que captura el efecto del tratamiento.
+- $X_{it}$ es un vector de .hi[controles adicionales] que pueden afectar $Y_{it}$.
+- $\epsilon_{it}$ es el término de error.
+
+---
+
+--
+
+## Diferencias en diferencias con múltiples periodos
+
+--
+
+
+$$Y_{it} = \alpha + \beta_1 \text{Tratado}_i + \beta_2 \text{Post1}_t + \beta_3 \text{Post2}_t + \beta_4 (\text{Tratado}_i \times \text{Post1}_t) + \beta_5 (\text{Tratado}_i \times \text{Post2}_t) + \gamma X_{it} + \epsilon_{it}$$
+
+--
+
+En este modelo, los coeficientes $\beta_4$ y $\beta_5$ representan los estimadores de .hi[diferencias en diferencias] para los periodos $t=2$ y $t=3$, respectivamente, mostrando el efecto causal del tratamiento en esos periodos.
+
+---
+layout: false
+class: inverse, middle
+
+# Ejemplos
+<img src="images/lognig.png" width="280" />
+
+---
+# Ejemplo: Decreto de regalías 
+
+--
+
+Programa: Regalías
+
+.hi[Datos] : Encuesta de hogares (repetidas).
+
+.ul[Linea de base]: Antes de hallazgo de yacimiento
+
+*Seguimiento*: Después del experimento natural (hallar petroleo)
+
+.hi-red[Consideraciones]:
+
+**Grupo Control** Residentes de municipios **sin** petroleo que pertenecen al SISBEN 1 y 2.
+
+.hi-purple[Grupo Tratados] Residentes de municipios .hi[con] petroleo que pertenecen al SISBEN 1 y 2.
+
+---
+# Ejemplo: Decreto de regalías 
+
+--
+
+Al no poseer un panel, pero si datos sobre individuos que residen en municipios petroleros (serán tratados después del decreto) y municipios no petroleros (que no serán tratados porque no poseen regalías).
+
+--
+
+<img src="images/textit.png" width="780" />
+
+
+---
+# DID con PSM
+
+--
+
+## Dobles diferencias emparejadas
+
+--
+
+`r fa("bell", fill="red")` Este método combina información longitudinal, PSM y diferencias en diferencias.
+
+--
+
+- Se relajan los supuestos de cada método y, por lo tanto los resultados se vuelven mas robustos.
+- Al combinar PSM con Dif en Dif, se puede encontrar que la selección del programa pueda depender de características .ul[no observables] siempre que sean constantes en el tiempo.
+
+---
+# DID con PSM
+
+--
+
+## Supuestos y estimador DDE
+
+--
+
+- Independencia .hi[condicional] (CI):
+$$u_{it1}-u_{it0} \perp D|X, \; \forall \; X$$
+
+--
+
+>Tratados y controles habrían evolucionado de la misma manera si ninguno hubiera sido objeto de tratamiento
+
+--
+
+`r fa("sketch", fill="blue")` Soporte común:
+$$0<P(D=1|X)<1$$
+
+--
+
+El Estimador ATT viene a ser:
+    
+$$\tau_{ATT} = \mathbb{E}_{P(X)|D=1} \left[ \mathbb{E}\left(Y_{t1}(1) - Y_{t0}(1) \mid D=1, P(X)\right) - \mathbb{E}\left(Y_{t1}(0) - Y_{t0}(0) \mid D=0, P(X)\right) \right]$$
+
+---
+# Ejemplo: DDE
+
+--
+
+- Piense en lo siguiente
+
+--
+
+| Tratados                       | Controles                      |
+|--------------------------------|---------------------------------|
+| Talla para la edad en T=2      | Talla para la edad en T=2       |
+| Talla para la edad en T=1      | Talla para la edad en T=1       |
+
+---
+# Ejemplo: DDE
+ 
+--
+
+Ya que tiene dos observaciones de talla para un mismo individuo (antes y después), podemos tener el ATT:
+
+--
+
+$$\triangle Y= Y_{t1}-Y_{t0}$$
+
+.ex[Será la diferencia de talla de individuos por edad del grupo de tratados en comparación al control]
+
+--
+
+Para el calculo de la .ul[probabilidad] de participación, dadas las características de los individuos.
+
+--
+
+$$D= \beta X+ \mu$$
+
+--
+
+D hace referencia a la $dummy$ de tratamiento y $X$ es el vector de variables tales como: *Ingreso del jefe de hogar, numero de personas del hogar, educación, etc.*
+        
 ---
 class: inverse
 # Bibliografía

@@ -289,7 +289,7 @@ layout:true
 
 --
 
-Queremos construir un contrafactual para cada individuo con $\text{D}_{i}=1$.
+Queremos construir un contrafactual para cada individuo con $\text{D}_{i}=1$. La idea surge de Rosenbaum and Rubin(1983): " the central role of the propensity score in observational studies for causal effects".
 
 --
 
@@ -1610,7 +1610,7 @@ class: inverse
 
 `r fa('book')` Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton university press.
 
-`r fa('book')` Wooldridge, J. M. (2015). *Introductory econometrics: A modern approach*. Cengage learning.
+`r fa('book')` Rosenbaum, P. R., & Rubin, D. B. (1983). *The central role of the propensity score in observational studies for causal effects*. Biometrika, 70(1), 41-55.
 
 
 ---
