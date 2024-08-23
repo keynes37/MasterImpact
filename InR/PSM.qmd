@@ -1,0 +1,201 @@
+---
+title: "Propensity Score Matching"
+subtitle: "Maestría en Economía Uninorte"
+author: "Carlos Andrés Yanes"
+date: "2024"
+format:
+    pdf: default
+    html: 
+      self-contained: true
+      grid: 
+        margin-width: 350px
+execute: 
+  echo: fenced
+reference-location: margin
+citation-location: margin
+bibliography: refs.bib
+---
+
+# Introducción
+
+Seguimos trabajando el *ejemplo* de Nessa, Ali, and Abdul-Hakim (2012) para el análisis del impacto Programa de Microcréditos[^1] realizado en Bangladesh para 1998.
+
+[^1]: Esto se hizo gracias al libro de Evaluación de Impacto en la Practica del Banco Mundial y la parte de R fue construida por [John Woodill](https://johnwoodill.github.io/)
+
+Las variables son: Código hogar (nh); año (year); código de la villa (villid); Código zona (thanaid); Edad del jefe (agehead); Sexo(sexhead); Educación “en años” del jefe (educhead), tamaño de la familia (famsize); Tierra(hhland); Activos del jefe (hhasset); Gasto anual en comida (expfd); gasto anual en elementos distintos a la comida (expnfd); gasto total per capita al año (exptot); Si el hombre tiene un microcredito (dmmfd); Si la mujer tiene un microcrédito (dfmfd); Peso muestral (weight); Acceso del pueblo a una carretera (vaccess); proporcion de la tierra que ha sido regado (pcirr); Precios de alimentos como aceite, arroz, trigo, leche, papa, huevos.
+
+## Preparación del entorno de trabajo
+
+Cerciorese primero de tener un entorno adecuado de <span style="color: red;">paquetes</span> para trabajar el archivo o base de datos. Si debe instalar alguno no olvide utilizar p.e:
+
+```r
+install.packages(c("pacman", "survey" "haven", "tidyverse", "huxtable"))
+```
+
+Despues que culmine la instalación, carguelos con la opción de `library()`
+
+```{r}
+library(pacman)
+p_load(survey, foreign, haven, tidyverse, huxtable, dplyr, Matching, MatchIt, ggplot2)
+```
+
+Sigue el cargue de los datos, *debe cerciorarse que esten en su carpeta de trabajo*
+
+```{r}
+hh_98 <- read_dta("hh_98.dta")
+head(hh_98) # Encabezado
+```
+
+Mas adelante de ver nuestra base, creamos un par de variables en términos logarítmicos
+
+```{r}
+hh_98.data <- mutate(hh_98, lexptot = log(1 + exptot)) %>%
+  mutate(lnland = log((1 + hhland/100)))
+```
+
+
+## Impacto de la participación del programa
+
+Vamos a tomar la base de datos de forma no balanceada, para ello con la opción del paquete de `survey` lo tomamos
+
+```{r}
+des1 <- svydesign(id = ~nh,  weights = ~weight, data = hh_98.data)
+
+# Modelo probit dependiente la participación
+prog.lm <- svyglm(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil + egg, 
+                  design=des1, family = quasibinomial(link = "probit"))   
+
+# Lista de variables
+X <- prog.lm$fitted
+Tr <- hh_98.data$dmmfd
+Y <- hh_98.data$lexptot
+
+# Matching
+m.out <- Match(Tr = Tr, X = X, Y = Y, caliper = 0.001)
+summary(m.out)
+```
+
+Podemos ver que existe una diferencia significativa del efecto con el grupo. Teniendo como dependiente el gasto anual de los campesinos.
+
+
+## Primer Match
+
+Ahora vamos a mirar como podemos buscar la relación de matching entre individuos a partir de las características observables dentro de la muestra
+
+```{r}
+MatchBalance(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil + egg, data = hh_98.data, nboots = 500, ks = TRUE)
+
+fit <- prog.lm$data
+fit$fvalues <- prog.lm$fitted.values 
+
+fit.control <- filter(fit, dmmfd == 0)
+fit.treated <- filter(fit, dmmfd == 1)
+
+ggplot() + 
+  geom_density(aes(x=fit.control$fvalues, linetype = '2')) +
+  geom_density(aes(x=fit.treated$fvalues, linetype = '3')) +
+  xlim(-.1,.6) +
+  xlab("") +
+  scale_linetype_discrete(name = "", labels = c("Controles", "Tratados")) +
+  ggtitle("Densidades de los Controles vs Tratados")
+```
+
+## Segunda regresión pero con balance
+
+A continuación intentamos replicar lo anterior, pero ya mas balanceado en el grupo de controles
+
+```{r}
+# Second Regression (Balanced)
+
+des1 <- svydesign(id = ~nh,  weights = ~weight, data = hh_98.data)
+prog.lm <- svyglm(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil, 
+                  design=des1, family = quasibinomial(link = "probit"))   
+
+X <- prog.lm$fitted
+Tr <- hh_98.data$dmmfd
+Y <- hh_98.data$lexptot
+
+# Acá ya existe como tal la zona de soporte común
+m.out <- Match(Tr = Tr, X = X, Y = Y, caliper = 0.001, M = 1, CommonSupport = TRUE)
+summary(m.out)
+```
+
+
+## Vamos al grafico
+
+```{r}
+fit <- prog.lm$data
+fit$fvalues <- prog.lm$fitted.values 
+
+fit.control <- filter(fit, dmmfd == 0)
+fit.treated <- filter(fit, dmmfd == 1)
+
+ggplot() + 
+  geom_density(aes(x=fit.control$fvalues, linetype = '2')) +
+  geom_density(aes(x=fit.treated$fvalues, linetype = '3')) +
+  xlim(-.1,.6) +
+  xlab("") +
+  scale_linetype_discrete(name = "", labels = c("Controles", "Tratados")) +
+  ggtitle("Densidad de Grupos")
+```
+
+## Vecino cercano
+
+En esta parte tomaremos por grupos e iremos viendo otras opciones
+
+```{r}
+# Nearest Neighbor
+des1 <- svydesign(id = ~nh,  weights = ~weight, data = hh_98.data)
+prog.lm <- svyglm(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil, 
+                  design=des1, family = quasibinomial(link = "probit"))   
+
+X <- prog.lm$fitted.values
+Tr <- hh_98.data$dmmfd
+Y <- hh_98.data$lexptot
+m.out <- Match(Tr = Tr, X = X, Y = Y, M = 1, caliper = 0.001, replace = TRUE)
+summary(m.out)
+```
+
+### Usando MatchIt
+
+Vamos a implementar ahora el paquete de `MatchIt` para mirar otras opciones de pareo.
+
+```{r}
+# Este es estratificando
+m.out <- matchit(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil,
+                 data = hh_98.data, method = "nearest", distance = "probit", caliper = 0.001)
+summary(m.out)
+```
+
+### Solo mujeres
+
+```{r}
+glm.female <- glm(dfmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil, family = binomial, data = hh_98.data)
+X <- glm.female$fitted
+Tr <- hh_98.data$dmmfd
+Y <- hh_98.data$lexptot
+m.out <- Match(Tr = Tr, X = X, Y = Y, caliper = 0.001, M = 1, replace = TRUE)
+summary(m.out)
+```
+
+¿Qué nos dice esta parte?
+
+#### Modelo adicional
+
+
+
+```{r}
+# Ajuste del modelo de Propensity Score
+pscore_model <- matchit(dmmfd ~ sexhead + agehead + educhead + lnland + vaccess + pcirr + rice + wheat + milk + oil + egg,
+                        method = "nearest", data = hh_98.data)
+summary(pscore_model)
+```
+
+Para el objeto de extraer datos 
+```{r}
+# Extraer los datos emparejados
+matched_data <- match.data(pscore_model)
+head(matched_data)
+```
+
+
