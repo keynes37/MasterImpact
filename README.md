@@ -8,13 +8,13 @@ A course in econometrics lectures focus on quantitative methods and impact evalu
 
 [Regresión](https://keynes37.github.io/MasterImpact/Class/Class01.html)
 
-[Método de Pareo PSM]()
+[Método de Pareo PSM](https://keynes37.github.io/MasterImpact/Class/ClassPMS.html)
+
+[Método de DID](https://keynes37.github.io/MasterImpact/Class/ClassDID.html)
 
 ### Extra
 
 [Clase RTC1](https://keynes37.github.io/MasterImpact/Class/Classintro.html)
-
-
 
 ### Elementos
 
