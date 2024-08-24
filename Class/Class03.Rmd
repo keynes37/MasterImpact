@@ -3,7 +3,7 @@ title: "Econometría"
 subtitle: "<br/> Variables Instrumentales"
 author: "Carlos A. Yanes Guerra"
 institute: "Universidad del Norte"
-date: "2023-I"
+date: "2024"
 output:
   xaringan::moon_reader:
     css: 
