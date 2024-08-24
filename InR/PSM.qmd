@@ -198,4 +198,5 @@ matched_data <- match.data(pscore_model)
 head(matched_data)
 ```
 
+**Carlos Yanes Guerra | Departamento de Economía | Universidad del Norte**
 

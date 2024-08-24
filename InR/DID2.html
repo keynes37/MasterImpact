@@ -3110,12 +3110,12 @@ vertical-align: -.125em;
 
 <section id="introducción" class="level1">
 <h1>Introducción</h1>
-<p>Vamos a trabajar con la base de datos &gt;¿Un mejor seguro médico aumenta el consumo de atención sanitaria?</p>
-<p>El experimento rand de 1970 sobre el <strong>seguro</strong> médico es un gran experimento social Asigno aleatoriamente distintos niveles de seguro médico a distintas familias.</p>
+<p>Vamos a trabajar con la base de datos:</p>
 <ul>
-<li>Las familias participan durante 3-5 años.</li>
-<li>Para garantizar que la participación de los participantes no les perjudicara en comparación con su seguro médico habitual en comparación con su seguro médico habitual</li>
-<li>Todas las pólizas tenían un límite anual (MDE) a partir del cual la asistencia sanitaria era gratuita</li>
+<li><p>Fuente Original Shinsuke Tanaka (2014)</p></li>
+<li><p>Donde intentaba responder: Does Abolishing User Fees Lead to Improved Health Status? Evidence from Post-Apartheid South Africa”.</p></li>
+<li><p>Se encuentra en American Economics Journal: Economic Policy, 6(3), pages 282-312</p></li>
+<li><p>Los datos los puede encontrar en <a href="http://doi.org/10.3886/E114870V1">datos</a></p></li>
 </ul>
 </section>
 <section id="preambulo" class="level1">
@@ -3181,6 +3181,168 @@ $ age98_2     &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
 $ age98_3     &lt;dbl&gt; 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0…</code></pre>
 </div>
 </div>
+<section id="etiqueta-de-variables" class="level3">
+<h3 class="anchored" data-anchor-id="etiqueta-de-variables">Etiqueta de variables</h3>
+<p>Las etiquedas de las variables a utilizar son:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 35%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Value</th>
+<th>Variable label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>hhid93</td>
+<td></td>
+<td>Household identification No</td>
+</tr>
+<tr class="even">
+<td>pcode</td>
+<td></td>
+<td>93: Person Code</td>
+</tr>
+<tr class="odd">
+<td>idcommunity</td>
+<td></td>
+<td>Identifier for community</td>
+</tr>
+<tr class="even">
+<td>year</td>
+<td></td>
+<td>= 93 or 98</td>
+</tr>
+<tr class="odd">
+<td>hightreat</td>
+<td></td>
+<td>= 1 if community has clinic in 1993</td>
+</tr>
+<tr class="even">
+<td>post</td>
+<td></td>
+<td>= 1 if year==98 and =0 if year==93</td>
+</tr>
+<tr class="odd">
+<td>postXhigh</td>
+<td></td>
+<td>post times hightreat</td>
+</tr>
+<tr class="even">
+<td>waz</td>
+<td></td>
+<td>Weight for age z Score</td>
+</tr>
+<tr class="odd">
+<td>whz</td>
+<td></td>
+<td>Weight for height z Score</td>
+</tr>
+<tr class="even">
+<td>haz</td>
+<td></td>
+<td>Height for age z Score</td>
+</tr>
+<tr class="odd">
+<td>fedu</td>
+<td></td>
+<td>Father’s education</td>
+</tr>
+<tr class="even">
+<td>medu</td>
+<td></td>
+<td>Mother’s education</td>
+</tr>
+<tr class="odd">
+<td>hhsizep</td>
+<td></td>
+<td>Household size (all members)</td>
+</tr>
+<tr class="even">
+<td>lntotminc</td>
+<td></td>
+<td>Log of monthly household income</td>
+</tr>
+<tr class="odd">
+<td>immuniz</td>
+<td>yes_no</td>
+<td>Number of immunization campaigns since 1993</td>
+</tr>
+<tr class="even">
+<td>nonclinic</td>
+<td></td>
+<td>Number of health facilities other than clinic in 1993</td>
+</tr>
+<tr class="odd">
+<td>male</td>
+<td></td>
+<td>= 1 if male</td>
+</tr>
+<tr class="even">
+<td>age</td>
+<td></td>
+<td>Precise age in fractions of year</td>
+</tr>
+<tr class="odd">
+<td>age93_0</td>
+<td></td>
+<td>=1 if age 0 in 1993</td>
+</tr>
+<tr class="even">
+<td>age93_1</td>
+<td></td>
+<td>=1 if age 1 in 1993</td>
+</tr>
+<tr class="odd">
+<td>age93_2</td>
+<td></td>
+<td>=1 if age 2 in 1993</td>
+</tr>
+<tr class="even">
+<td>age93_3</td>
+<td></td>
+<td>=1 if age 3 in 1993</td>
+</tr>
+<tr class="odd">
+<td>age98_0</td>
+<td></td>
+<td>=1 if age 0 in 1998</td>
+</tr>
+<tr class="even">
+<td>age98_1</td>
+<td></td>
+<td>=1 if age 1 in 1998</td>
+</tr>
+<tr class="odd">
+<td>age98_2</td>
+<td></td>
+<td>=1 if age 2 in 1998</td>
+</tr>
+<tr class="even">
+<td>age98_3</td>
+<td></td>
+<td>=1 if age 3 in 1998</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Importante
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Las etiquetas deben ser definidas por los creadores de la base de datos. Ayudan sobre todo como un diccionario cuando los nombres de columnas son extraños</p>
+</div>
+</div>
 <p>Luego de esto entonce si hacemos una descripción muy rapida de las estadísticas mas importantes de los datos. Siempre le piden a los investigadores establecer una tabla o descriptores para ello</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(datos) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -3236,6 +3398,7 @@ $ age98_3     &lt;dbl&gt; 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
  Max.   :1.0000   Max.   :1.0000  </code></pre>
 </div>
 </div>
+</section>
 </section>
 <section id="selección-clave" class="level2">
 <h2 class="anchored" data-anchor-id="selección-clave">Selección clave</h2>
@@ -3596,6 +3759,11 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 </div>
 </div>
 </section>
+</section>
+<section id="agradecimientos" class="level1">
+<h1>Agradecimientos</h1>
+<p>Mucho de este trabajo se debe a los articulos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.</p>
+<p><strong>Carlos Yanes Guerra | Departamento de Economía | Universidad del Norte</strong></p>
 </section>
 
 </main>

@@ -18,16 +18,15 @@ bibliography: refs.bib
 
 # Introducción
 
-Vamos a trabajar con la base de datos 
->¿Un mejor seguro médico aumenta el consumo de atención sanitaria?
+Vamos a trabajar con la base de datos: 
 
-El experimento rand de 1970 sobre el **seguro** médico es un gran experimento social
-Asigno aleatoriamente distintos niveles de seguro médico a distintas familias.
+* Fuente Original Shinsuke Tanaka (2014)
 
-- Las familias participan durante 3-5 años.
-- Para garantizar que la participación de los participantes no les perjudicara en comparación con su seguro médico habitual en comparación con su seguro médico habitual
-- Todas las pólizas tenían un límite anual (MDE) a partir del cual la asistencia sanitaria era gratuita
+* Donde intentaba responder: Does Abolishing User Fees Lead to Improved Health Status? Evidence from Post-Apartheid South Africa".
 
+* Se encuentra en American Economics Journal: Economic Policy, 6(3), pages 282-312
+
+* Los datos los puede encontrar en [datos](http://doi.org/10.3886/E114870V1)
 
 # Preambulo
 El método de **Diferencias en Diferencias (DID)** es una técnica econométrica ampliamente utilizada para evaluar el **impacto causal** de políticas públicas, programas o intervenciones que se implementan en ciertas unidades (como individuos, empresas, regiones, etc.) pero no en otras. Este método se basa en comparar la evolución de un resultado de interés entre un grupo tratado (que recibe la intervención) y un grupo de control (que no la recibe) *antes* y *después* del tratamiento.
@@ -67,6 +66,45 @@ En las posibilidades siempre es bueno mirar que contiene y dicen nuestros datos,
 ```{r}
 glimpse(datos) 
 ```
+
+### Etiqueta de variables
+
+Las etiquedas de las variables a utilizar son:
+
+| Variable      | Value                                   | Variable label                                           |
+|---------------|-----------------------------------------|----------------------------------------------------------|
+| hhid93        |                                         | Household identification No                               |
+| pcode         |                                         | 93: Person Code                                           |
+| idcommunity   |                                         | Identifier for community                                  |
+| year          |                                         | = 93 or 98                                                |
+| hightreat     |                                         | = 1 if community has clinic in 1993                       |
+| post          |                                         | = 1 if year==98 and =0 if year==93                        |
+| postXhigh     |                                         | post times hightreat                                      |
+| waz           |                                         | Weight for age z Score                                    |
+| whz           |                                         | Weight for height z Score                                 |
+| haz           |                                         | Height for age z Score                                    |
+| fedu          |                                         | Father's education                                        |
+| medu          |                                         | Mother's education                                        |
+| hhsizep       |                                         | Household size (all members)                              |
+| lntotminc     |                                         | Log of monthly household income                           |
+| immuniz       | yes_no                                  | Number of immunization campaigns since 1993               |
+| nonclinic     |                                         | Number of health facilities other than clinic in 1993     |
+| male          |                                         | = 1 if male                                               |
+| age           |                                         | Precise age in fractions of year                          |
+| age93_0       |                                         | =1 if age 0 in 1993                                       |
+| age93_1       |                                         | =1 if age 1 in 1993                                       |
+| age93_2       |                                         | =1 if age 2 in 1993                                       |
+| age93_3       |                                         | =1 if age 3 in 1993                                       |
+| age98_0       |                                         | =1 if age 0 in 1998                                       |
+| age98_1       |                                         | =1 if age 1 in 1998                                       |
+| age98_2       |                                         | =1 if age 2 in 1998                                       |
+| age98_3       |                                         | =1 if age 3 in 1998                                       |
+
+::: {.callout-note}
+## Importante
+Las etiquetas deben ser definidas por los creadores de la base de datos. Ayudan sobre todo como un diccionario cuando los nombres de columnas son extraños
+:::
+
 
 Luego de esto entonce si hacemos una descripción muy rapida de las estadísticas mas importantes de los datos. Siempre le piden a los investigadores establecer una tabla o descriptores para ello
 
@@ -165,3 +203,8 @@ model4 <- lm(waz ~ postXhigh + factor(idcommunity) +
              data = data)
 coeftest(model4, vcov = vcovCL, cluster = ~idcommunity)
 ```
+
+# Agradecimientos
+Mucho de este trabajo se debe a los articulos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.
+
+**Carlos Yanes Guerra | Departamento de Economía | Universidad del Norte**
