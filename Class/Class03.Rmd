@@ -1076,7 +1076,7 @@ $$Cov(z_j,e)=0 \quad j=1,2,...,M$$
 
 --
 
-El vector de variables exógenas sería $\mathbf{z}\equiv (1,x_2,...,x_{k-1},z_1,...,z_M)$ de dimensión $1\times L$, con $L=K+M. Hacemos
+El vector de variables exógenas sería $\mathbf{z}\equiv (1,x_2,...,x_{k-1},z_1,...,z_M)$ de dimensión $1\times L$, con $L=K+M$. Hacemos
 
 --
 
