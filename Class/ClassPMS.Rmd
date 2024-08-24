@@ -1316,7 +1316,6 @@ Queremos volver a una variación *tan buena como aleatoria* en el tratamiento.
 
 Así que aumentamos el peso de los .pink[(**1**)  .hi-pink[tratados] con bajo] $\color{#e64173}{p(\text{X}_{i})}$ y las observaciones que son .purple[(**2**) .hi-purple[controles] con alto] $\color{#6A5ACD}{p(\text{X}_{i})}$.
 
-Aquí tienes la traducción con el LaTeX y las pausas de Markdown intactas:
 
 ---
 
