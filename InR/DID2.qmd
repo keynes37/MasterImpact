@@ -1,0 +1,167 @@
+---
+title: "Diferencias en Diferencias"
+subtitle: "Maestría en Economía Uninorte"
+author: "Carlos Andrés Yanes"
+date: "2024-08-24"
+format:
+    pdf: default
+    html: 
+      self-contained: true
+      grid: 
+        margin-width: 350px
+execute: 
+  warning: false
+reference-location: margin
+citation-location: margin
+bibliography: refs.bib
+---
+
+# Introducción
+
+Vamos a trabajar con la base de datos 
+>¿Un mejor seguro médico aumenta el consumo de atención sanitaria?
+
+El experimento rand de 1970 sobre el **seguro** médico es un gran experimento social
+Asigno aleatoriamente distintos niveles de seguro médico a distintas familias.
+
+- Las familias participan durante 3-5 años.
+- Para garantizar que la participación de los participantes no les perjudicara en comparación con su seguro médico habitual en comparación con su seguro médico habitual
+- Todas las pólizas tenían un límite anual (MDE) a partir del cual la asistencia sanitaria era gratuita
+
+
+# Preambulo
+El método de **Diferencias en Diferencias (DID)** es una técnica econométrica ampliamente utilizada para evaluar el **impacto causal** de políticas públicas, programas o intervenciones que se implementan en ciertas unidades (como individuos, empresas, regiones, etc.) pero no en otras. Este método se basa en comparar la evolución de un resultado de interés entre un grupo tratado (que recibe la intervención) y un grupo de control (que no la recibe) *antes* y *después* del tratamiento.
+
+El enfoque DID asume que, en ausencia del tratamiento, la diferencia en las tendencias del resultado entre los grupos tratado y de control habría permanecido constante. De esta manera, cualquier desviación de esta tendencia paralela se atribuye al efecto causal del tratamiento.
+
+En economía, el método de Diferencias en Diferencias es particularmente útil cuando los experimentos aleatorios no son factibles o éticos, y permite controlar por factores no observados que podrían influir en los resultados, siempre que estos factores sean constantes en el tiempo. Esta técnica ha sido utilizada en estudios que analizan desde el impacto de cambios en las políticas fiscales y laborales hasta los efectos de programas educativos y de salud, convirtiéndose en una herramienta clave para el análisis de políticas públicas.
+
+## Preparación
+
+Antes de implementar el código de estimación, es crucial preparar la base de datos asegurando que las variables relevantes estén correctamente definidas y limpiadas. Esto implica verificar que las variables de tratamiento y resultado estén codificadas adecuadamente, que las covariables no presenten valores faltantes, y que los pesos muestrales, si son aplicables, estén correctamente asignados. Además, es esencial que los datos estén en el formato adecuado para ser utilizados en los modelos estadísticos, lo que incluye transformar variables según sea necesario y asegurarse de que todas las observaciones relevantes sean incluidas en el análisis.
+
+## Limpiar el entorno de R
+```{r}
+rm(list = ls())
+```
+
+## Estipulación de la base
+
+Vamos a cargar los paquetes a utilizar en esta ocasión
+
+```{r}
+library(pacman)
+p_load(dplyr, lmtest, sandwich, plm, fixest, haven)
+```
+
+El paso a seguir es cargar la base de datos (formato stata) a R.
+
+```{r}
+datos <- read_dta("health.dta")
+```
+
+## Resumen estadistico
+
+En las posibilidades siempre es bueno mirar que contiene y dicen nuestros datos, para ello no queda demas ir mirando primero que etiquetas traen consigo
+
+```{r}
+glimpse(datos) 
+```
+
+Luego de esto entonce si hacemos una descripción muy rapida de las estadísticas mas importantes de los datos. Siempre le piden a los investigadores establecer una tabla o descriptores para ello
+
+```{r}
+summary(datos) 
+```
+
+## Selección clave
+
+Vamos a intentar solo mirar un grupo de variables, no todas las que tenemos o buscamos tener en nuestro cuestionario se hacen necesarias
+
+### Subgrupo
+Entonces hacemos una selección mas acorde
+```{r}
+datos %>%
+  select(idcommunity, year, hightreat, post, postXhigh, waz, whz, 
+         fedu, medu, hhsizep, lntotminc, immuniz, nonclinic, age) %>%
+  glimpse()
+```
+
+### Estadisticas de ellas
+
+```{r}
+datos %>%
+  select(idcommunity, year, hightreat, post, postXhigh, waz, whz, 
+         fedu, medu, hhsizep, lntotminc, immuniz, nonclinic, age) %>%
+  summary()
+```
+
+#### Mas integrado
+```{r}
+datos %>%
+  select(waz, hightreat, post, postXhigh, whz) %>%
+  summary()
+```
+
+
+# Diferencias en diferencias 
+```{r}
+highpre <- mean(datos$waz[datos$hightreat == 1 & datos$post == 0], na.rm = TRUE)
+highpost <- mean(datos$waz[datos$hightreat == 1 & datos$post == 1], na.rm = TRUE)
+lowpre <- mean(datos$waz[datos$hightreat == 0 & datos$post == 0], na.rm = TRUE)
+lowpost <- mean(datos$waz[datos$hightreat == 0 & datos$post == 1], na.rm = TRUE)
+
+highdiff <- highpost - highpre
+lowdiff <- lowpost - lowpre
+diffindiff <- highdiff - lowdiff
+
+cat("highpre  =", highpre, "\n")
+cat("highpost =", highpost, "\n")
+cat("highdiff =", highdiff, "\n")
+cat("lowpre   =", lowpre, "\n")
+cat("lowpost  =", lowpost, "\n")
+cat("lowdiff  =", lowdiff, "\n")
+cat("diffindiff =", diffindiff, "\n")
+```
+
+## Modelo básico
+
+```{r}
+model1 <- lm(waz ~ postXhigh + post + hightreat, data = datos)
+coeftest(model1, vcov = vcovCL, cluster = ~idcommunity)
+```
+
+
+## Con errores robustos teniendo en cuenta (sandwich)
+Vamos a corregir cualquier problema que tengamos de heterocedasticidad
+```{r}
+coeftest(model1, vcov = vcovHC)
+```
+
+## Panel de efectos fijos para los estimadores
+```{r}
+library(plm)
+data <- pdata.frame(datos, index = "idcommunity")
+model2 <- plm(waz ~ postXhigh + fedu + medu + hhsizep + lntotminc + 
+                immuniz + nonclinic + age, 
+              data = data, model = "within")
+coeftest(model2, vcov = vcovHC)
+```
+
+## Panel clusterizando
+
+```{r}
+model3 <- lm(waz ~ postXhigh + post + hightreat + factor(idcommunity) +
+                fedu + medu + hhsizep + lntotminc + immuniz + nonclinic, 
+             data = data)
+coeftest(model3, vcov = vcovCL, cluster = ~idcommunity)
+```
+
+## Mismo resultado pero extrayendo post y hightreat
+
+```{r}
+model4 <- lm(waz ~ postXhigh + factor(idcommunity) +
+                fedu + medu + hhsizep + lntotminc + immuniz + nonclinic, 
+             data = data)
+coeftest(model4, vcov = vcovCL, cluster = ~idcommunity)
+```
