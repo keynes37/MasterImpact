@@ -17,11 +17,15 @@ A course in econometrics lectures focus on quantitative methods and impact evalu
 [Clase RTC1](https://keynes37.github.io/MasterImpact/Class/Classintro.html)
 
 
+
+
 ### Elementos
 
 [R en RTC](https://keynes37.github.io/MasterImpact/InR/doc1.html)
 
 [R en PSM](https://keynes37.github.io/MasterImpact/InR/PSM.html)
+
+[R DID](https://keynes37.github.io/MasterImpact/InR/DID2.html)
 
 ### Talleres
 
