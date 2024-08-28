@@ -42,6 +42,7 @@ La base de datos para este modulo solo será enviada por correo electronico a lo
 * El artículo se llama: "Interpreting Instrumental Variables Estimates of the Returns to Schooling". Journal of Business and Economic Statistics, 19, 358-364.
 
 * Tiene que ver con los retornos de la educación[^1]
+
 [^1]: Hemos insistido en los temas de educación ya que existe una amplia literatura en la implementación de este tipo de **instrumentos** para una correcta estimación
 
 ## Limpiando el Environment de R
@@ -86,7 +87,7 @@ summary(base.ed[c("wage76", "grade76", "col4", "age76")])
 
 ### Correlación
 
-Por un momento miremos la correlación que existe entre este par de variables
+Por un momento miremos la correlación que existe entre este par de variables. El **objetivo** es mirar si existe <u>relación</u> entre ellas, es una especie de tener presente que no vayamos a tener Este es un texto normal y <span style="color:red">multicolinealidad </span> en el modelo.
 
 ```{r}
 # Correlación
@@ -138,7 +139,8 @@ stargazer(ols_model, iv_model, type = "text",
 Note la diferencia que existe en el estimador IV. Al parecer estábamos **sobreestimando** el efecto que tiene la educación en el salario de los individuos.
 
 ## Estimación del estimador IV en dos etapas
-Miremos esto por fases o etapas[^2]
+Miremos esto por fases o etapas[^2] que consideramos importante en la estimación del modelo
+
 [^2]: Son los comunmente conocidos Modelos 2LS (Two least Square) o Bi-etapicos.
 
 ### Primera etapa: regresión OLS para obtener la predicción
@@ -157,61 +159,67 @@ coeftest(ols_two_stage, vcov = vcovHC(ols_two_stage, type = "HC"))
 ```
 
 ## Repetir el análisis con más controles
-Recordemos que podemos adherir un número mayor de controles sobre nuestra estimación
+Recordemos que podemos adherir un número mayor de controles[^3] sobre nuestra estimación. Para eso, primero crearemos una lista o `list`, eso con el objeto de no tener una formula muy larga en la línea de comandos. Luego usamos la función de `as.formula` y luego se corre.
 
+[^3]: El conjunto controles son muchas variables "categoricas" que contienen valores de 1 o 0, para aquellas caracteristicas de si vive en cierta region (reg), si vive el el sur (south76), si vive en área metropolitana. Con la opcion `View` estan mejor clarificadas
+ 
 ```{r}
-exog_regressors <- c("black", "south76", "smsa76", "reg2", "reg3", "reg4", "reg5", "reg6", "reg7", "reg8", "reg9", 
-                     "smsa66", "momdad14", "sinmom14", "nodaded", "nomomed", "daded", "momed", 
-                     "famed1", "famed2", "famed3", "famed4", "famed5", "famed6", "famed7", "famed8")
+# Crear una lista de variables independientes
+regresores <- c("south76", "smsa76", "reg2", "reg3", "reg4", "reg5", "reg6", "reg7", "reg8", "reg9", "smsa66", "momdad14", "sinmom14", "nodaded", "nomomed", "daded", "momed", "famed1", "famed2", "famed3", "famed4", "famed5", "famed6", "famed7", "famed8")
 
-# Resumir las variables seleccionadas
-summary(data[c("wage76", "grade76", "exp76", "expsq76", "col4", "age76", "agesq76", exog_regressors)])
-```
+## Acá los juntamos todos
+formula <- as.formula(paste("wage76 ~", paste(regresores, collapse = " + ")))
 
-### Modelo MCO con más controles
-
-```r
-ols_model_controls <- lm(wage76 ~ grade76+., data = base.ed, subset = exog_regressors)
+# Estimamos el modelo con todos los controles
+ols_model_controls <- lm(formula, data = base.ed)
 coeftest(ols_model_controls, vcov = vcovHC(ols_model_controls, type = "HC"))
 ```
 
-
-
 ### Modelo IV con más controles
+De la misma forma como se hizo anteriormente vamos a instrumentar nuestro modelo, haciendo uso de los instrumentos dispuestos para ello $z=\{col4, age76\}$.
 
-```r
-iv_model_controls <- ivreg(wage76 ~ grade76 + . | col4 + ., data = base.ed, subset = exog_regressors)
+```{r}
+formula_iv <- as.formula(paste("wage76 ~ grade76 +", 
+                               paste(regresores, collapse = " + "), 
+                               "| col4 +", 
+                               paste(regresores, collapse = " + ")))
+
+# Ajustar el modelo IV
+iv_model_controls  <- ivreg(formula_iv, data = base.ed)
 summary(iv_model_controls, vcov = sandwich)
 ```
 
-
-
 # Tabla de comparaciones entre OLS y IV con más controles
-Una salida general a todo esto que hemos realizado nos da como resultado:
-```r
+Una salida general a todo esto que hemos realizado nos da como resultado[^4] un modelo en un formato de estilo mas científico
+
+[^4]: Hemos omitido la salida de todas las variables porque se hace engorroso la salida del modelo. Sin embargo, controlando por todo tenemos el calculo del efecto en este caso y podemos decir que los retornos son positivos.
+
+```{r}
 stargazer(ols_model_controls, iv_model_controls, type = "text", 
           keep = c("grade76"), digits = 4, 
           dep.var.labels = "wage76", covariate.labels = "grade76")
 ```
 
-# Diagnóstico de instrumentos débiles: correlación y regresión
-Para verificar relevancia de los instrumentos
-```r
+### Diagnóstico de instrumentos débiles: correlación y regresión
+Para verificar relevancia de los instrumentos podemos estimar entonces
+```{r}
 cor(base.ed$grade76, base.ed$col4)
 first_stage_diagnostic <- lm(grade76 ~ col4 + age76, data = base.ed)
 summary(first_stage_diagnostic)
 ```
+La edad en el año 76 parece no ser relevante, sin embargo en conjunto y mirando la prueba F, podemos entonces decir que si es útil
 
 ## Test de instrumentos débiles (Anderson-Rubin Wald test)
 El test de Anderson-Rubin evalúa si los coeficientes de las variables instrumentales en la regresión auxiliar (donde las variables instrumentales se utilizan para predecir la variable endógena) son estadísticamente diferentes de cero. Si se rechaza la hipótesis nula, esto indica que los instrumentos son relevantes y, por lo tanto, no son débiles.
 
-```r
-iv_test <- summary(iv_model_controls, vcov = sandwich)
-waldtest(iv_test)
+```{r}
+# Del Paquete de AER
+waldtest(iv_model_controls)
 ```
 
+Constatando que los instrumentos utilizados deben estar presente[^4].
 
-
+[^4]: La sobreidentificación se hace con una prueba F, comparando dos tipos de modelos. Uno con todos los regresores y otro sin ellos, al ver la significancia podemos entonces concluir que no tenemos sobreidentificación. 
 
 # Agradecimientos
 Mucho de este trabajo se debe a los artículos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.

@@ -3112,7 +3112,7 @@ window.Quarto = {
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="IV.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -3146,7 +3146,7 @@ window.Quarto = {
 </header>
 
 
-<section id="preambulo" class="level1">
+<section id="preambulo" class="level1 page-columns page-full">
 <h1>Preambulo</h1>
 <p>Los modelos de <strong>variables instrumentales</strong> (IV) son una técnica econométrica crucial cuando se enfrentan problemas de endogeneidad en la estimación de relaciones causales. En la evaluación de impacto, la endogeneidad surge cuando una o más variables explicativas están correlacionadas con el término de error, lo que sesga los estimadores y dificulta identificar efectos causales verdaderos.</p>
 <section id="qué-es-la-endogeneidad" class="level3">
@@ -3172,14 +3172,14 @@ Cuidado
 </div>
 </div>
 </section>
-<section id="datos" class="level2">
+<section id="datos" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="datos">Datos</h2>
 <ul>
 <li><p>Fuente original es de Jeffrey R. Kling (2001).</p></li>
 <li><p>El artículo se llama: “Interpreting Instrumental Variables Estimates of the Returns to Schooling”. Journal of Business and Economic Statistics, 19, 358-364.</p></li>
-<li><p>Tiene que ver con los retornos de la educación[^1] [^1]: Hemos insistido en los temas de educación ya que existe una amplia literatura en la implementación de este tipo de <strong>instrumentos</strong> para una correcta estimación</p></li>
+<li><p>Tiene que ver con los retornos de la educación<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p></li>
 </ul>
-</section>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup> Hemos insistido en los temas de educación ya que existe una amplia literatura en la implementación de este tipo de <strong>instrumentos</strong> para una correcta estimación</p></div></div></section>
 <section id="limpiando-el-environment-de-r" class="level2">
 <h2 class="anchored" data-anchor-id="limpiando-el-environment-de-r">Limpiando el Environment de R</h2>
 <div class="cell">
@@ -3271,7 +3271,7 @@ Cuidado
 </div>
 <section id="correlación" class="level3">
 <h3 class="anchored" data-anchor-id="correlación">Correlación</h3>
-<p>Por un momento miremos la correlación que existe entre este par de variables</p>
+<p>Por un momento miremos la correlación que existe entre este par de variables. El <strong>objetivo</strong> es mirar si existe <u>relación</u> entre ellas, es una especie de tener presente que no vayamos a tener Este es un texto normal y <span style="color:red">multicolinealidad </span> en el modelo.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Correlación</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(base.ed<span class="sc">$</span>grade76, base.ed<span class="sc">$</span>col4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -3304,14 +3304,14 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 </section>
 <section id="guardar-el-modelo-mco" class="level1">
 <h1>Guardar el modelo MCO</h1>
-<p>A continuación con el objetivo de hacer una comparación adecuada de modelos vamos a ir guardando las salidas correspondientes en objetos para darle una forma mas adecuada</p>
+<p>A continuación con el objetivo de hacer una comparación adecuada de modelos vamos a ir guardando las salidas correspondientes en objetos para darle una forma mas adecuada y con ellos tener una mejor interpretabilidad</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ols_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(wage76 <span class="sc">~</span> grade76 <span class="sc">+</span> age76, <span class="at">data =</span> base.ed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="modelo-iv-usando-la-función-ivreg-del-paquete-aer" class="level1">
 <h1>Modelo IV usando la función ivreg del paquete AER</h1>
-<p>Empecemos a instrumentar. La idea parte de decir que el hecho de que una universidad este cerca a un individuo incide en su escolaridad o tomar una elección de hacerlo pero no tiene nada que ver con el salario que percibe. La edad tambien se convierte en otro instrumento clave. La edad es un factor decisorio para de alguna manera tomar la decisión de escolarizarse y solo en algunas veces puede incidir algo en el salario debido a politicas que puedan tener las empresas pero no deberia darnos problemas adicionales.</p>
+<p>Empecemos a instrumentar, la idea parte de decir que el hecho de que una universidad este cerca a un individuo incide en su escolaridad o tomar una elección de hacerlo pero no tiene nada que ver con el salario que percibe. La edad tambien se convierte en otro instrumento clave. La edad es un factor decisorio para de alguna manera tomar la decisión de escolarizarse y solo en algunas veces puede incidir algo en el salario debido a politicas que puedan tener las empresas pero no deberia darnos problemas adicionales.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(AER)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>iv_model <span class="ot">&lt;-</span> <span class="fu">ivreg</span>(wage76 <span class="sc">~</span> grade76 <span class="sc">+</span> age76 <span class="sc">|</span> col4 <span class="sc">+</span> age76, <span class="at">data =</span> base.ed)</span>
@@ -3338,28 +3338,29 @@ Multiple R-Squared: -0.3554,    Adjusted R-squared: -0.3563
 Wald test: 118.3 on 2 and 3007 DF,  p-value: &lt; 2.2e-16 </code></pre>
 </div>
 </div>
+<p>Los resultados son homocedasticos al aplicar la corrección tipo <code>sandwich</code> para corregir problemas de varianza no constante.</p>
 </section>
-<section id="tabla-de-comparaciones-entre-mco-y-iv" class="level1">
+<section id="tabla-de-comparaciones-entre-mco-y-iv" class="level1 page-columns page-full">
 <h1>Tabla de comparaciones entre MCO y IV</h1>
-<p>Vamos hacer la comparación entre modelos para ver que diferencias tienen los resultados.</p>
+<p>Vamos hacer la comparación entre modelos para ver que diferencias tienen los resultados. El paquete <code>stargazer</code> ayuda a darle visibilidad a los datos</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stargazer)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(ols_model, iv_model, <span class="at">type =</span> <span class="st">&quot;text&quot;</span>, </span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">keep =</span> <span class="fu">c</span>(<span class="st">&quot;grade76&quot;</span>), <span class="at">digits =</span> <span class="dv">4</span>, </span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">se =</span> <span class="fu">list</span>(<span class="fu">coeftest</span>(ols_model, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(ols_model, <span class="at">type =</span> <span class="st">&quot;HC&quot;</span>))[, <span class="dv">2</span>],</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcovHC</span>(iv_model, <span class="at">type =</span> <span class="st">&quot;HC&quot;</span>)))),</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">dep.var.labels =</span> <span class="st">&quot;wage76&quot;</span>, <span class="at">covariate.labels =</span> <span class="st">&quot;grade76&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">dep.var.labels =</span> <span class="st">&quot;Salario en el 76&#39;&quot;</span>, <span class="at">covariate.labels =</span> <span class="st">&quot;Años aprobados 76&#39;&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 =======================================================================
                                           Dependent variable:          
                                 ---------------------------------------
-                                                wage76                 
+                                           Salario en el 76&#39;           
                                            OLS             instrumental
                                                              variable  
                                            (1)                 (2)     
 -----------------------------------------------------------------------
-grade76                                 0.0525***           0.1740***  
+Años aprobados 76&#39;                      0.0525***           0.1740***  
                                          (0.0028)            (0.0242)  
                                                                        
 -----------------------------------------------------------------------
@@ -3372,48 +3373,248 @@ F Statistic                     333.0018*** (df = 2; 3007)
 Note:                                       *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 </div>
 </div>
+<p>Note la diferencia que existe en el estimador IV. Al parecer estábamos <strong>sobreestimando</strong> el efecto que tiene la educación en el salario de los individuos.</p>
+<section id="estimación-del-estimador-iv-en-dos-etapas" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="estimación-del-estimador-iv-en-dos-etapas">Estimación del estimador IV en dos etapas</h2>
+<p>Miremos esto por fases o etapas<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> que consideramos importante en la estimación del modelo</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup> Son los comunmente conocidos Modelos 2LS (Two least Square) o Bi-etapicos.</p></div></div><section id="primera-etapa-regresión-ols-para-obtener-la-predicción" class="level3">
+<h3 class="anchored" data-anchor-id="primera-etapa-regresión-ols-para-obtener-la-predicción">Primera etapa: regresión OLS para obtener la predicción</h3>
+<p>Corremos un modelo donde se intenta explicar la educación con los controles sugeridos</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>first_stage <span class="ot">&lt;-</span> <span class="fu">lm</span>(grade76 <span class="sc">~</span> col4 <span class="sc">+</span> age76, <span class="at">data =</span> base.ed )</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>base.ed<span class="sc">$</span>grade76hat <span class="ot">&lt;-</span> <span class="fu">predict</span>(first_stage)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="estimación-del-estimador-iv-en-dos-etapas" class="level1">
-<h1>Estimación del estimador IV en dos etapas</h1>
 </section>
-<section id="primera-etapa-regresión-ols-para-obtener-la-predicción" class="level1">
-<h1>Primera etapa: regresión OLS para obtener la predicción</h1>
-<p>first_stage &lt;- lm(grade76 ~ col4 + age76, data = data) data$grade76hat &lt;- predict(first_stage)</p>
+<section id="segunda-etapa-regresión-ols-con-el-valor-predicho" class="level2">
+<h2 class="anchored" data-anchor-id="segunda-etapa-regresión-ols-con-el-valor-predicho">Segunda etapa: regresión OLS con el valor predicho</h2>
+<p>Estimamos el modelo pero con la educación estimada <span class="math inline">\((\hat{educ})\)</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ols_two_stage <span class="ot">&lt;-</span> <span class="fu">lm</span>(wage76 <span class="sc">~</span> grade76hat <span class="sc">+</span> age76, <span class="at">data =</span> base.ed)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftest</span>(ols_two_stage, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(ols_two_stage, <span class="at">type =</span> <span class="st">&quot;HC&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+              Estimate Std. Error t value  Pr(&gt;|t|)    
+(Intercept) -1.8195667  0.2742206 -6.6354 3.823e-11 ***
+grade76hat   0.1739731  0.0200007  8.6983 &lt; 2.2e-16 ***
+age76        0.0415634  0.0024976 16.6415 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+</div>
 </section>
-<section id="segunda-etapa-regresión-ols-con-el-valor-predicho" class="level1">
-<h1>Segunda etapa: regresión OLS con el valor predicho</h1>
-<p>ols_two_stage &lt;- lm(wage76 ~ grade76hat + age76, data = data) coeftest(ols_two_stage, vcov = vcovHC(ols_two_stage, type = “HC”))</p>
+<section id="repetir-el-análisis-con-más-controles" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="repetir-el-análisis-con-más-controles">Repetir el análisis con más controles</h2>
+<p>Recordemos que podemos adherir un número mayor de controles<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> sobre nuestra estimación. Para eso, primero crearemos una lista o <code>list</code>, eso con el objeto de no tener una formula muy larga en la línea de comandos. Luego usamos la función de <code>as.formula</code> y luego se corre.</p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup> El conjunto controles son muchas variables “categoricas” que contienen valores de 1 o 0, para aquellas caracteristicas de si vive en cierta region (reg), si vive el el sur (south76), si vive en área metropolitana. Con la opcion <code>View</code> estan mejor clarificadas</p></div></div><div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Crear una lista de variables independientes</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>regresores <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;south76&quot;</span>, <span class="st">&quot;smsa76&quot;</span>, <span class="st">&quot;reg2&quot;</span>, <span class="st">&quot;reg3&quot;</span>, <span class="st">&quot;reg4&quot;</span>, <span class="st">&quot;reg5&quot;</span>, <span class="st">&quot;reg6&quot;</span>, <span class="st">&quot;reg7&quot;</span>, <span class="st">&quot;reg8&quot;</span>, <span class="st">&quot;reg9&quot;</span>, <span class="st">&quot;smsa66&quot;</span>, <span class="st">&quot;momdad14&quot;</span>, <span class="st">&quot;sinmom14&quot;</span>, <span class="st">&quot;nodaded&quot;</span>, <span class="st">&quot;nomomed&quot;</span>, <span class="st">&quot;daded&quot;</span>, <span class="st">&quot;momed&quot;</span>, <span class="st">&quot;famed1&quot;</span>, <span class="st">&quot;famed2&quot;</span>, <span class="st">&quot;famed3&quot;</span>, <span class="st">&quot;famed4&quot;</span>, <span class="st">&quot;famed5&quot;</span>, <span class="st">&quot;famed6&quot;</span>, <span class="st">&quot;famed7&quot;</span>, <span class="st">&quot;famed8&quot;</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="do">## Acá los juntamos todos</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>formula <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;wage76 ~&quot;</span>, <span class="fu">paste</span>(regresores, <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>)))</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimamos el modelo con todos los controles</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>ols_model_controls <span class="ot">&lt;-</span> <span class="fu">lm</span>(formula, <span class="at">data =</span> base.ed)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftest</span>(ols_model_controls, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(ols_model_controls, <span class="at">type =</span> <span class="st">&quot;HC&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+t test of coefficients:
+
+              Estimate Std. Error t value  Pr(&gt;|t|)    
+(Intercept)  1.2428234  0.0857897 14.4869 &lt; 2.2e-16 ***
+south76     -0.1445395  0.0308281 -4.6886 2.875e-06 ***
+smsa76       0.1386612  0.0212900  6.5130 8.615e-11 ***
+reg2         0.0776287  0.0384625  2.0183 0.0436497 *  
+reg3         0.1197300  0.0367253  3.2601 0.0011261 ** 
+reg4         0.0529788  0.0429885  1.2324 0.2178982    
+reg5         0.0321178  0.0458129  0.7011 0.4833165    
+reg6         0.0256598  0.0486610  0.5273 0.5980128    
+reg7         0.0446355  0.0493165  0.9051 0.3654948    
+reg8        -0.0190857  0.0542837 -0.3516 0.7251694    
+reg9         0.1353619  0.0425367  3.1822 0.0014764 ** 
+smsa66       0.0424718  0.0207877  2.0431 0.0411282 *  
+momdad14     0.1519061  0.0276634  5.4912 4.326e-08 ***
+sinmom14     0.0192168  0.0395725  0.4856 0.6272796    
+nodaded     -0.0663376  0.0542202 -1.2235 0.2212431    
+nomomed      0.0035360  0.0378875  0.0933 0.9256489    
+daded        0.0080566  0.0048607  1.6575 0.0975265 .  
+momed        0.0156137  0.0045005  3.4693 0.0005292 ***
+famed1      -0.1584073  0.0868107 -1.8247 0.0681396 .  
+famed2      -0.0734555  0.0756583 -0.9709 0.3316846    
+famed3      -0.1117697  0.0696830 -1.6040 0.1088258    
+famed4       0.0677970  0.0477179  1.4208 0.1554828    
+famed5      -0.0754945  0.0672963 -1.1218 0.2620280    
+famed6      -0.0809125  0.0654690 -1.2359 0.2165971    
+famed7      -0.1272778  0.0695159 -1.8309 0.0672128 .  
+famed8      -0.0854991  0.0593577 -1.4404 0.1498580    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+</div>
+<section id="modelo-iv-con-más-controles" class="level3">
+<h3 class="anchored" data-anchor-id="modelo-iv-con-más-controles">Modelo IV con más controles</h3>
+<p>De la misma forma como se hizo anteriormente vamos a instrumentar nuestro modelo, haciendo uso de los instrumentos dispuestos para ello <span class="math inline">\(z=\{col4, age76\}\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>formula_iv <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;wage76 ~ grade76 +&quot;</span>, </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">paste</span>(regresores, <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>), </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;| col4 +&quot;</span>, </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">paste</span>(regresores, <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>)))</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajustar el modelo IV</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>iv_model_controls  <span class="ot">&lt;-</span> <span class="fu">ivreg</span>(formula_iv, <span class="at">data =</span> base.ed)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iv_model_controls, <span class="at">vcov =</span> sandwich)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+ivreg(formula = formula_iv, data = base.ed)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.82689 -0.27226  0.02088  0.28000  1.42205 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.408944   0.443146   0.923  0.35618    
+grade76      0.102552   0.053324   1.923  0.05455 .  
+south76     -0.131382   0.031430  -4.180    3e-05 ***
+smsa76       0.060411   0.046635   1.295  0.19528    
+reg2         0.037715   0.045200   0.834  0.40411    
+reg3         0.082576   0.043468   1.900  0.05757 .  
+reg4        -0.005886   0.055586  -0.106  0.91568    
+reg5         0.031876   0.047325   0.674  0.50064    
+reg6         0.030389   0.049921   0.609  0.54274    
+reg7         0.015680   0.052746   0.297  0.76627    
+reg8        -0.091339   0.067261  -1.358  0.17457    
+reg9         0.073415   0.054004   1.359  0.17411    
+smsa66       0.066245   0.024507   2.703  0.00691 ** 
+momdad14     0.104967   0.038218   2.747  0.00606 ** 
+sinmom14     0.008422   0.041196   0.204  0.83802    
+nodaded     -0.064221   0.057085  -1.125  0.26068    
+nomomed      0.029217   0.040729   0.717  0.47321    
+daded       -0.009247   0.010283  -0.899  0.36857    
+momed       -0.002514   0.010504  -0.239  0.81087    
+famed1      -0.287469   0.112147  -2.563  0.01042 *  
+famed2      -0.225740   0.111728  -2.020  0.04343 *  
+famed3      -0.202399   0.087057  -2.325  0.02014 *  
+famed4      -0.026049   0.068230  -0.382  0.70265    
+famed5      -0.139581   0.077837  -1.793  0.07304 .  
+famed6      -0.150518   0.077045  -1.954  0.05084 .  
+famed7      -0.173131   0.076272  -2.270  0.02328 *  
+famed8      -0.159091   0.071819  -2.215  0.02682 *  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.4274 on 2983 degrees of freedom
+Multiple R-Squared: 0.08057,    Adjusted R-squared: 0.07255 
+Wald test: 21.83 on 26 and 2983 DF,  p-value: &lt; 2.2e-16 </code></pre>
+</div>
+</div>
 </section>
-<section id="repetir-el-análisis-con-más-controles" class="level1">
-<h1>Repetir el análisis con más controles</h1>
-<p>exog_regressors &lt;- c(“black”, “south76”, “smsa76”, “reg2”, “reg3”, “reg4”, “reg5”, “reg6”, “reg7”, “reg8”, “reg9”, “smsa66”, “momdad14”, “sinmom14”, “nodaded”, “nomomed”, “daded”, “momed”, “famed1”, “famed2”, “famed3”, “famed4”, “famed5”, “famed6”, “famed7”, “famed8”) summary(data[c(“wage76”, “grade76”, “exp76”, “expsq76”, “col4”, “age76”, “agesq76”, exog_regressors)])</p>
 </section>
-<section id="modelo-ols-con-más-controles" class="level1">
-<h1>Modelo OLS con más controles</h1>
-<p>ols_model_controls &lt;- lm(wage76 ~ grade76 + ., data = data, subset = exog_regressors) coeftest(ols_model_controls, vcov = vcovHC(ols_model_controls, type = “HC”))</p>
 </section>
-<section id="modelo-iv-con-más-controles" class="level1">
-<h1>Modelo IV con más controles</h1>
-<p>iv_model_controls &lt;- ivreg(wage76 ~ grade76 + . | col4 + ., data = data, subset = exog_regressors) summary(iv_model_controls, vcov = sandwich)</p>
-</section>
-<section id="tabla-de-comparaciones-entre-ols-y-iv-con-más-controles" class="level1">
+<section id="tabla-de-comparaciones-entre-ols-y-iv-con-más-controles" class="level1 page-columns page-full">
 <h1>Tabla de comparaciones entre OLS y IV con más controles</h1>
-<p>stargazer(ols_model_controls, iv_model_controls, type = “text”, keep = c(“grade76”), digits = 4, dep.var.labels = “wage76”, covariate.labels = “grade76”)</p>
+<p>Una salida general a todo esto que hemos realizado nos da como resultado<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> un modelo en un formato de estilo mas científico</p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup> La sobreidentificación se hace con una prueba F, comparando dos tipos de modelos. Uno con todos los regresores y otro sin ellos, al ver la significancia podemos entonces concluir que no tenemos sobreidentificación.</p></div></div><div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(ols_model_controls, iv_model_controls, <span class="at">type =</span> <span class="st">&quot;text&quot;</span>, </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">keep =</span> <span class="fu">c</span>(<span class="st">&quot;grade76&quot;</span>), <span class="at">digits =</span> <span class="dv">4</span>, </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">dep.var.labels =</span> <span class="st">&quot;wage76&quot;</span>, <span class="at">covariate.labels =</span> <span class="st">&quot;grade76&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=================================================================
+                                 Dependent variable:             
+                    ---------------------------------------------
+                                       wage76                    
+                               OLS                instrumental   
+                                                    variable     
+                               (1)                    (2)        
+-----------------------------------------------------------------
+grade76                                             0.1026*      
+                                                    (0.0550)     
+                                                                 
+-----------------------------------------------------------------
+Observations                  3,010                  3,010       
+R2                            0.1570                 0.0806      
+Adjusted R2                   0.1499                 0.0726      
+Residual Std. Error     0.4092 (df = 2984)     0.4274 (df = 2983)
+F Statistic         22.2239*** (df = 25; 2984)                   
+=================================================================
+Note:                                 *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+</div>
+<section id="diagnóstico-de-instrumentos-débiles-correlación-y-regresión" class="level3">
+<h3 class="anchored" data-anchor-id="diagnóstico-de-instrumentos-débiles-correlación-y-regresión">Diagnóstico de instrumentos débiles: correlación y regresión</h3>
+<p>Para verificar relevancia de los instrumentos podemos estimar entonces</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(base.ed<span class="sc">$</span>grade76, base.ed<span class="sc">$</span>col4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1442402</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>first_stage_diagnostic <span class="ot">&lt;-</span> <span class="fu">lm</span>(grade76 <span class="sc">~</span> col4 <span class="sc">+</span> age76, <span class="at">data =</span> base.ed)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(first_stage_diagnostic)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = grade76 ~ col4 + age76, data = base.ed)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-11.6845  -1.5549  -0.5801   2.4325   5.3786 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 13.05037    0.43882  29.740  &lt; 2e-16 ***
+col4         0.83256    0.10379   8.021 1.49e-15 ***
+age76       -0.01262    0.01541  -0.819    0.413    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 2.65 on 3007 degrees of freedom
+Multiple R-squared:  0.02102,   Adjusted R-squared:  0.02037 
+F-statistic: 32.29 on 2 and 3007 DF,  p-value: 1.337e-14</code></pre>
+</div>
+</div>
+<p>La edad en el año 76 parece no ser relevante, sin embargo en conjunto y mirando la prueba F, podemos entonces decir que si es útil</p>
 </section>
-<section id="diagnóstico-de-instrumentos-débiles-correlación-y-regresión" class="level1">
-<h1>Diagnóstico de instrumentos débiles: correlación y regresión</h1>
-<p>cor(data<span class="math inline">\(grade76, data\)</span>col4) first_stage_diagnostic &lt;- lm(grade76 ~ col4 + age76, data = data) summary(first_stage_diagnostic)</p>
-</section>
-<section id="test-de-instrumentos-débiles-anderson-rubin-wald-test" class="level1">
-<h1>Test de instrumentos débiles (Anderson-Rubin Wald test)</h1>
-<p>iv_test &lt;- summary(iv_model_controls, vcov = sandwich) waldtest(iv_test)</p>
+<section id="test-de-instrumentos-débiles-anderson-rubin-wald-test" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="test-de-instrumentos-débiles-anderson-rubin-wald-test">Test de instrumentos débiles (Anderson-Rubin Wald test)</h2>
+<p>El test de Anderson-Rubin evalúa si los coeficientes de las variables instrumentales en la regresión auxiliar (donde las variables instrumentales se utilizan para predecir la variable endógena) son estadísticamente diferentes de cero. Si se rechaza la hipótesis nula, esto indica que los instrumentos son relevantes y, por lo tanto, no son débiles.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Del Paquete de AER</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">waldtest</span>(iv_model_controls)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Wald test
+
+Model 1: wage76 ~ grade76 + south76 + smsa76 + reg2 + reg3 + reg4 + reg5 + 
+    reg6 + reg7 + reg8 + reg9 + smsa66 + momdad14 + sinmom14 + 
+    nodaded + nomomed + daded + momed + famed1 + famed2 + famed3 + 
+    famed4 + famed5 + famed6 + famed7 + famed8 | col4 + south76 + 
+    smsa76 + reg2 + reg3 + reg4 + reg5 + reg6 + reg7 + reg8 + 
+    reg9 + smsa66 + momdad14 + sinmom14 + nodaded + nomomed + 
+    daded + momed + famed1 + famed2 + famed3 + famed4 + famed5 + 
+    famed6 + famed7 + famed8
+Model 2: wage76 ~ 1 | col4 + south76 + smsa76 + reg2 + reg3 + reg4 + reg5 + 
+    reg6 + reg7 + reg8 + reg9 + smsa66 + momdad14 + sinmom14 + 
+    nodaded + nomomed + daded + momed + famed1 + famed2 + famed3 + 
+    famed4 + famed5 + famed6 + famed7 + famed8
+  Res.Df  Df  Chisq Pr(&gt;Chisq)    
+1   2983                          
+2   3009 -26 512.74  &lt; 2.2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+</div>
+<p>Constatando que los instrumentos utilizados deben estar presente<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup> La sobreidentificación se hace con una prueba F, comparando dos tipos de modelos. Uno con todos los regresores y otro sin ellos, al ver la significancia podemos entonces concluir que no tenemos sobreidentificación.</p></div></div></section>
 </section>
 <section id="agradecimientos" class="level1">
 <h1>Agradecimientos</h1>
-<p>Mucho de este trabajo se debe a los articulos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.</p>
+<p>Mucho de este trabajo se debe a los artículos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.</p>
 <p><strong>Carlos Yanes Guerra | Departamento de Economía | Universidad del Norte</strong></p>
-<p>estimatr</p>
 </section>
+
 
 </main>
 <!-- /main column -->
