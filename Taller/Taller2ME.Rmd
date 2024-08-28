@@ -1,0 +1,101 @@
+---
+title: "Maestría en Economía: Econometría"
+subtitle: "Modelos DID y PSM"
+author:
+  name: Carlos A. Yanes Guerra
+  affiliation: Universidad del Norte | Departamento de Economía
+# date: "`r format(Sys.time(), '%d %B %Y')`" ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    css: css/preamble.css ## For multi-col environments
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+    # fig_width: 7 ## Optional: Set default PDF figure width
+    # fig_height: 6 ## Optional: Set default PDF figure height
+    extra_dependencies: ['booktabs', 'threeparttable', 'float', 'longtable'] # 
+    includes:
+      in_header: tex/preamble.tex ## For multi-col environments
+    pandoc_args:
+        --template=tex/mytemplate.tex ## For affiliation field. See: https://bit.ly/2T191uZ
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, dpi=300, fig.align = "center")
+```
+
+## Descripción
+El ejercicio consiste en analizar el impacto de una **política de salud** orientada a población de escasos recursos. El principal objetivo de este programa es *reducir el gasto* de hogares de bajo ingreso en zonas rurales, en temas relacionados con la salud. Un piloto se ha efectuado en varias comunidades, y se le ha solicitado a usted evaluar si realmente ha generado una reducción en los gastos monetarios en salud (OPHE) por parte de las familias beneficiarias.
+
+Usted utilizará una base de datos llamada “basefinal.dta” para conducir el análisis. Una descripción detallada del contendido de la base de datos se presenta a continuación:
+
+1.	**Variable de Resultado**:
+a.	ophe = gastos monetarios en salud (por las siglas de “out of pocket health expenditure”). Valores mensuales per capita.
+2.	**Variables de Controles**:
+a.	Características del jefe de hogar y conyugue:
+i.	age_hh = edad del jefe de hogar (años)
+ii.	age_sp = edad del conyugue (años)
+iii. educ_hh = años de educación del jefe de hogar
+iv.	educ_sp = años de educación del conyugue
+v.	ethnicity_hh = 1 si el jefe de hogar habla una lengua indígena.
+vi.	female_hh = 1 si el jefe de hogar es mujer.
+b.	**Características del entorno**:
+i.	hhsize_basal = tamaño del hogar (al momento de la línea base)
+ii.	dirtfloor_basal = 1 si hay piso de tierra en la vivienda (al momento de la línea base)
+iii.	bathroom_basal = 1 si hay baño privado en la vivienda (al momento de la línea base)
+iv.	landhectars_basal = Numero de hectáreas de la población (al momento de la línea base)
+v.	min_dist = distancia entre la población y el hospital más cercano.
+3.	**Otras variables**:
+a.	local = identificador de la localidad
+b.	hhid = identificador del hogar
+c.	round = ronda de encuesta (0= línea base; 1 = seguimiento 1)
+d.	takeup = 1 si la familia participó en el programa
+e.	eligible = 1 si la familia era elegíble en participar en el programa
+f.	treatcom = 1 si la comunidad hacia parte del piloto
+g.	score = índice de pobreza (Familia es elegible si <=750)
+
+# Preguntas para DID (Calificación parte A)
+
+Explore la base de datos para familiarizarse con las variables, y la estructura que tienen los datos.
+
+1.	Describa las estadísticas descriptivas de las variables en la línea base (numero de observaciones, promedio, desviación estándar, intervalos de confianza)
+
+2.	Genere una nueva variable que capture la diferencias en los gastos monetarios en salud entre la línea base (round =0) y el primer seguimiento (round = 1). Llame a esta nueva variable “delta_ophe”.
+
+3.	Estime el impacto del programa utilizando la fórmula tradicional de diferencias en diferencias. Es decir, mediante la diferencia entre el cambio promedio de ophe entre los tratados y los no tratados.
+
+4.	Ejecute una regresión de mínimos cuadrados ordinarios para estimar el efecto del programa sobre la variable de resultado (ophe). Muestre que el estimador calculado de esta forma, es equivalente al obtenido en el punto 3.
+
+5. Hubo efecto del programa?
+
+# Preguntas para PSM (Calificación parte B)
+
+Como alternativa a las estimaciones que hemos hecho anteriormente, usted debe utilizar el método de emparejamiento para comparar el grupo de hogares participantes con los no participantes del programa. Para este caso, utilice únicamente las comunidades consideradas en el piloto para su análisis (treatcom =1) y la información proveniente del primer seguimiento (round ==1)
+
+1.	Estime la probabilidad de participar en el programa (pscore) a partir de las características observables de los participantes y no participantes (use un modelo probit).
+
+2.	Grafique las distribuciones del soporte común para los hogares participantes y los no participantes. Tenga presente el overlaping. ¿Existen observaciones por fuera del soporte común? *discuta*
+
+3.	Estime el efecto del programa usando emparejamiento.
+
+4.	Despues de realizado lo anterior ¿Qué posibles sesgos pueden existir?
