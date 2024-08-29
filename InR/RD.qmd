@@ -1,0 +1,271 @@
+---
+title: "Regresión Discontinua"
+subtitle: "Maestría en Economía Uninorte"
+author: "Carlos Andrés Yanes"
+date: "2024-08-30"
+format:
+    pdf: default
+    html: 
+      self-contained: true
+      grid: 
+        margin-width: 350px
+execute: 
+  warning: false
+reference-location: margin
+citation-location: margin
+bibliography: refs.bib
+---
+
+# Preambulo
+
+## Introducción a la Regresión Discontinua
+
+La regresión discontinua es un método cuasi-experimental utilizado para identificar efectos causales de un tratamiento. Se basa en cortes (*cutoff*) que surgen por ley o por diseño y que implican una discontinuidad en la implementación del tratamiento, definido a lo largo de alguna variable llamada la "variable de corte".
+
+El método funciona al comparar observaciones que se extienden estrechamente a ambos lados del umbral o punto de corte, permitiendo estimar el efecto promedio del tratamiento en entornos donde la aleatorización era inviable. La intuición detrás de la regresión discontinua se ilustra bien con la evaluación de becas basadas en mérito, donde el principal problema es la endogeneidad de la asignación.
+
+Existen dos tipos principales de regresión discontinua:
+
+- **Sharp**: La probabilidad de recibir el tratamiento pasa de 0 a 1 en la discontinuidad.
+- **Fuzzy**: La probabilidad de recibir el tratamiento cambia abruptamente en la discontinuidad, pero no pasa de 0 a 1 debido a la posibilidad de "always-takers" y "never-takers".
+
+La regresión discontinua se ha vuelto cada vez más popular en los últimos años para evaluar efectos causales de intervenciones en diversas disciplinas como estadística, econometría, ciencia política y epidemiología. Es un método útil para la evaluación de políticas públicas, permitiendo analizar sus efectos a corto, mediano y largo plazo.
+
+::: callout-warning
+## Clave!
+La regresión discontinua tiene mayor desarrollo. Este material es meramente académico e introductorio ha sido brindado por el Profesor Colin Cameron de la Universidad de Duke. Todos los creditos son para él.
+:::
+
+# Datos
+* Datos originales rdsenate.dta  
+* Son propiedad de Sebastian Calonico, Matias Cattaneo, Max Farrell, and Rocao Titiunik (2017), 
+* El paper se denomina "Rdrobust: Software for Regression-discontinuity Designs," The Stata Journal, 17(2), pages 372-404.
+
+## Limpiando el Environment de R
+
+Siempre es bueno limpiar el entorno de R. Esto se hace con el objeto de no cometer fallos o errores por uso de una data adicional que no se requiera por el momento
+
+```{r}
+rm(list = ls())
+```
+
+## Preparación del entorno para ejecución
+
+Vamos a cargar un par de paquetes de una vez con la opción de `pacman()` y añadiremos `huxtable` que sirve para darle estilo a las salidas de las regresiones inclusive a html
+
+```{r}
+library(pacman)
+p_load(lmtest, foreign, haven, tidyverse, stargazer, dplyr, estimatr, ggplot2, sandwich, huxtable)
+```
+
+### Cargar la base de datos
+La aplicación es para las elecciones al Senado de EE.UU. desde 1914 hasta 2010. La variable de asignación es el margen de victoria del Partido Demócrata en un escaño del Senado en el año $t$, y la variable de resultado es la proporción de votos del Partido Demócrata en la elección subsecuente para el mismo escaño, una elección que generalmente ocurre en el año $t+2$. La hipótesis en consideración es que existe una ventaja del incumbente, por lo que una victoria (derrota) ajustada en una elección probablemente conduzca a una victoria (derrota) en la elección subsecuente.
+
+```{r}
+base.sen <- read_dta("incumbency.dta")
+head(base.sen)
+```
+
+### Etiquetas
+
+La base de datos contiene los siguientes elementos:
+
+| Variable       | Almacenamiento | Visualización | Valor | Etiqueta de Variable                         |
+|----------------|----------------|---------------|-------|---------------------------------------------|
+| state          | float          | %9.0g         |       | ID del Estado                                |
+| year           | float          | %10.0g        |       | Año de Elección                              |
+| vote           | float          | %9.0g         |       | Proporción de votos demócratas en la próxima elección |
+| margin         | float          | %9.0g         |       | Margen de victoria demócrata                 |
+| class          | float          | %9.0g         |       | Clase del Senado                             |
+| termshouse     | int            | %54.0g        |       | Número acumulado de mandatos servidos en la Cámara de Representantes de EE.UU. por el congreso en funciones |
+| termssenate    | int            | %53.0g        |       | Número acumulado de mandatos servidos en el Senado de EE.UU. por el congreso en funciones |
+| population     | long           | %10.0g        |       | Población del Estado                         |
+| win            | float          | %9.0g         |       | = 1 si el margen > 0                        |
+
+## Tabla estadistica 
+Siempre se hace indispensable el análisis estadistico de la base de datos que se tiene. 
+
+```{r}
+base.sen %>%
+  dplyr::select(margin, vote, win)%>%
+  summary() 
+```
+
+### Grafico de entrada
+
+Si tenemos continuidad, es posible graficar el conjunto de datos y con ello mirar su comportamiento.
+
+```{r}
+# Gráfico
+ggplot(base.sen, aes(x = margin, y = vote)) +
+  geom_point(size = 0.5) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "blue") +
+  labs(title = "Resultados de las elecciones al congreso",
+       y = "Votos en la primera elección",
+       x = "Margen de Victoria en la elección inicial") +
+  theme_minimal()
+```
+
+### Gráfico Sharp en RDD
+Cuando se ha definido un punto de corte, empieza la parte para definir que grupo será tomado como <span style="color: red;">**Tratado** </span>vy quien como **Control**
+```{r}
+ggplot(base.sen, aes(x = margin, y = vote)) +
+  geom_point(size = 0.5) +
+  geom_smooth(data = filter(base.sen, margin < 0), method = "lm", formula = y ~ poly(x, 2), color = "blue") +
+  geom_smooth(data = filter(base.sen, margin > 0), method = "lm", formula = y ~ poly(x, 2), color = "red") +
+  geom_vline(xintercept = 0) +
+  labs(title = "Efecto del tratamiento de RDD",
+       y = "Votos en la primera elección",
+       x = "argen de Victoria en la elección inicial") +
+  theme_minimal()
+```
+
+En un diseño sharp, el tratamiento se asigna de manera clara y sin ambigüedad en función de la variable de corte. No hay excepciones: todos los que están por encima del umbral reciben el tratamiento, y todos los que están por debajo no lo reciben.
+
+### Regresion de polinomio
+Crearemos un par de variables adicionales (al cuadrado) para mirar los efectos de forma funcional y estimar el modelo y analizar
+
+```{r}
+base.sen <- base.sen %>%
+  mutate(winmarg = win * margin,
+         marginsq = margin^2,
+         winmargsq = win * marginsq)
+
+model_quad <- lm(vote ~ win + margin + marginsq + winmarg + winmargsq, data = base.sen)
+coeftest(model_quad, vcov = vcovHC(model_quad, type = "HC1"))
+```
+Note que al parecer si hay un **efecto** de los individuos que han sido tratados sobre los controles. Aquellos que definitivamente ganan la primera elección tienden a tener un margen muy considerable de ser elegidos en la próxima elección.
+
+::: callout-note
+## Pendiente
+La estipulación del punto de corte hace muy similares a individuos que definitivamente ganaron por poco en comparación con aquellos que perdieron la elección tambien por muy poco.
+:::
+
+### Estimación de modelo simple
+Si miramos un modelo sin las co-variables, podriamos tener un acercamiento como:
+
+```{r}
+model_notreat <- lm(vote ~ margin, data = base.sen)
+coeftest(model_notreat, vcov = vcovHC(model_notreat, type = "HC1"))
+```
+Sin ninguno de los controles pero siendo un modelo robusto (por el tratamiento de los errores), Tenemos tambien un efecto pero algo menor.
+
+### Modelo lineal
+Pondremos ahora a prueba asumiendo que la relación es lineal, un modelo de tipo:
+
+```{r}
+model_linear <- lm(vote ~ win + margin, data = base.sen)
+coeftest(model_linear, vcov = vcovHC(model_linear, type = "HC1"))
+```
+Seguimos teniendo efecto y positivo.
+
+### Otros tipo de regresión 
+
+Podemos aprovechar y de acuerdo a las distintas formas funcionales o $f(x)$ de la distribución de selección podemos mirar lo siguiente:
+
+```{r}
+# Incluyendo una interacción
+model_sepquad <- lm(vote ~ win + margin + marginsq + winmarg + winmargsq, data = base.sen)
+coeftest(model_sepquad, vcov = vcovHC(model_sepquad, type = "HC1"))
+```
+
+### Un modelo mas
+
+Cuando se miran las observaciones[^1] tenemos que considerar que no hay efecto alguno, esto porque se esta moviendo el umbral 
+
+[^1]: Se esta filtrando por cutoff menor a 25 el margen va ser negativo y por ello hay que corregir por valor absoluto
+
+```{r}
+model_local <- lm(vote ~ win + margin + marginsq + winmarg + winmargsq, data = filter(base.sen, abs(margin) < 25))
+coeftest(model_local, vcov = vcovHC(model_local, type = "HC1"))
+```
+
+
+## Modelo con errores robustos tipo cluster
+Los <u>errores estándar robustos clusterizados</u> ajustan tanto para la heterocedasticidad como para la correlación dentro de los clusters. Permiten que los errores estén correlacionados dentro de los clusters (por ejemplo, empresas, escuelas) pero asumen *independencia* entre los clusters. Esto proporciona estimaciones más precisas de los *errores estándar*, reflejando adecuadamente la estructura de dependencia en los datos.
+
+```{r}
+model_localclu <- lm(vote ~ win + margin + marginsq + winmarg + winmargsq, data = filter(base.sen, abs(margin) < 25))
+coeftest(model_localclu, vcov = vcovCL(model_localclu, cluster = ~state))
+```
+Acá ambos grupos al parecer son similares y no existe diferencia en efecto por ellos.
+
+Usamos el paquete de `Stargazer` para darle propiedad y hablar de alguna comparación si existe en alguno de los modelos.
+
+```{r}
+# Extraer los errores estandar de cada modelo
+se_notreat <- coeftest(model_notreat, vcov = vcovHC(model_notreat, type = "HC1"))[, "Std. Error"]
+se_linear <- coeftest(model_linear, vcov = vcovHC(model_linear, type = "HC1"))[, "Std. Error"]
+se_sepquad <- coeftest(model_sepquad, vcov = vcovHC(model_sepquad, type = "HC1"))[, "Std. Error"]
+se_local <- coeftest(model_local, vcov = vcovHC(model_local, type = "HC1"))[, "Std. Error"]
+se_localclu <- coeftest(model_localclu, vcov = vcovCL(model_localclu, cluster = ~state))[, "Std. Error"]
+
+## Etiquetas
+models <- list(
+  "No tratamiento" = model_notreat,
+  "Modelo lineal" = model_linear,
+  "Tratamiento cuadrático" = model_sepquad,
+  "LATE  " = model_local,
+  "LATE con cluster" = model_localclu
+)
+
+# Prepare the list of standard errors for huxreg
+se_list <- list(
+  se_notreat,
+  se_linear,
+  se_sepquad,
+  se_local,
+  se_localclu
+)
+
+# Combine models and standard errors into huxreg
+huxreg_output <- huxreg(
+  models,
+  coefs = c("win" = "win", "margin" = "margin", "marginsq" = "marginsq", 
+            "winmarg" = "winmarg", "winmargsq" = "winmargsq", "(Intercept)" = "(Intercept)"),
+  statistics = c(N = "nobs", R2 = "r.squared"),
+  error_pos = "below",
+  robust_se = se_list
+)
+
+print(huxreg_output)
+
+## Opcion de html externo 
+#quick_html(huxreg_output, file = "regression_table.html")
+
+```
+
+### Aclarando los efectos
+
+ATE: Responde a la pregunta "¿Cuál es el efecto promedio del tratamiento si pudiéramos asignarlo aleatoriamente a toda la población?"
+
+LATE: Responde a la pregunta "¿Cuál es el efecto promedio del tratamiento para aquellos individuos cuya decisión de tratamiento fue afectada por la variable instrumental?"
+
+Encontramos que los efectos son significativos hasta el 95% de significancia para los modelos donde estamos suponiendo que exista aleatorización. Cuando miramos el LATE vemos que no es así. Lo que podria finalmente significar que en los periodos electorales podrian haber casos excepcionales incluso o candidatos que perdieron antes pero en una futura logran ser los ganadores o alcanzar un nivel mas alto en utilidad/bienestar si se tratara de un programa social.
+
+:::callout-warning
+## Cuidado
+**LATE**: Relaja el supuesto de que todos pueden ser tratados o no tratados y se basa en una variable instrumental que afecta la probabilidad de recibir el tratamiento pero no directamente los resultados, excepto a través del tratamiento.
+:::
+
+# Test de McCreary
+
+El test de McCrary es esencial para validar la integridad de los resultados en la **regresión discontinua**, asegurando que los resultados no están sesgados por una selección inadecuada o manipulación en la variable de asignación cerca del umbral.
+
+```{r}
+# Kernel density plot
+ggplot(base.sen, aes(x = margin)) +
+  geom_density(kernel = "rectangular", adjust = 3) +
+  geom_vline(xintercept = 0) +
+  labs(title = "Checkeo de RDD",
+       x = "Margin of victory at initial election") +
+  theme_minimal()
+
+```
+
+Por lo pronto se cumple el supuesto!!. El test de McCrary se convierte em una prueba diagnóstica utilizada en el contexto de los diseños de discontinuidad de regresión o RDD para evaluar si hay manipulación en la variable de corte (o running variable). En un RDD, se asume que los individuos no pueden manipular precisamente su posición respecto al umbral de tratamiento.
+
+# Agradecimientos
+Mucho de este trabajo se debe a los artículos, recursos (free commons) y material del Profesor Colin Cameron, autor del libro: Microeconometrics Using Stata.
+
+**Carlos Yanes Guerra | Departamento de Economía | Universidad del Norte**
