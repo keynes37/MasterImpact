@@ -29,6 +29,11 @@ A course in econometrics lectures focus on quantitative methods and impact evalu
 
 [R DID](https://keynes37.github.io/MasterImpact/InR/DID2.html)
 
+[R IV](https://keynes37.github.io/MasterImpact/InR/IV.html)
+
+[R RDD](https://keynes37.github.io/MasterImpact/InR/RD.html)
+
+
 ### Talleres
 
 [Taller 1](https://keynes37.github.io/MasterImpact/Taller/Taller1ME.html)
